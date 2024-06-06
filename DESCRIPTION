@@ -1,0 +1,26 @@
+Package: inflationinequality
+Title: Calculate Inflation Inequality Indicators
+Version: 0.0.1
+Authors@R: c(
+    person(given = "Jeremi",
+           family = "Montornes",
+           role = c("aut", "cre"),
+           email = "Jeremi.Montornes@banque-france.fr"),
+    person(given = "Pradana",
+           family = "Aumars",
+           role = c("aut"),
+           email = "Pradana.Aumars@banque-france.fr"))
+Description: An R package that can calculate inflation inequality indicators in
+    Eurozone countries using publicly available economic data.
+License: use_apache_license()
+Imports:
+    rdbnomics,
+    dplyr,
+    stringr,
+    lubridate,
+    insee
+Encoding: UTF-8
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.1
