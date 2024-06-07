@@ -4,7 +4,7 @@ options(rdbnomics.use_readLines = TRUE)
 #' Load CPI data
 #'
 #' @param country 2-digit ISO country (1 country allowed currently)
-#' @importFRom dplyr %>%
+#' @importFrom dplyr %>%
 #' @export
 load_cpi <- function(country, level) {
     rdb_mask <- stringr::str_c("M.I05..", country)
@@ -21,7 +21,7 @@ load_cpi <- function(country, level) {
 
 #' Load product weights
 #'
-#' @importFRom dplyr %>%
+#' @importFrom dplyr %>%
 #' @export
 load_weights <- function(country, level) {
     rdb_mask <- stringr::str_c("A..", country)
