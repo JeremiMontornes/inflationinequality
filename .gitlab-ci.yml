@@ -1,0 +1,23 @@
+image: rocker/rstudio
+
+stages:          # List of stages for jobs, and their order of execution
+  - test
+  - install
+
+check-job:
+  stage: test
+  script:
+    # run the R CMD check on the package
+    - R CMD check ./ --no-manual
+
+unit-test-job:   # This job runs in the test stage.
+  stage: test    # It only starts when the job in the build stage completes successfully.
+  script:
+    # run the devtools test
+    - R -e 'devtools::test()'
+
+install-job:
+  stage: install
+  script:
+    # install the package
+    - R -e 'devtools::install()' 
