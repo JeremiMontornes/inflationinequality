@@ -13,8 +13,8 @@ load_cpi <- function(country, level) {
         dplyr::filter(period>"2020-12-01") %>%
         select_coicop_level(level) %>%
         dplyr::mutate(year=lubridate::year(period)) %>%
-        dplyr::rename(yearmonth=original_period) %>%
-        dplyr::select(series_name, coicop, value, year, yearmonth)
+        dplyr::mutate(month=lubridate::month(period)) %>%
+        dplyr::select(series_name, coicop, value, year, month)
 
     return(dt_prod_FR)
 }

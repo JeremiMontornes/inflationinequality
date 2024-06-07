@@ -6,13 +6,13 @@ test_that("CPI data formatted as data.table", {
 test_that("loading French CPI data", {
     dt <- load_cpi("FR", 3)
     expect_equal(colnames(dt), c("series_name", "coicop", "value",
-                                 "year", "yearmonth"))
+                                 "year", "month"))
 })
 
 test_that("loading German CPI data", {
     dt <- load_cpi("DE", 3)
     expect_equal(colnames(dt), c("series_name", "coicop", "value",
-                                 "year", "yearmonth"))
+                                 "year", "month"))
 })
 
 test_that("HBS data formatted as data.table", {
