@@ -55,14 +55,6 @@ load_hbs <- function(country, level) {
             dplyr::rename(quantile=DECUC) %>%
             dplyr::rename(consumption=CONSO) %>%
             dplyr::filter(stringr::str_length(coicop) == level+1)
-
-        # df_hbs_FR  <- read_xlsx("//adbdf.private/applications/AU_AMIC/LPR_2022_SAMIC/Programme/TF106_3digit.xlsx",
-        #                            col_types =c("text","text","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric")) %>%
-        #     dplyr::rename(coicop=IDENT) %>%
-        #     dplyr::rename(quantile=DECUC) %>%
-        #     dplyr::select(!Regroupement) %>%
-        #     dplyr::filter(stringr::str_length(coicop) == 3+1) %>%
-        #     dplyr::mutate(country="FR", .before = coicop)
     }
     else {
         rdb_mask <- stringr::str_c("A.PM...", country)
