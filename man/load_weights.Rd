@@ -4,7 +4,7 @@
 \alias{load_weights}
 \title{Load product weights}
 \usage{
-load_weights()
+load_weights(country, level)
 }
 \description{
 Load product weights

@@ -4,7 +4,10 @@
 \alias{load_cpi}
 \title{Load CPI data}
 \usage{
-load_cpi()
+load_cpi(country, level)
+}
+\arguments{
+\item{country}{2-digit ISO country (1 country allowed currently)}
 }
 \description{
 Load CPI data
