@@ -2,10 +2,37 @@
 % Please edit documentation in R/load_data.R
 \name{load_weights}
 \alias{load_weights}
-\title{Load product weights}
+\title{Download annual index weights data}
 \usage{
-load_weights(country, level)
+load_weights(country, level = 2, start_year = NULL, end_year = NULL)
+}
+\arguments{
+\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+
+\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+
+\item{start_year}{Year of start date. Default value is NULL.}
+
+\item{end_year}{Year of end date. Default value is NULL.}
+}
+\value{
+A `data.table` object.
 }
 \description{
-Load product weights
+`load_weights()` downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
+
+The data is formatted as `data.table` with following columns:
+* `coicop` (`chr`)
+* `weight` (`num`)
+* `year` (`num`)
+}
+\examples{
+dt_weights <- load_weights("FR")
+dt_weights <- load_weights("DE", level = 1)
+dt_weights <- load_weights("IT", level = 1, start_year = 2020, end_year = 2022)
+dt_weights <- load_weights("ES", level = 1, end_year = 2023)
+
+}
+\seealso{
+[load_cpi()]
 }

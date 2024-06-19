@@ -2,18 +2,43 @@
 % Please edit documentation in R/load_data.R
 \name{load_hbs}
 \alias{load_hbs}
-\title{Load HBS (2020 only for now)
-Note: If we want France with COICOP level 3, we need to use INSEE
-INSEE cannot be accessed from proxy
-Also, Germany suffers the same problem on Eurostat, as well as Italy
-quantile are strings that are either numbers "1" to "10" or "TOT"}
+\title{Download HBS (Household Budget Survey) data}
 \usage{
-load_hbs(country, level)
+load_hbs(country, category, level = 2, start_year = NULL, end_year = NULL)
+}
+\arguments{
+\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+
+\item{category}{HBS data by category: `"income"`, `"age"`, `"urban"`}
+
+\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+
+\item{start_year}{Year of start date. Default value is NULL.}
+
+\item{end_year}{Year of end date. Default value is NULL.}
+}
+\value{
+A `data.table` object.
 }
 \description{
-Load HBS (2020 only for now)
-Note: If we want France with COICOP level 3, we need to use INSEE
-INSEE cannot be accessed from proxy
-Also, Germany suffers the same problem on Eurostat, as well as Italy
-quantile are strings that are either numbers "1" to "10" or "TOT"
+`load_hbs()` downloads HBS data from Eurostat's databases via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period and a demographic category must also be specified.
+
+Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call `load_hbs("FR", category = "income", level = 3, start_year = 2017)`.
+}
+\details{
+Given the same parameters (except category),
+
+The data is formatted as `data.table` with following columns:
+* `series_name` (`chr`)
+* `coicop` (`chr`)
+* `year` (`num`)
+* `category` (`chr`)
+* `consumption` (`num`)
+}
+\examples{
+dt_hbs <- load_hbs("FR", "income")
+dt_hbs <- load_hbs("DE", "age", level = 1)
+dt_hbs <- load_hbs("IT", "urban", start_year = 2020, end_year = 2022)
+dt_hbs <- load_hbs("ES", "income", level = 1, end_year = 2023)
+
 }

@@ -2,13 +2,50 @@
 % Please edit documentation in R/load_data.R
 \name{load_cpi}
 \alias{load_cpi}
-\title{Load CPI data}
+\title{Downloads monthly CPI (Consumer Price Index) data}
 \usage{
-load_cpi(country, level)
+load_cpi(
+  country,
+  level = 2,
+  start_year = NULL,
+  start_month = NULL,
+  end_year = NULL,
+  end_month = NULL
+)
 }
 \arguments{
-\item{country}{2-digit ISO country (1 country allowed currently)}
+\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+
+\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+
+\item{start_year}{Year of start date. Default value is NULL.}
+
+\item{start_month}{Month of start date. Default value is NULL.}
+
+\item{end_year}{Year of end date. Default value is NULL.}
+
+\item{end_month}{Month of end date. Default value is NULL.}
+}
+\value{
+A `data.table` object.
 }
 \description{
-Load CPI data
+`load_cpi()` downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
+
+The data is formatted as `data.table` with following columns:
+* `series_name` (`chr`)
+* `coicop` (`chr`)
+* `value` (`num`)
+* `year` (`num`)
+* `month` (`num`)
+}
+\examples{
+dt_cpi <- load_cpi("FR")
+dt_cpi <- load_cpi("DE")
+dt_cpi <- load_cpi("IT", level = 1, start_year = 2020, end_year = 2022)
+dt_cpi <- load_cpi("ES", level = 1, end_year = 2023)
+
+}
+\seealso{
+[load_weights()]
 }
