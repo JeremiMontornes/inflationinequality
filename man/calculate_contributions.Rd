@@ -14,6 +14,36 @@ calculate_contributions(
   end_month = NULL
 )
 }
+\arguments{
+\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+
+\item{category}{Category for which to calculate contributions: "income", "age", "urban"}
+
+\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+
+\item{start_year}{Year of start date. Default value is NULL.}
+
+\item{start_month}{Month of start date. Default value is NULL.}
+
+\item{end_year}{Year of end date. Default value is NULL.}
+
+\item{end_month}{Month of end date. Default value is NULL.}
+}
+\value{
+A \code{data.table} object containing the calculated contributions.
+}
 \description{
-Calculate inflation contributions
+\code{calculate_contributions()} computes the contributions to inflation for different COICOP categories over time. It uses CPI (Consumer Price Index) data and weighted consumption data to calculate these contributions. The function handles data for multiple years, accounting for changes in weights and price indices.
+
+The function returns a \code{data.table} with the following columns:
+\itemize{
+\item \code{year} (\code{num}): The year of the contribution
+\item \code{coicop} (\code{chr}): The COICOP code
+\item \code{month} (\code{num}): The month of the contribution
+\item \code{category} (\code{chr}): The category (e.g., income group, age group, urban/rural)
+\item \code{contribution} (\code{num}): The calculated contribution to inflation
+}
+}
+\seealso{
+\code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}
 }

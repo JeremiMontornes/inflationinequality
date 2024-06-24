@@ -1,5 +1,26 @@
 #' Calculate inflation contributions
 #'
+#' @description
+#' `calculate_contributions()` computes the contributions to inflation for different COICOP categories over time. It uses CPI (Consumer Price Index) data and weighted consumption data to calculate these contributions. The function handles data for multiple years, accounting for changes in weights and price indices.
+#'
+#' The function returns a `data.table` with the following columns:
+#' * `year` (`num`): The year of the contribution
+#' * `coicop` (`chr`): The COICOP code
+#' * `month` (`num`): The month of the contribution
+#' * `category` (`chr`): The category (e.g., income group, age group, urban/rural)
+#' * `contribution` (`num`): The calculated contribution to inflation
+#'
+#' @param country ISO 3166-1 alpha-2 (2 digit) country code.
+#' @param category Category for which to calculate contributions: "income", "age", "urban"
+#' @param level COICOP level. Default value is 2. Possible values are 1-3.
+#' @param start_year Year of start date. Default value is NULL.
+#' @param start_month Month of start date. Default value is NULL.
+#' @param end_year Year of end date. Default value is NULL.
+#' @param end_month Month of end date. Default value is NULL.
+#' @returns A `data.table` object containing the calculated contributions.
+#' @seealso [load_cpi()], [calculate_weights()]
+#' @importFrom data.table :=
+#' @export
 calculate_contributions <- function(country, category, level = 2,
                                     start_year = NULL, start_month = NULL,
                                     end_year = NULL, end_month = NULL) {
