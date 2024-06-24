@@ -18,7 +18,7 @@ test_that("CPI data is non-empty", {
 })
 
 test_that("CPI data COIcOP codes only contain digits", {
-  expect_true(all(grepl('^\\d+$', dt_cpi_fr$coicop)))
+  expect_true(all(grepl("^\\d+$", dt_cpi_fr$coicop)))
 })
 
 test_that("loading French CPI data", {
@@ -125,7 +125,7 @@ test_that("weights data is non-empty", {
 })
 
 test_that("weights data COIcOP codes only contain digits", {
-  expect_true(all(grepl('^\\d+$', dt_weights_fr$coicop)))
+  expect_true(all(grepl("^\\d+$", dt_weights_fr$coicop)))
 })
 
 test_that("loading French weights data", {
