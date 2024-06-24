@@ -1,7 +1,7 @@
 #' Merge CPI weight and HBS consumption data
 #'
 #' @description
-#' `calculate_weighted_consumption()` merges (annual) CPI weight data with HBS consumption data by the most recent HBS wave and by COICOP code. If there is no HBS wave earlier than a CPI weight datapoint than we merge with the earliest possible HBS wave. For example, CPI weight data from 2015 to 2019 will be merged with the 2015 HBS wave, CPI weight data from 2020 will be mergerd with the 2020 HBS wave. The earliest French HBS wave is from 2005, therefore all French CPI weight data upto 2009 will be merged with the 2005 French HBS wave.
+#' `calculate_weights()` merges (annual) CPI weight data with HBS consumption data by the most recent HBS wave and by COICOP code. If there is no HBS wave earlier than a CPI weight datapoint than we merge with the earliest possible HBS wave. For example, CPI weight data from 2015 to 2019 will be merged with the 2015 HBS wave, CPI weight data from 2020 will be mergerd with the 2020 HBS wave. The earliest French HBS wave is from 2005, therefore all French CPI weight data upto 2009 will be merged with the 2005 French HBS wave.
 #'
 #' The data is formatted as `data.table` with following columns:
 #' * `series_name` (`chr`)
@@ -16,13 +16,13 @@
 #' @param start_year Year of start date. Default value is NULL.
 #' @param end_year Year of end date. Default value is NULL.
 #' @returns A `data.table` object.
-#' @seealso [load_weights(), load_hbs()]
+#' @seealso [load_index_weights(), load_hbs()]
 #' @importFrom data.table :=
 #' @export
-calculate_weighted_consumption <- function(country, category, level = 2,
+calculate_weights <- function(country, category, level = 2,
                                            start_year = NULL, end_year = NULL) {
   # Download data
-  dt_weights <- load_weights(country,
+  dt_weights <- load_index_weights(country,
     level = level,
     start_year = start_year, end_year = end_year
   )
