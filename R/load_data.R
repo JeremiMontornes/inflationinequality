@@ -178,19 +178,9 @@ load_hbs <- function(country, category, level = 2,
           grouping_mark = " "
         ),
         col_types = readr::cols(
+          .default = readr::col_number(),
           "IDENT" = readr::col_character(),
-          "Regroupement" = readr::col_character(),
-          "Ensemble" = readr::col_number(),
-          "Décile1" = readr::col_number(),
-          "Décile2" = readr::col_number(),
-          "Décile3" = readr::col_number(),
-          "Décile4" = readr::col_number(),
-          "Décile5" = readr::col_number(),
-          "Décile6" = readr::col_number(),
-          "Décile7" = readr::col_number(),
-          "Décile8" = readr::col_number(),
-          "Décile9" = readr::col_number(),
-          "Décile10" = readr::col_number()
+          "Regroupement" = readr::col_character()
         )
       )
     )
