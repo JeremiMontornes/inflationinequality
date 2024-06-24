@@ -155,7 +155,8 @@ load_hbs <- function(country, category, level = 2,
   )
 
   if (country == "FR" & level == 3 & category == "income") {
-    if (is.null(start_year) | start_year < 2017) {
+    # The short-circuiting version of | is ||
+    if (is.null(start_year) || start_year < 2017) {
       stop("French HBS level 3 COICOP data only exists for 2017.")
     }
 
