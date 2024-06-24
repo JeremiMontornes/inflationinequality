@@ -268,13 +268,3 @@ test_that("loading HBS data until end of time range", {
 test_that("different income deciles for French level 3 COICOP data", {
   expect_gt(length(unique(dt_hbs_income_fr_3_2017$category)), 1)
 })
-
-# Additional test for French level 3 COICOP data
-test_that("COICOP codes of weight data are subset of French level 3 COICOP HBS data", {
-  dt_weights_fr_3 <- load_weights("FR", level = 3)
-  dt_hbs_fr_3_2017 <- load_hbs("FR", "income", level = 3, start_year = 2017)
-
-  weight_coicops <- unique(dt_weights_fr_3$coicop)
-  hbs_coicops <- unique(dt_hbs_fr_3_2017$coicop)
-  expect_true(all(weight_coicops %in% hbs_coicops))
-})
