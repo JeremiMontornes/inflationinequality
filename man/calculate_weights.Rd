@@ -39,5 +39,5 @@ The data is formatted as \code{data.table} with following columns:
 }
 }
 \seealso{
-\code{\link[=load_index_weights(), load_hbs]{load_index_weights(), load_hbs()}}
+\code{\link[=load_index_weights]{load_index_weights()}}, \code{\link[=load_hbs]{load_hbs()}}
 }

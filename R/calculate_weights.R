@@ -16,7 +16,7 @@
 #' @param start_year Year of start date. Default value is NULL.
 #' @param end_year Year of end date. Default value is NULL.
 #' @returns A `data.table` object.
-#' @seealso [load_index_weights(), load_hbs()]
+#' @seealso [load_index_weights()], [load_hbs()]
 #' @importFrom data.table :=
 #' @export
 calculate_weights <- function(country, category, level = 2,
