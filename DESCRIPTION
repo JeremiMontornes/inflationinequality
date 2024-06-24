@@ -14,11 +14,14 @@ Description: An R package that can calculate inflation inequality indicators in
     Eurozone countries using publicly available economic data.
 License: Apache License (>= 2)
 Imports:
+    data.table,
     rdbnomics,
     dplyr,
     stringr,
     lubridate,
-    readr
+    readr,
+    progress,
+    ggplot2
 Encoding: UTF-8
 Suggests: 
     testthat (>= 3.0.0)
