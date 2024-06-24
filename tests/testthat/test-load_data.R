@@ -40,7 +40,7 @@ test_that("loading level 3 COICOP data", {
 test_that("loading COICOP data from 2020 to 2022", {
   expect_gt(nrow(dt_cpi_it_2020_2022), 0)
   earliest_year <- min(dt_cpi_it_2020_2022$year)
-  earliest_month <-  min(dt_cpi_it_2020_2022[year == earliest_year, month])
+  earliest_month <- min(dt_cpi_it_2020_2022[year == earliest_year, month])
   expect_equal(earliest_year, 2020)
   expect_equal(earliest_month, 1)
 
