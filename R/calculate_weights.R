@@ -31,6 +31,10 @@ calculate_weighted_consumption <- function(country, category, level = 2,
     start_year = start_year, end_year = end_year
   )
 
+  # Replace 0 with very small values to avoid division by zero
+  dt_hbs <- dt_hbs[consumption == 0, consumption := 1e-6]
+  dt_weights <- dt_weights[weight == 0, weight := 1e-6]
+
   # Select intersecting COICOP codes
   weight_coicops <- unique(dt_weights$coicop)
   hbs_coicops <- unique(dt_hbs$coicop)
