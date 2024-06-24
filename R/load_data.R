@@ -42,9 +42,13 @@ load_cpi <- function(country, level = 2,
     end_year, end_month
   )
 
+  dataset_code <- "prc_hicp_midx"
+  mask_prefix <- "M.I05"
+  filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
+
   # Download dataset
-  rdbnomics::rdb("Eurostat", "prc_hicp_midx",
-    mask = paste0("M.I05..", country)
+  rdbnomics::rdb("Eurostat", dataset_code,
+    mask = filtered_mask
   ) %>%
     # Select data in specified time period
     .[dates$start_date <= period & period <= dates$end_date] %>%
@@ -94,8 +98,13 @@ load_index_weights <- function(country, level = 2,
     end_year, end_month = 12
   )
 
-  rdbnomics::rdb("Eurostat", "prc_hicp_inw",
-    mask = paste0("A..", country)
+  dataset_code <- "prc_hicp_inw"
+  mask_prefix <- "A"
+  filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
+
+  # Download dataset
+  rdbnomics::rdb("Eurostat", dataset_code,
+                 mask = filtered_mask
   ) %>%
     # Select data in specified time period
     .[dates$start_date <= period & period <= dates$end_date] %>%
@@ -201,13 +210,19 @@ load_hbs <- function(country, category, level = 2,
       )] %>%
       select_coicop_level(level)
   } else if (level < 3) {
-    data_code <- switch(category,
+    dataset_code <- switch(category,
       "income" = "hbs_str_t223",
       "age" = "hbs_str_t225",
-      "urban" = "hbs_str_t226"
+      "urban" = "hbs_str_t226",
+      stop("Error: Invalid category. Please choose 'income', 'age', or 'urban'.")
     )
-    rdbnomics::rdb("Eurostat", data_code,
-      mask = paste0("A.PM...", country)
+
+    mask_prefix <- "A.PM."
+    filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
+
+    # Download dataset
+    rdbnomics::rdb("Eurostat", dataset_code,
+                   mask = filtered_mask
     ) %>%
       # Select data in specified time period
       .[dates$start_date <= period & period <= dates$end_date] %>%
@@ -240,6 +255,15 @@ select_coicop_level <- function(.dt, level) {
     .[grepl("^CP", coicop), coicop := sub("^CP", "", coicop)] %>%
     # Select specified COICOP level
     .[nchar(coicop) == level + 1, ]
+}
+
+produce_filtered_mask <- function(dataset_code, mask_prefix, country, level) {
+  dimensions <- rdbnomics::rdb_dimensions("Eurostat", dataset_code,
+                                         mask = paste0(mask_prefix, "..", country))
+  coicop_codes <- dimensions[[1]][[1]]$coicop$coicop
+  selected <- coicop_codes[grepl("^CP\\d+", coicop_codes) & nchar(coicop_codes) == level + 3]
+  coicop_mask <- paste(selected, collapse = "+")
+  paste0(mask_prefix, ".", coicop_mask, ".", country)
 }
 
 get_start_end_dates <- function(start_year = NULL, start_month = NULL,
