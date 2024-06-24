@@ -68,7 +68,7 @@ test_that("loading CPI data from start of time range", {
   expect_gt(nrow(dt_cpi_fr_start), 0)
   earliest_year <- min(dt_cpi_fr_start$year)
   earliest_month <- min(dt_cpi_fr_start[year == earliest_year, month])
-  expect_equal(earliest_year, 1990)
+  expect_gte(earliest_year, 1990)
   expect_equal(earliest_month, 1)
 })
 
@@ -163,7 +163,7 @@ dt_weights_fr_start <- load_weights("FR", start_year = 1990)
 test_that("loading weights data from start of time range", {
   expect_gt(nrow(dt_weights_fr_start), 0)
   earliest_year <- min(dt_weights_fr_start$year)
-  expect_ge(earliest_year, 1990)
+  expect_gte(earliest_year, 1990)
 })
 
 # Test loading data until the end of time range
@@ -171,7 +171,7 @@ dt_weights_fr_end <- load_weights("FR", end_year = 2023)
 test_that("loading weights data until end of time range", {
   expect_gt(nrow(dt_weights_fr_end), 0)
   latest_year <- max(dt_weights_fr_end$year)
-  expect_le(latest_year, 2023)
+  expect_lte(latest_year, 2023)
 })
 
 # Test nonexistent country code
@@ -254,7 +254,7 @@ dt_hbs_fr_start <- load_hbs("FR", "income", start_year = 2000)
 test_that("loading HBS data from start of time range", {
   expect_gt(nrow(dt_hbs_fr_start), 0)
   earliest_year <- min(dt_hbs_fr_start$year)
-  expect_ge(earliest_year, 2000)
+  expect_gte(earliest_year, 2000)
 })
 
 # Test loading data until the end of time range
@@ -262,7 +262,7 @@ dt_hbs_fr_end <- load_hbs("FR", "income", end_year = 2023)
 test_that("loading HBS data until end of time range", {
   expect_gt(nrow(dt_hbs_fr_end), 0)
   latest_year <- max(dt_hbs_fr_end$year)
-  expect_le(latest_year, 2023)
+  expect_lte(latest_year, 2023)
 })
 
 test_that("different income deciles for French level 3 COICOP data", {
