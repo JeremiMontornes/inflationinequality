@@ -9,7 +9,7 @@ load_hbs(country, category, level = 2, start_year = NULL, end_year = NULL)
 \arguments{
 \item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
 
-\item{category}{HBS data by category: `"income"`, `"age"`, `"urban"`}
+\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}}
 
 \item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
 
@@ -18,22 +18,24 @@ load_hbs(country, category, level = 2, start_year = NULL, end_year = NULL)
 \item{end_year}{Year of end date. Default value is NULL.}
 }
 \value{
-A `data.table` object.
+A \code{data.table} object.
 }
 \description{
-`load_hbs()` downloads HBS data from Eurostat's databases via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period and a demographic category must also be specified.
+\code{load_hbs()} downloads HBS data from Eurostat's databases via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period and a demographic category must also be specified.
 
-Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call `load_hbs("FR", category = "income", level = 3, start_year = 2017)`.
+Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call \code{load_hbs("FR", category = "income", level = 3, start_year = 2017)}.
 }
 \details{
 Given the same parameters (except category),
 
-The data is formatted as `data.table` with following columns:
-* `series_name` (`chr`)
-* `coicop` (`chr`)
-* `year` (`num`)
-* `category` (`chr`)
-* `consumption` (`num`)
+The data is formatted as \code{data.table} with following columns:
+\itemize{
+\item \code{series_name} (\code{chr})
+\item \code{coicop} (\code{chr})
+\item \code{year} (\code{num})
+\item \code{category} (\code{chr})
+\item \code{consumption} (\code{num})
+}
 }
 \examples{
 dt_hbs <- load_hbs("FR", "income")

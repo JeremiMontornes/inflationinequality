@@ -27,17 +27,19 @@ load_cpi(
 \item{end_month}{Month of end date. Default value is NULL.}
 }
 \value{
-A `data.table` object.
+A \code{data.table} object.
 }
 \description{
-`load_cpi()` downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
+\code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
 
-The data is formatted as `data.table` with following columns:
-* `series_name` (`chr`)
-* `coicop` (`chr`)
-* `value` (`num`)
-* `year` (`num`)
-* `month` (`num`)
+The data is formatted as \code{data.table} with following columns:
+\itemize{
+\item \code{series_name} (\code{chr})
+\item \code{coicop} (\code{chr})
+\item \code{value} (\code{num})
+\item \code{year} (\code{num})
+\item \code{month} (\code{num})
+}
 }
 \examples{
 dt_cpi <- load_cpi("FR")
@@ -47,5 +49,5 @@ dt_cpi <- load_cpi("ES", level = 1, end_year = 2023)
 
 }
 \seealso{
-[load_weights()]
+\code{\link[=load_weights]{load_weights()}}
 }

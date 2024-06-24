@@ -16,15 +16,17 @@ load_weights(country, level = 2, start_year = NULL, end_year = NULL)
 \item{end_year}{Year of end date. Default value is NULL.}
 }
 \value{
-A `data.table` object.
+A \code{data.table} object.
 }
 \description{
-`load_weights()` downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
+\code{load_weights()} downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
 
-The data is formatted as `data.table` with following columns:
-* `coicop` (`chr`)
-* `weight` (`num`)
-* `year` (`num`)
+The data is formatted as \code{data.table} with following columns:
+\itemize{
+\item \code{coicop} (\code{chr})
+\item \code{weight} (\code{num})
+\item \code{year} (\code{num})
+}
 }
 \examples{
 dt_weights <- load_weights("FR")
@@ -34,5 +36,5 @@ dt_weights <- load_weights("ES", level = 1, end_year = 2023)
 
 }
 \seealso{
-[load_cpi()]
+\code{\link[=load_cpi]{load_cpi()}}
 }
