@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(inflation_inequality)
+library(inflationinequality)
 
-test_check("inflation_inequality")
+test_check("inflationinequality")
