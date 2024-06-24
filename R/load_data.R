@@ -20,7 +20,7 @@ options(rdbnomics.use_readLines = TRUE)
 #' @param end_year Year of end date. Default value is NULL.
 #' @param end_month Month of end date. Default value is NULL.
 #' @returns A `data.table` object.
-#' @seealso [load_weights()]
+#' @seealso [load_index_weights()]
 #' @examples
 #' dt_cpi <- load_cpi("FR")
 #' dt_cpi <- load_cpi("DE")
@@ -60,7 +60,7 @@ load_cpi <- function(country, level = 2,
 #' Download annual index weights data
 #'
 #' @description
-#' `load_weights()` downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
+#' `load_index_weights()` downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
 #'
 #' The data is formatted as `data.table` with following columns:
 #' * `coicop` (`chr`)
@@ -74,14 +74,14 @@ load_cpi <- function(country, level = 2,
 #' @returns A `data.table` object.
 #' @seealso [load_cpi()]
 #' @examples
-#' dt_weights <- load_weights("FR")
-#' dt_weights <- load_weights("DE", level = 1)
-#' dt_weights <- load_weights("IT", level = 1, start_year = 2020, end_year = 2022)
-#' dt_weights <- load_weights("ES", level = 1, end_year = 2023)
+#' dt_weights <- load_index_weights("FR")
+#' dt_weights <- load_index_weights("DE", level = 1)
+#' dt_weights <- load_index_weights("IT", level = 1, start_year = 2020, end_year = 2022)
+#' dt_weights <- load_index_weights("ES", level = 1, end_year = 2023)
 #'
 #' @importFrom dplyr %>%
 #' @export
-load_weights <- function(country, level = 2,
+load_index_weights <- function(country, level = 2,
                          start_year = NULL, end_year = NULL) {
   if (level < 1 | 3 < level) {
     stop("COICOP level must be 1, 2 or 3.")

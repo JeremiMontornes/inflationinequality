@@ -49,5 +49,5 @@ dt_cpi <- load_cpi("ES", level = 1, end_year = 2023)
 
 }
 \seealso{
-\code{\link[=load_weights]{load_weights()}}
+\code{\link[=load_index_weights]{load_index_weights()}}
 }

@@ -3,6 +3,6 @@
 export(calculate_weighted_consumption)
 export(load_cpi)
 export(load_hbs)
-export(load_weights)
+export(load_index_weights)
 importFrom(data.table,":=")
 importFrom(dplyr,"%>%")

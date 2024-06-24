@@ -105,16 +105,16 @@ test_that("loading CPI data with nonexistent COICOP level", {
 #   }
 # })
 
-### load_weights
+### load_index_weights
 
 weights_columns <- c("coicop", "weight", "year")
 
-dt_weights_fr <- load_weights("FR")
-dt_weights_de <- load_weights("DE")
-dt_weights_fr1 <- load_weights("FR", level = 1)
-dt_weights_fr3 <- load_weights("FR", level = 3)
-dt_weights_it_2020_2022 <- load_weights("IT", start_year = 2020, end_year = 2022)
-dt_weights_es1_NULL_2023 <- load_weights("ES", 1, end_year = 2023)
+dt_weights_fr <- load_index_weights("FR")
+dt_weights_de <- load_index_weights("DE")
+dt_weights_fr1 <- load_index_weights("FR", level = 1)
+dt_weights_fr3 <- load_index_weights("FR", level = 3)
+dt_weights_it_2020_2022 <- load_index_weights("IT", start_year = 2020, end_year = 2022)
+dt_weights_es1_NULL_2023 <- load_index_weights("ES", 1, end_year = 2023)
 
 test_that("weights data formatted as data.table", {
   expect_true(data.table::is.data.table(dt_weights_fr))
@@ -159,7 +159,7 @@ test_that("loading COICOP data upto 2023", {
 })
 
 # Test loading data from the beginning of time range
-dt_weights_fr_start <- load_weights("FR", start_year = 1990)
+dt_weights_fr_start <- load_index_weights("FR", start_year = 1990)
 test_that("loading weights data from start of time range", {
   expect_gt(nrow(dt_weights_fr_start), 0)
   earliest_year <- min(dt_weights_fr_start$year)
@@ -167,7 +167,7 @@ test_that("loading weights data from start of time range", {
 })
 
 # Test loading data until the end of time range
-dt_weights_fr_end <- load_weights("FR", end_year = 2023)
+dt_weights_fr_end <- load_index_weights("FR", end_year = 2023)
 test_that("loading weights data until end of time range", {
   expect_gt(nrow(dt_weights_fr_end), 0)
   latest_year <- max(dt_weights_fr_end$year)
@@ -176,18 +176,18 @@ test_that("loading weights data until end of time range", {
 
 # Test nonexistent country code
 test_that("loading weights data with nonexistent country code", {
-  expect_error(load_weights("XX"))
+  expect_error(load_index_weights("XX"))
 })
 
 # Test nonexistent COICOP level
 test_that("loading weights data with nonexistent COICOP level", {
-  expect_error(load_weights("FR", level = 0))
-  expect_error(load_weights("FR", level = 4))
+  expect_error(load_index_weights("FR", level = 0))
+  expect_error(load_index_weights("FR", level = 4))
 })
 
 # Test consistency across COICOP levels
-# dt_weights_fr_2 <- load_weights("FR", level = 2)
-# dt_weights_fr_3 <- load_weights("FR", level = 3)
+# dt_weights_fr_2 <- load_index_weights("FR", level = 2)
+# dt_weights_fr_3 <- load_index_weights("FR", level = 3)
 # test_that("consistency across COICOP levels", {
 #   coicop_2_digits <- unique(substr(dt_weights_fr_3$coicop, 1, 2))
 #   for (coicop_2 in coicop_2_digits) {
