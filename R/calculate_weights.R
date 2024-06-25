@@ -162,6 +162,7 @@ calculate_weights <- function(country, category, level = 2,
 
   # Remove intermediate columns to reduce memory usage
   dt_weighted_consumption[, `:=`(
+    consumption = NULL,
     preweighted_consumption = NULL,
     total_consumption = NULL,
     unnormalized_weighted_consumption = NULL
