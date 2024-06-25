@@ -109,5 +109,12 @@ calculate_weights <- function(country, category, level = 2,
   # Normalised weights
   dt_weighted_consumption[, weighted_consumption := unnormalized_weighted_consumption * 100 / sum(unnormalized_weighted_consumption), by = .(weight_year, category)]
 
+  # Remove intermediate columns to reduce memory usage
+  dt_weighted_consumption[, `:=`(
+    preweighted_consumption = NULL,
+    total_consumption = NULL,
+    unnormalized_weighted_consumption = NULL
+  )]
+
   return(dt_weighted_consumption)
 }
