@@ -44,9 +44,10 @@ calculate_weights <- function(country, category, level = 2,
 
   # Select COICOP codes
   hbs_coicops <- unique(dt_hbs$coicop)
-  coicops <- intersect(weight_coicops, hbs_coicops)
-  dt_hbs <- dt_hbs[coicop %in% coicops, ]
-  dt_weights <- dt_weights[coicop %in% coicops, ]
+  weight_coicops <- unique(dt_weights$coicop)
+
+  # We do not use COICOP codes that have HBS data but not CPI data
+  dt_hbs <- dt_hbs[coicop %in% weight_coicops, ]
 
   # Replace 0 with very small values to avoid division by zero (vectorized)
   dt_hbs[, consumption := pmax(consumption, 1e-6)]
@@ -57,6 +58,27 @@ calculate_weights <- function(country, category, level = 2,
 
   # Necessary before the join
   data.table::setnames(dt_weights, "year", "weight_year")
+
+  # Create new rows for missing coicops
+  missing_coicops <- setdiff(weight_coicops, hbs_coicops)
+  if (length(missing_coicops) > 0) {
+    new_rows <- data.table::CJ(
+      coicop = missing_coicops,
+      year = unique(dt_hbs$year),
+      category = unique(dt_hbs$category)
+    )
+    new_rows[, `:=`(
+      consumption = 1e-6,
+      series_name = NA_character_
+    )]
+    dt_hbs <- data.table::rbindlist(list(dt_hbs, new_rows), use.names = TRUE, fill = TRUE)
+  }
+
+  # Set keys for faster joining
+  data.table::setkey(dt_hbs, coicop, year)
+  data.table::setkey(dt_weights, coicop, weight_year)
+
+  # Now perform the cartesian product (left join)
   dt_weighted_consumption <- dt_hbs[dt_weights, on = .(coicop), allow.cartesian = TRUE]
 
   dt_weighted_consumption <- dt_weighted_consumption[,
