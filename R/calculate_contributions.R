@@ -26,8 +26,7 @@ calculate_contributions <- function(country, category, level = 2,
                                     end_year = NULL, end_month = NULL) {
   start_year <- if (!is.null(start_year)) {
     start_year - 2
-  }
-  else {
+  } else {
     start_year
   }
 
