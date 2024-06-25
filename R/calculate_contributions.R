@@ -54,6 +54,18 @@
 calculate_contributions <- function(country, category, level = 2,
                                     start_year = NULL, start_month = NULL,
                                     end_year = NULL, end_month = NULL) {
+  # Input validation
+  if (!is.character(country) || nchar(country) != 2) {
+    stop("Country must be a 2-character ISO code")
+  }
+  if (!category %in% c("income", "age", "urban")) {
+    stop("Category must be one of 'income', 'age', or 'urban'")
+  }
+  if (!is.numeric(level) || !level %in% 1:3) {
+    stop("Level must be an integer between 1 and 3")
+  }
+
+  # Set start year 2 years behind due to the requirements of the equation
   start_year <- if (!is.null(start_year)) {
     start_year - 2
   } else {
