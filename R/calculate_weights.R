@@ -83,14 +83,13 @@ calculate_weights <- function(country, category, level = 2,
   dt_hbs[, consumption := pmax(consumption, 1e-6)]
   dt_weights[, weight := pmax(weight, 1e-6)]
 
-  # COICOP codes that have CPI data but not HBS data
-  missing_coicops <- setdiff(weight_coicops, hbs_coicops)
-
   # Necessary before the join
   data.table::setnames(dt_weights, "year", "weight_year")
 
-  # Create new rows for missing coicops
+  # COICOP codes that have CPI data but not HBS data
   missing_coicops <- setdiff(weight_coicops, hbs_coicops)
+
+  # Create new rows for missing coicops
   if (length(missing_coicops) > 0) {
     new_rows <- data.table::CJ(
       coicop = missing_coicops,
