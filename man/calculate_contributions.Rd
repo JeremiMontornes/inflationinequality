@@ -15,35 +15,66 @@ calculate_contributions(
 )
 }
 \arguments{
-\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+\item{country}{A character string. ISO 3166-1 alpha-2 (2-digit) country code.}
 
-\item{category}{Category for which to calculate contributions: "income", "age", "urban"}
+\item{category}{A character string. Category for which to calculate contributions: "income", "age", or "urban".}
 
-\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+\item{level}{An integer. COICOP level (1-3). Default is 2.}
 
-\item{start_year}{Year of start date. Default value is NULL.}
+\item{start_year}{An integer. Start year for the analysis period. Default is NULL.}
 
-\item{start_month}{Month of start date. Default value is NULL.}
+\item{start_month}{An integer. Start month for the analysis period. Default is NULL.}
 
-\item{end_year}{Year of end date. Default value is NULL.}
+\item{end_year}{An integer. End year for the analysis period. Default is NULL.}
 
-\item{end_month}{Month of end date. Default value is NULL.}
+\item{end_month}{An integer. End month for the analysis period. Default is NULL.}
 }
 \value{
-A \code{data.table} object containing the calculated contributions.
+A data.table with the following columns:
+\itemize{
+\item year (numeric): The year of the contribution
+\item coicop (character): The COICOP code
+\item month (numeric): The month of the contribution
+\item category (character): The demographic category (e.g., income group, age group)
+\item contribution (numeric): The calculated contribution to inflation
+}
 }
 \description{
-\code{calculate_contributions()} computes the contributions to inflation for different COICOP categories over time. It uses CPI (Consumer Price Index) data and weighted consumption data to calculate these contributions. The function handles data for multiple years, accounting for changes in weights and price indices.
-
-The function returns a \code{data.table} with the following columns:
-\itemize{
-\item \code{year} (\code{num}): The year of the contribution
-\item \code{coicop} (\code{chr}): The COICOP code
-\item \code{month} (\code{num}): The month of the contribution
-\item \code{category} (\code{chr}): The category (e.g., income group, age group, urban/rural)
-\item \code{contribution} (\code{num}): The calculated contribution to inflation
+\code{calculate_contributions()} computes the contributions to inflation for different COICOP (Classification of Individual Consumption According to Purpose) categories over time. It uses Consumer Price Index (CPI) data and weighted consumption data to calculate these contributions, handling data for multiple years and accounting for changes in weights and price indices.
 }
+\details{
+The function performs the following key steps:
+\enumerate{
+\item Loads CPI data and calculates weights using \code{load_cpi()} and \code{calculate_weights()}.
+\item Filters data to ensure consistency across COICOP codes and years.
+\item Calculates contributions using a complex formula that accounts for year-over-year changes in prices and weights.
+\item Handles multiple categories (e.g., income groups, age groups) simultaneously.
+}
+
+The contribution calculation is based on the following formula:
+Contribution = (P_{y-1,12} / P_{y-1,m}) * w_{y-1,j,q} * ((P_{y,m,j} - P_{y-1,12,j}) / P_{y-1,12,j}) +
+(P_{y-2,12} / P_{y-1,m}) * w_{y-2,j,q} * ((P_{y-1,12,j} - P_{y-1,m,j}) / P_{y-2,12,j})
+
+Where:
+\itemize{
+\item P: Price index
+\item w: Weight
+\item y: Year
+\item m: Month
+\item j: COICOP category
+\item q: Demographic category (e.g., income quintile)
+}
+}
+\examples{
+# Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
+france_contributions <- calculate_contributions("FR", "income", level = 2, start_year = 2010, end_year = 2020)
+
+# View contributions for a specific COICOP code and category in 2015
+france_contributions[year == 2015 & coicop == "01" & category == "QUINTILE1"]
+
 }
 \seealso{
-\code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}
+\code{\link[=load_cpi]{load_cpi()}} for loading CPI data.
+
+\code{\link[=calculate_weights]{calculate_weights()}} for calculating consumption weights.
 }

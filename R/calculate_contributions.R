@@ -1,24 +1,54 @@
 #' Calculate inflation contributions
 #'
 #' @description
-#' `calculate_contributions()` computes the contributions to inflation for different COICOP categories over time. It uses CPI (Consumer Price Index) data and weighted consumption data to calculate these contributions. The function handles data for multiple years, accounting for changes in weights and price indices.
+#' `calculate_contributions()` computes the contributions to inflation for different COICOP (Classification of Individual Consumption According to Purpose) categories over time. It uses Consumer Price Index (CPI) data and weighted consumption data to calculate these contributions, handling data for multiple years and accounting for changes in weights and price indices.
 #'
-#' The function returns a `data.table` with the following columns:
-#' * `year` (`num`): The year of the contribution
-#' * `coicop` (`chr`): The COICOP code
-#' * `month` (`num`): The month of the contribution
-#' * `category` (`chr`): The category (e.g., income group, age group, urban/rural)
-#' * `contribution` (`num`): The calculated contribution to inflation
+#' @details
+#' The function performs the following key steps:
+#' 1. Loads CPI data and calculates weights using `load_cpi()` and `calculate_weights()`.
+#' 2. Filters data to ensure consistency across COICOP codes and years.
+#' 3. Calculates contributions using a complex formula that accounts for year-over-year changes in prices and weights.
+#' 4. Handles multiple categories (e.g., income groups, age groups) simultaneously.
 #'
-#' @param country ISO 3166-1 alpha-2 (2 digit) country code.
-#' @param category Category for which to calculate contributions: "income", "age", "urban"
-#' @param level COICOP level. Default value is 2. Possible values are 1-3.
-#' @param start_year Year of start date. Default value is NULL.
-#' @param start_month Month of start date. Default value is NULL.
-#' @param end_year Year of end date. Default value is NULL.
-#' @param end_month Month of end date. Default value is NULL.
-#' @returns A `data.table` object containing the calculated contributions.
-#' @seealso [load_cpi()], [calculate_weights()]
+#' The contribution calculation is based on the following formula:
+#' Contribution = (P_{y-1,12} / P_{y-1,m}) * w_{y-1,j,q} * ((P_{y,m,j} - P_{y-1,12,j}) / P_{y-1,12,j}) +
+#'                (P_{y-2,12} / P_{y-1,m}) * w_{y-2,j,q} * ((P_{y-1,12,j} - P_{y-1,m,j}) / P_{y-2,12,j})
+#'
+#' Where:
+#' * P: Price index
+#' * w: Weight
+#' * y: Year
+#' * m: Month
+#' * j: COICOP category
+#' * q: Demographic category (e.g., income quintile)
+#'
+#' @param country A character string. ISO 3166-1 alpha-2 (2-digit) country code.
+#' @param category A character string. Category for which to calculate contributions: "income", "age", or "urban".
+#' @param level An integer. COICOP level (1-3). Default is 2.
+#' @param start_year An integer. Start year for the analysis period. Default is NULL.
+#' @param start_month An integer. Start month for the analysis period. Default is NULL.
+#' @param end_year An integer. End year for the analysis period. Default is NULL.
+#' @param end_month An integer. End month for the analysis period. Default is NULL.
+#'
+#' @return A data.table with the following columns:
+#' * year (numeric): The year of the contribution
+#' * coicop (character): The COICOP code
+#' * month (numeric): The month of the contribution
+#' * category (character): The demographic category (e.g., income group, age group)
+#' * contribution (numeric): The calculated contribution to inflation
+#'
+#' @examples
+#' # Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
+#' france_contributions <- calculate_contributions("FR", "income", level = 2, start_year = 2010, end_year = 2020)
+#'
+#' # View contributions for a specific COICOP code and category in 2015
+#' france_contributions[year == 2015 & coicop == "01" & category == "QUINTILE1"]
+#'
+#' @seealso
+#' [load_cpi()] for loading CPI data.
+#'
+#' [calculate_weights()] for calculating consumption weights.
+#'
 #' @importFrom data.table :=
 #' @export
 calculate_contributions <- function(country, category, level = 2,
