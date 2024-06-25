@@ -68,8 +68,7 @@ calculate_weights <- function(country, category, level = 2,
     start_year = start_year, end_year = end_year
   )
   dt_hbs <- load_hbs(country, category,
-    level = level,
-    start_year = start_year, end_year = end_year
+    level = level
   )
 
   # Select COICOP codes
