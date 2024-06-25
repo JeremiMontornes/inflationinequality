@@ -89,7 +89,7 @@ calculate_contributions <- function(country, category, level = 2,
 
   for (y in years_with_all_coicops[3:length(years_with_all_coicops)]) {
     # This can be further optimised since each COICOP code is independent
-    for (j in coicops) {
+    for (j in cpi_coicops) {
       # Constant values
       p_y1_12 <- sum(dt_cpi[month == 12 &
         year == y - 1, value])
