@@ -20,7 +20,18 @@
 #' @importFrom data.table :=
 #' @export
 calculate_weights <- function(country, category, level = 2,
-                                           start_year = NULL, end_year = NULL) {
+                              start_year = NULL, end_year = NULL) {
+  # Input validation
+  if (!is.character(country) || nchar(country) != 2) {
+    stop("Country must be a 2-character ISO code")
+  }
+  if (!category %in% c("income", "age", "urban")) {
+    stop("Category must be one of 'income', 'age', or 'urban'")
+  }
+  if (!is.numeric(level) || !level %in% 1:3) {
+    stop("Level must be an integer between 1 and 3")
+  }
+
   # Download data
   dt_weights <- load_index_weights(country,
     level = level,
