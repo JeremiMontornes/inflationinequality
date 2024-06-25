@@ -42,17 +42,20 @@ calculate_weights <- function(country, category, level = 2,
     start_year = start_year, end_year = end_year
   )
 
-  # Replace 0 with very small values to avoid division by zero
-  dt_hbs <- dt_hbs[consumption == 0, consumption := 1e-6]
-  dt_weights <- dt_weights[weight == 0, weight := 1e-6]
-
-  # Select intersecting COICOP codes
-  weight_coicops <- unique(dt_weights$coicop)
+  # Select COICOP codes
   hbs_coicops <- unique(dt_hbs$coicop)
   coicops <- intersect(weight_coicops, hbs_coicops)
   dt_hbs <- dt_hbs[coicop %in% coicops, ]
   dt_weights <- dt_weights[coicop %in% coicops, ]
 
+  # Replace 0 with very small values to avoid division by zero (vectorized)
+  dt_hbs[, consumption := pmax(consumption, 1e-6)]
+  dt_weights[, weight := pmax(weight, 1e-6)]
+
+  # COICOP codes that have CPI data but not HBS data
+  missing_coicops <- setdiff(weight_coicops, hbs_coicops)
+
+  # Necessary before the join
   data.table::setnames(dt_weights, "year", "weight_year")
   dt_weighted_consumption <- dt_hbs[dt_weights, on = .(coicop), allow.cartesian = TRUE]
 
