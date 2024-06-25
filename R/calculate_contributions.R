@@ -42,26 +42,33 @@ calculate_contributions <- function(country, category, level = 2,
       start_year = start_year, end_year = end_year
     )
 
-  # Select intersecting COICOP codes
+  # Select COICOP codes
   cpi_coicops <- unique(dt_cpi$coicop)
-  weighted_consumption_coicops <- unique(dt_weights$coicop)
-  coicops <- intersect(cpi_coicops, weighted_consumption_coicops)
-  dt_cpi <- dt_cpi[coicop %in% coicops, ]
-  dt_weights <- dt_weights[coicop %in% coicops, ]
+  weight_coicops <- unique(dt_weights$coicop)
 
-  years_with_all_coicops <- unique(dt_cpi$year)[sapply(unique(dt_cpi$year), function(yr) has_all_coicop(dt_cpi, yr, coicops))]
+  # We do not use COICOP codes that have HBS data but not CPI data
+  dt_weights <- dt_weights[coicop %in% cpi_coicops, ]
 
+  # Select years with all COICOP codes present
+  years_with_all_coicops <- unique(dt_cpi$year)[sapply(unique(dt_cpi$year), function(yr) has_all_coicop(dt_cpi, yr, cpi_coicops))]
+
+  # Filter data accordingly
   dt_cpi <- dt_cpi[year %in% years_with_all_coicops, ]
   dt_weights <-
     dt_weights[weight_year %in% years_with_all_coicops, ]
 
   # We also have to assume that for a given COICOP code, the index weight years in the weighted consumption table are exactly the same as the index value years in the CPI table!
   # Hence,
-  for (coicop_code in coicops) {
+  for (coicop_code in cpi_coicops) {
     if (!identical(unique(dt_cpi[coicop == coicop_code, year]), unique(dt_weights[coicop == coicop_code, weight_year]))) {
-      problem <- coicop_code
       stop("We got a problem!")
     }
+  }
+
+  # COICOP codes that have CPI data but not weight data
+  missing_coicops <- setdiff(cpi_coicops, weight_coicops)
+  if (length(missing_coicops) > 0) {
+    stop("This should not be possible!")
   }
 
   contrib2 <- data.table::data.table(
