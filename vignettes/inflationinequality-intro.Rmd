@@ -1,0 +1,197 @@
+---
+title: "Introduction to inflationinequality"
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{Introduction to inflationinequality}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(inflationinequality)
+```
+
+This vignette introduces the fundamental features of the `inflationinequality` package.
+
+***
+
+## What is the purpose of this package?
+
+Inflation is the general and prolonged increase of prices. Different demographic categories have different spending habits and as a result, some are more affected than inflation by others. This package provides methods that calculates and visualizes inflation and contribution to inflation by demographic category, using public data from Eurostat. Currently, only EU countries are supported.
+
+## How is inflation calculated?
+
+Let's say for example we want to compare inflation rates for different income categories.
+
+In order to calculate inflation, we use Household Budget Surveys (HBS) to calculate the percentage of consumption that each level 1 or level 2 COICOP category makes up for all income quintiles.
+
+NOTE: Eurostat harmonizes HBS income data by quintiles, but we can include HBS data with different categories like deciles in the case of INSEE (France).
+NOTE: In keeping with the Eurostat HICP methodology, we do not include imputed rent (CP042) in our analysis.
+
+### Calculating weights
+
+We first calculate the ratio between the expenditure for each income quintile of this product $j$ and that observed for all households as defined by the HBS at year $y'$, denoted $\text{HBS}^{y'}_{j, \text{quintile}}$ and $\text{HBS}^{y'}_{j, \text{total}}$ respectively.
+
+This term "corrects" the annual CPI weight corresponding to product $j$, denoted $w^y_{\text{CPI},j}$, therefore
+
+$$w^y_{j, \text{quintile}} = w^y_{\text{CPI},j} \times \text{HBS}^{y'}_{j, \text{quintile}} / \text{HBS}^{y'}_{j, \text{total}}$$
+
+After this correction, the weights are then renormalized to sum to 100 for each income quintile.
+
+You may notice that the year of the HBS data $y'$ and the year of the CPI weight $y$ are different. HBS data are released every five years while the CPI is released monthly so the following rules are established to properly align the HBS data with the CPI:
+
+1. For a given CPI weight released in year $y$, we use the most recent HBS data $y'$.
+2. If there is no HBS data at the same year or earlier than $y$, then we use the earliest HBS data available.
+
+These operations are implemented in `calculate_weights()` and data is downloaded using `load_index_weights()` and `load_hbs()`.
+
+### Calculating contributions to inflation
+
+The CPI is chained index whose weightings change each year. We calculate the contributions using the following formula:
+
+$$
+\text{Contrib}^{y,m}_{j,\text{quintile}} = \frac{p^{y-1,12}}{p^{y-1,m}}\times w^{y-1}_{j,\text{quintile}} \times \bigg(\frac{p^{y,m}_j - p^{y-1,12}_j}{p^{y-1,12}_j} \bigg) + \frac{p^{y-2,12}}{p^{y-1,m}} \times w^{y-2}_{j,\text{quintile}} \times \bigg(\frac{p^{y-1,12}_j - p^{y-1,m}_j}{p^{y-2,12}_j} \bigg)
+$$
+
+where
+
+* $p^{y,m}_j$ is the price index of product $j$ in month $m$ of year $y$
+* $p^{y,m}$ is the price index of the product basket in month $m$ of year $y$
+
+The formula is implemented in `calculate_contributions()` which downloads the price index $p^{y,m}_j$ using `load_cpi()` and calculates the weights $w^{y}_{j,\text{quintile}}$ with `calculate_weights()`.   
+
+### Calculating inflation and the inflation gap
+
+Inflation in a given month for each quintile results from the sum of the contributions of product $j$.
+
+$$\text{Inflation}^{y,m}_\text{quintile} = \sum_j \text{Contrib}^{y,m}_{j,\text{quintile}}$$
+
+This formula is implemented in `calculate_inflation()`.
+
+By calculating the inflation by income quintile, we can calculate the inflation gap to measure inflation equalities:
+
+$$\text{Inflation_gap}^{y,m} = \text{Inflation}^{y,m}_\text{quintile1} - \text{Inflation}^{y,m}_\text{quintile5}$$
+
+This formula is implemented in `calculate_inflation_gap()`.
+
+## Loading CPI data or HBS data
+
+Let's say we want to download all CPI data from France.
+
+```{r}
+cpi <- load_cpi("FR")
+head(cpi$dt)
+```
+
+Now, let's download CPI data from Spain from 2019.
+
+```{r}
+cpi <- load_cpi("ES", start_year = 2019)
+head(cpi$dt)
+```
+
+You can also choose the month since CPI data is released monthly:
+
+```{r}
+cpi <- load_cpi("IT", start_year = 2019, start_month = 5, end_year = 2020, end_month = 3)
+head(cpi$dt)
+```
+
+By default, the package will download the dataset the highest granularity of COICOP levels, which in this case is level 2. We can also choose to download only COICOP level 1.
+
+```{r}
+cpi <- load_cpi("ES", level = 1)
+head(cpi$dt)
+```
+
+If you want to download the CPI weights, then use `index_weights()`, for example
+
+```{r}
+index_weights <- load_index_weights("ES")
+head(index_weights$dt)
+```
+
+Note that CPI weightings are revised annually.
+
+You can also download HBS data by demographic category. Let's download all available French HBS data by income.
+
+```{r}
+hbs <- load_hbs("FR", "income")
+head(hbs$dt)
+```
+
+Note that HBS data is released periodically, not annually, so downloading within a short timeframe may result in no data being downloaded at all.
+
+```{r}
+hbs <- load_hbs("FR", "age", start_year = 2016, end_year = 2017)
+head(hbs$dt)
+```
+
+## Calculating inflation and contributions to inflation
+
+For most cases, you will probably call the functions `calculate_inflation()` and `calculate_contributions()` instead of downloading the CPI or HBS data directly.
+
+Let's calculate inflation in France and Germany by income quintiles. For France, we'll calculate from 2019 onwards and for Germany we'll only consider 2020.
+
+```{r}
+inflation_fr <- calculate_inflation("FR", "income", start_year = 2019)
+inflation_de <- calculate_inflation("DE", "income", start_year = 2020, end_year = 2020)
+```
+
+We can also calculate the contributions to inflation. Here, we're calculating contributions to inflation in Spain by income quintiles from 2019 to 2023.
+
+```{r}
+contributions_es <- calculate_contributions("ES", "income", start_year = 2019, end_year = 2023)
+```
+
+## Plotting graphs: time series, grouped bar charts, and more
+
+### Time series
+
+Using the inflation data that we just calculated, we can plot them as a time series.
+
+```{r}
+plot_time_series(inflation_fr)
+```
+
+By default, the time series plots the top and bottom income quintiles (or categories, in general) along with the total inflation.
+
+### Grouped bar charts
+
+We can also plot a grouped bar chart to compare inflation by demographic category in a specific year.
+
+```{r}
+plot_grouped_bar(2020, inflation_fr, inflation_de)
+```
+
+Here, we compare 2020 inflation rates between France and Germany by income quintiles.
+
+### Contributions to inflation gap chart
+
+Furthermore, we can plot the contributions to the inflation gap.
+
+```{r}
+plot_contribution_gap(contributions_es)
+```
+
+The selected product categories in the legend are hardcoded in the package for now and requires COICOP level 2 to be calculated when calling `calculate_contributions()`.
+
+## Tips and tricks
+
+### Memoisation
+
+In order to prevent redundant calculations and API calls, we memoise some functions in the package at load time. We recommend that you also memoise the functions `calculate_inflation()` and `calculate_contributions()` to reduce computation using the `memoise` package. 
+
+```{r}
+library(memoise)
+calculate_contributions <- memoise(calculate_contributions)
+calculate_inflation <- memoise(calculate_inflation)
+```
+
