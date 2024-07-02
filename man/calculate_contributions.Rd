@@ -76,13 +76,17 @@ Where:
 }
 \examples{
 # Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
-france_contributions <- calculate_contributions("FR", "income", level = 2, start_year = 2010, end_year = 2020)
+france_contributions <- calculate_contributions("FR", "income", level = 2,
+start_year = 2010, end_year = 2020)
 
 # Access the data.table component
 dt_contributions <- france_contributions$dt
 
 # Sum contributions for a specific year, month, and category
-total_contribution <- dt_contributions[year == 2015 & month == 6 & category == "First quintile", sum(contribution)]
+total_contribution <- dt_contributions[year == 2015 &&
+month == 6 &&
+category == "First quintile",
+sum(contribution)]
 
 }
 \seealso{
