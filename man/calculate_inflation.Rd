@@ -7,7 +7,6 @@
 calculate_inflation(
   country,
   category,
-  level = 2,
   start_year = NULL,
   start_month = NULL,
   end_year = NULL,
@@ -18,8 +17,6 @@ calculate_inflation(
 \item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
 \item{category}{Category for which to calculate inflation: "income", "age", or "urban".}
-
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
@@ -35,7 +32,6 @@ An object of class \code{"inflation"} is a list containing the following compone
 \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
 \item{category}{Category for which inflation was calculated: "income", "age", or "urban".}
 \item{categories}{(Ordered) vector of category types, from lowest to highest.}
-\item{level}{COICOP level.}
 \item{start_year}{first year of data.}
 \item{start_month}{first month of data.}
 \item{end_year}{last year of data.}
@@ -53,19 +49,23 @@ The component \code{dt} has the following columns:
 \details{
 The function performs the following key operations:
 \enumerate{
-\item Calls \code{calculate_contributions()} to get the inflation contributions.
+\item Calls \code{calculate_contributions()} to get the inflation contributions at COICOP level 1 since we're aggregating over all products.
 \item Sums up the total inflation for each category, year, and month.
 }
 }
 \examples{
-# Calculate inflation rates for France, income category, COICOP level 2, from 2010 to 2020
-france_inflation <- calculate_inflation("FR", "income", level = 2, start_year = 2010, end_year = 2020)
+# Calculate inflation rates for France, income category  from 2010 to 2020
+france_inflation <- calculate_inflation("FR", "income",
+start_year = 2010, end_year = 2020)
 
 # Access the data.table component
 dt_inflation <- france_inflation$dt
 
 # Get inflation rate for a specific year, month, and category
-specific_inflation <- dt_inflation[year == 2015 & month == 6 & category == "First quintile", inflation]
+specific_inflation <- dt_inflation[year == 2015 &&
+month == 6 &&
+category == "First quintile",
+inflation]
 
 }
 \seealso{

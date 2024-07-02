@@ -25,8 +25,8 @@ The function performs the following operations:
 }
 }
 \examples{
-# Calculate inflation in France at COICOP level 1 from 2020
-inflation <- calculate_inflation("FR", "income", level = 1, start_year = 2020)
+# Calculate inflation in France from 2020
+inflation <- calculate_inflation("FR", "income", start_year = 2020)
 
 # Plot the time series
 plot_time_series(inflation)

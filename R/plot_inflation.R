@@ -15,8 +15,8 @@
 #' @returns A ggplot object representing the time series of inflation rates.
 #'
 #' @examples
-#' # Calculate inflation in France at COICOP level 1 from 2020
-#' inflation <- calculate_inflation("FR", "income", level = 1, start_year = 2020)
+#' # Calculate inflation in France from 2020
+#' inflation <- calculate_inflation("FR", "income", start_year = 2020)
 #'
 #' # Plot the time series
 #' plot_time_series(inflation)
@@ -73,11 +73,11 @@ plot_time_series <- function(inflation) {
 #' @return A ggplot object representing the grouped bar chart of inflation rates.
 #'
 #' @examples
-#' # Calculate inflation in France at COICOP level 1 from 2020
-#' inflation_fr <- calculate_inflation("FR", "income", level = 1, start_year = 2020)
+#' # Calculate inflation in France from 2020
+#' inflation_fr <- calculate_inflation("FR", "income", start_year = 2020)
 #'
-#' # Calculate inflation in Germany at COICOP level 1 from 2020
-#' inflation_de <- calculate_inflation("DE", "income", level = 1, start_year = 2020)
+#' # Calculate inflation in Germany from 2020
+#' inflation_de <- calculate_inflation("DE", "income", start_year = 2020)
 #'
 #' # Plot a grouped bar chart comparing 2020 inflation between France and Germany by income
 #' plot_grouped_bar(2020, inflation_fr, inflation_de)
