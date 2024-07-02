@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_inflation.R
 \name{calculate_inflation}
 \alias{calculate_inflation}
-\title{Calculate inflation rates}
+\title{Calculates inflation rates}
 \usage{
 calculate_inflation(
   country,
@@ -15,33 +15,58 @@ calculate_inflation(
 )
 }
 \arguments{
-\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
-\item{category}{Category for which to calculate inflation: "income", "age", "urban"}
+\item{category}{Category for which to calculate inflation: "income", "age", or "urban".}
 
-\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
 
-\item{start_year}{Year of start date. Default value is NULL.}
+\item{start_year}{year of start date.}
 
-\item{start_month}{Month of start date. Default value is NULL.}
+\item{start_month}{month of start date.}
 
-\item{end_year}{Year of end date. Default value is NULL.}
+\item{end_year}{year of end date.}
 
-\item{end_month}{Month of end date. Default value is NULL.}
+\item{end_month}{month of end date.}
 }
 \value{
-A \code{data.table} object containing the calculated inflation rates.
+An object of class \code{"inflation"} is a list containing the following components:
+\item{dt}{a \code{data.table} object (see below).}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
+\item{category}{Category for which inflation was calculated: "income", "age", or "urban".}
+\item{categories}{(Ordered) vector of category types, from lowest to highest.}
+\item{level}{COICOP level.}
+\item{start_year}{first year of data.}
+\item{start_month}{first month of data.}
+\item{end_year}{last year of data.}
+\item{end_month}{last month of data.}
+
+The component \code{dt} has the following columns:
+\item{year}{year of the inflation rate.}
+\item{month}{month of the inflation rate.}
+\item{category}{demographic category (e.g., income group, age group).}
+\item{inflation}{calculated inflation rate.}
 }
 \description{
-\code{calculate_inflation()} computes inflation rates for different categories over time. It uses the contributions calculated by \code{calculate_contributions()} to sum up the total inflation for each category, year, and month.
-
-The function returns a \code{data.table} with the following columns:
-\itemize{
-\item \code{year} (\code{num}): The year of the inflation rate
-\item \code{month} (\code{num}): The month of the inflation rate
-\item \code{category} (\code{chr}): The category (e.g., income group, age group, urban/rural)
-\item \code{inflation} (\code{num}): The calculated inflation rate
+\code{calculate_inflation()} computes inflation rates for different categories over time using the contributions calculated by \code{calculate_contributions()}.
 }
+\details{
+The function performs the following key operations:
+\enumerate{
+\item Calls \code{calculate_contributions()} to get the inflation contributions.
+\item Sums up the total inflation for each category, year, and month.
+}
+}
+\examples{
+# Calculate inflation rates for France, income category, COICOP level 2, from 2010 to 2020
+france_inflation <- calculate_inflation("FR", "income", level = 2, start_year = 2010, end_year = 2020)
+
+# Access the data.table component
+dt_inflation <- france_inflation$dt
+
+# Get inflation rate for a specific year, month, and category
+specific_inflation <- dt_inflation[year == 2015 & month == 6 & category == "First quintile", inflation]
+
 }
 \seealso{
 \code{\link[=calculate_contributions]{calculate_contributions()}}

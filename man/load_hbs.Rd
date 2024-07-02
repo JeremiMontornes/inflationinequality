@@ -2,45 +2,58 @@
 % Please edit documentation in R/load_data.R
 \name{load_hbs}
 \alias{load_hbs}
-\title{Download HBS (Household Budget Survey) data}
+\title{Downloads HBS (Household Budget Survey) data}
 \usage{
 load_hbs(country, category, level = 2, start_year = NULL, end_year = NULL)
 }
 \arguments{
-\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
-\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}}
+\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}.}
 
-\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
 
-\item{start_year}{Year of start date. Default value is NULL.}
+\item{start_year}{year of start date.}
 
-\item{end_year}{Year of end date. Default value is NULL.}
+\item{end_year}{year of end date.}
 }
 \value{
-A \code{data.table} object.
+An object of class \code{"hbs"} is a list containing the following components:
+\item{dt}{a \code{data.table} object (see below).}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
+\item{category}{HBS category: \code{"income"}, \code{"age"}, \code{"urban"}.}
+\item{categories}{(Ordered) vector of category types, from lowest to highest.}
+\item{level}{COICOP level.}
+\item{start_year}{first year of data.}
+\item{end_year}{last year of data.}
+
+The component \code{dt} has the following columns:
+\item{series_name}{identifier for the data series.}
+\item{coicop}{COICOP code.}
+\item{year}{year of data series.}
+\item{category}{category type within the specified HBS category.}
+\item{consumption}{consumption value for the specified category and COICOP code.}
 }
 \description{
-\code{load_hbs()} downloads HBS data from Eurostat's databases via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period and a demographic category must also be specified.
-
-Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call \code{load_hbs("FR", category = "income", level = 3, start_year = 2017)}.
+\code{load_hbs()} downloads HBS data from Eurostat's databases via DBnomics from a specified country.
 }
 \details{
-Given the same parameters (except category),
-
-The data is formatted as \code{data.table} with following columns:
-\itemize{
-\item \code{series_name} (\code{chr})
-\item \code{coicop} (\code{chr})
-\item \code{year} (\code{num})
-\item \code{category} (\code{chr})
-\item \code{consumption} (\code{num})
-}
+Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call \code{load_hbs("FR", category = "income", level = 3, start_year = 2017)}.
 }
 \examples{
-dt_hbs <- load_hbs("FR", "income")
-dt_hbs <- load_hbs("DE", "age", level = 1)
-dt_hbs <- load_hbs("IT", "urban", start_year = 2020, end_year = 2022)
-dt_hbs <- load_hbs("ES", "income", level = 1, end_year = 2023)
+# Download French HBS data by income
+hbs <- load_hbs("FR", "income")
+
+# Download German HBS data by age at COICOP level 1
+hbs <- load_hbs("DE", "age", level = 1)
+
+# Download Italian HBS data by urban/rural from 2020 to 2022
+hbs <- load_hbs("IT", "urban", start_year = 2020, end_year = 2022)
+
+# Download Spanish HBS data by income at COICOP level 1 up to 2023
+hbs <- load_hbs("ES", "income", level = 1, end_year = 2023)
+
+# Access the data.table component
+dt_hbs <- hbs$dt
 
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_contributions.R
 \name{calculate_contributions}
 \alias{calculate_contributions}
-\title{Calculate inflation contributions}
+\title{Calculates inflation contributions}
 \usage{
 calculate_contributions(
   country,
@@ -15,39 +15,48 @@ calculate_contributions(
 )
 }
 \arguments{
-\item{country}{A character string. ISO 3166-1 alpha-2 (2-digit) country code.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
-\item{category}{A character string. Category for which to calculate contributions: "income", "age", or "urban".}
+\item{category}{Category for which to calculate contributions: "income", "age", or "urban".}
 
-\item{level}{An integer. COICOP level (1-3). Default is 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
 
-\item{start_year}{An integer. Start year for the analysis period. Default is NULL.}
+\item{start_year}{year of start date.}
 
-\item{start_month}{An integer. Start month for the analysis period. Default is NULL.}
+\item{start_month}{month of start date.}
 
-\item{end_year}{An integer. End year for the analysis period. Default is NULL.}
+\item{end_year}{year of end date.}
 
-\item{end_month}{An integer. End month for the analysis period. Default is NULL.}
+\item{end_month}{month of end date.}
 }
 \value{
-A data.table with the following columns:
-\itemize{
-\item year (numeric): The year of the contribution
-\item coicop (character): The COICOP code
-\item month (numeric): The month of the contribution
-\item category (character): The demographic category (e.g., income group, age group)
-\item contribution (numeric): The calculated contribution to inflation
-}
+An object of class \code{"contributions"} is a list containing the following components:
+\item{dt}{a \code{data.table} object (see below).}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
+\item{category}{Category for which contributions were calculated: "income", "age", or "urban".}
+\item{categories}{(Ordered) vector of category types, from lowest to highest.}
+\item{level}{COICOP level.}
+\item{start_year}{first year of data.}
+\item{start_month}{first month of data.}
+\item{end_year}{last year of data.}
+\item{end_month}{last month of data.}
+
+The component \code{dt} has the following columns:
+\item{year}{year of the contribution.}
+\item{coicop}{COICOP code.}
+\item{month}{month of the contribution.}
+\item{category}{demographic category (e.g., income group, age group).}
+\item{contribution}{calculated contribution to inflation.}
 }
 \description{
-\code{calculate_contributions()} computes the contributions to inflation for different COICOP (Classification of Individual Consumption According to Purpose) categories over time. It uses Consumer Price Index (CPI) data and weighted consumption data to calculate these contributions, handling data for multiple years and accounting for changes in weights and price indices.
+\code{calculate_contributions()} computes the contributions to inflation for different COICOP (Classification of Individual Consumption According to Purpose) categories over time, using Consumer Price Index (CPI) data and weighted consumption data.
 }
 \details{
-The function performs the following key steps:
+The function performs the following key operations:
 \enumerate{
 \item Loads CPI data and calculates weights using \code{load_cpi()} and \code{calculate_weights()}.
 \item Filters data to ensure consistency across COICOP codes and years.
-\item Calculates contributions using a complex formula that accounts for year-over-year changes in prices and weights.
+\item Calculates contributions using a formula that accounts for year-over-year changes in prices and weights.
 \item Handles multiple categories (e.g., income groups, age groups) simultaneously.
 }
 
@@ -69,12 +78,13 @@ Where:
 # Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
 france_contributions <- calculate_contributions("FR", "income", level = 2, start_year = 2010, end_year = 2020)
 
-# View contributions for a specific COICOP code and category in 2015
-france_contributions[year == 2015 & coicop == "01" & category == "QUINTILE1"]
+# Access the data.table component
+dt_contributions <- france_contributions$dt
+
+# Sum contributions for a specific year, month, and category
+total_contribution <- dt_contributions[year == 2015 & month == 6 & category == "First quintile", sum(contribution)]
 
 }
 \seealso{
-\code{\link[=load_cpi]{load_cpi()}} for loading CPI data.
-
-\code{\link[=calculate_weights]{calculate_weights()}} for calculating consumption weights.
+\code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}
 }

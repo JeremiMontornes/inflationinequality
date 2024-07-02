@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_weights.R
 \name{calculate_weights}
 \alias{calculate_weights}
-\title{Combine CPI weights with HBS weight data}
+\title{Calculates combined weights from CPI and HBS data}
 \usage{
 calculate_weights(
   country,
@@ -13,38 +13,45 @@ calculate_weights(
 )
 }
 \arguments{
-\item{country}{A character string. ISO 3166-1 alpha-2 (2-digit) country code.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
-\item{category}{A character string. HBS data category: "income", "age", or "urban".}
+\item{category}{HBS data category: "income", "age", or "urban".}
 
-\item{level}{An integer. COICOP level (1-3). Default is 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
 
-\item{start_year}{An integer. Start year for the analysis period. Default is NULL (earliest available data).}
+\item{start_year}{year of start date.}
 
-\item{end_year}{An integer. End year for the analysis period. Default is NULL (latest available data).}
+\item{end_year}{year of end date.}
 }
 \value{
-A data.table with the following columns:
-\itemize{
-\item series_name (character): Identifier for the data series
-\item coicop (character): COICOP code
-\item year (numeric): Year of the HBS data
-\item category (character): HBS category (e.g., "QUINTILE1" for income quintile 1)
-\item weighted_consumption (numeric): Calculated weight (normalized to sum to 100 within each category and year)
-\item weight_year (numeric): Year of the CPI weight data
-}
+An object of class \code{"weights"} is a list containing the following components:
+\item{dt}{a \code{data.table} object (see below).}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
+\item{category}{HBS category: \code{"income"}, \code{"age"}, or \code{"urban"}.}
+\item{categories}{(Ordered) vector of category types, from lowest to highest.}
+\item{level}{COICOP level.}
+\item{start_year}{first year of data.}
+\item{end_year}{last year of data.}
+
+The component \code{dt} has the following columns:
+\item{series_name}{identifier for the data series.}
+\item{coicop}{COICOP code.}
+\item{year}{year of the HBS data.}
+\item{category}{HBS category (e.g., "First quintile").}
+\item{weighted_consumption}{calculated weight (normalized to sum to 100 within each category and year).}
+\item{weight_year}{year of the CPI weight data.}
 }
 \description{
-\code{calculate_weights()} merges annual Consumer Price Index (CPI) weight data with Household Budget Survey (HBS) weight data to create a comprehensive dataset for economic analysis. The merge is performed based on COICOP (Classification of Individual Consumption According to Purpose) codes and the most recent HBS wave available for each CPI data point.
-
-Key features:
-\enumerate{
-\item Temporal matching: CPI weights are matched with the most recent prior HBS wave. If no prior wave exists, the earliest available HBS wave is used.
-\item COICOP code alignment: The function performs a left join on COICOP codes, ensuring all CPI COICOP codes are represented in the final dataset.
-\item Weight normalization: Final weights are normalized to sum to 100\% for each category and year.
-}
+\code{calculate_weights()} combines annual Consumer Price Index (CPI) weight data with Household Budget Survey (HBS) weight data to create a comprehensive dataset for economic analysis.
 }
 \details{
+The function performs the following key operations:
+\enumerate{
+\item Temporal matching: CPI weights are matched with the most recent prior HBS wave. If no prior wave exists, the earliest available HBS wave is used.
+\item COICOP code alignment: A left join is performed on COICOP codes, ensuring all CPI COICOP codes are represented in the final dataset.
+\item Weight normalization: Final weights are normalized to sum to 100\% for each category and year.
+}
+
 Merging logic:
 \itemize{
 \item For each CPI weight year, the function selects HBS data from the most recent prior wave.
@@ -58,8 +65,7 @@ Data handling:
 \item Zero values in both CPI and HBS data are replaced with 1e-6 to prevent division by zero errors.
 }
 
-Weight calculation:
-The function calculates final weights using the following steps:
+Weight calculation steps:
 \enumerate{
 \item Multiply CPI weights with HBS consumption data.
 \item Normalize by dividing by total consumption for each COICOP code and year.
@@ -71,7 +77,10 @@ The function calculates final weights using the following steps:
 france_weights <- calculate_weights("FR", "income", level = 2, start_year = 2010, end_year = 2020)
 
 # Check if weights sum to 100 for a specific category and year
-france_weights[category == "QUINTILE1" & weight_year == 2015, sum(weighted_consumption)]
+france_weights$dt[category == "First quintile" & weight_year == 2015, sum(weighted_consumption)]
+
+# Access the data.table component
+dt_weights <- france_weights$dt
 
 }
 \seealso{

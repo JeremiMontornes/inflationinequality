@@ -2,30 +2,40 @@
 % Please edit documentation in R/calculate_inflation.R
 \name{calculate_inflation_gap}
 \alias{calculate_inflation_gap}
-\title{Calculate inflation gap between income quintiles}
+\title{Calculates inflation gap between income quintiles}
 \usage{
-calculate_inflation_gap(dt_inflation)
+calculate_inflation_gap(inflation)
 }
 \arguments{
-\item{dt_inflation}{A \code{data.table} containing inflation data, as produced by \code{calculate_inflation()}.
-Must include columns for year, month, category, and inflation.}
+\item{inflation}{An object of class \code{"inflation"} as produced by \code{calculate_inflation()}.}
 }
 \value{
-A \code{data.table} object containing the calculated inflation gap.
+A \code{data.table} with the following columns:
+\item{year}{year of the inflation gap.}
+\item{month}{month of the inflation gap.}
+\item{inflation_gap}{calculated inflation gap (lowest category - highest category).}
 }
 \description{
-\code{calculate_inflation_gap()} computes the inflation gap between the lowest (QUINTILE1) and highest (QUINTILE5) income quintiles. It takes the inflation data calculated by \code{calculate_inflation()} and returns the difference in inflation rates between these two quintiles.
+\code{calculate_inflation_gap()} computes the inflation gap between the lowest and highest income quintiles using the inflation data calculated by \code{calculate_inflation()}.
+}
+\details{
+The function performs the following key operations:
+\enumerate{
+\item Identifies the lowest and highest categories from the input inflation data.
+\item Filters the inflation data for these two categories.
+\item Calculates the difference in inflation rates between these two categories.
+}
+}
+\examples{
+# Calculate inflation rates for France, income category, COICOP level 2, from 2010 to 2020
+france_inflation <- calculate_inflation("FR", "income", level = 2, start_year = 2010, end_year = 2020)
 
-The function returns a \code{data.table} with the following columns:
-\itemize{
-\item \code{year} (\code{num}): The year of the inflation gap
-\item \code{month} (\code{num}): The month of the inflation gap
-\item \code{inflation_gap} (\code{num}): The calculated inflation gap (QUINTILE1 - QUINTILE5)
-}
-}
-\note{
-This function only works with inflation data categorized by income quintiles.
-It specifically uses QUINTILE1 and QUINTILE5 for the calculation.
+# Calculate the inflation gap
+inflation_gap <- calculate_inflation_gap(france_inflation)
+
+# Get the inflation gap for a specific year and month
+specific_gap <- inflation_gap[year == 2015 & month == 6, inflation_gap]
+
 }
 \seealso{
 \code{\link[=calculate_inflation]{calculate_inflation()}}

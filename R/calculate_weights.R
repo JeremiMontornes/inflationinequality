@@ -1,14 +1,19 @@
-#' Combine CPI weights with HBS weight data
+.onLoad <- function(libname, pkgname) {
+  load_index_weights <<- memoise::memoise(load_index_weights)
+  load_hbs <<- memoise::memoise(load_hbs)
+}
+
+#' Calculates combined weights from CPI and HBS data
 #'
 #' @description
-#' `calculate_weights()` merges annual Consumer Price Index (CPI) weight data with Household Budget Survey (HBS) weight data to create a comprehensive dataset for economic analysis. The merge is performed based on COICOP (Classification of Individual Consumption According to Purpose) codes and the most recent HBS wave available for each CPI data point.
-#'
-#' Key features:
-#' 1. Temporal matching: CPI weights are matched with the most recent prior HBS wave. If no prior wave exists, the earliest available HBS wave is used.
-#' 2. COICOP code alignment: The function performs a left join on COICOP codes, ensuring all CPI COICOP codes are represented in the final dataset.
-#' 3. Weight normalization: Final weights are normalized to sum to 100% for each category and year.
+#' `calculate_weights()` combines annual Consumer Price Index (CPI) weight data with Household Budget Survey (HBS) weight data to create a comprehensive dataset for economic analysis.
 #'
 #' @details
+#' The function performs the following key operations:
+#' 1. Temporal matching: CPI weights are matched with the most recent prior HBS wave. If no prior wave exists, the earliest available HBS wave is used.
+#' 2. COICOP code alignment: A left join is performed on COICOP codes, ensuring all CPI COICOP codes are represented in the final dataset.
+#' 3. Weight normalization: Final weights are normalized to sum to 100% for each category and year.
+#'
 #' Merging logic:
 #' * For each CPI weight year, the function selects HBS data from the most recent prior wave.
 #' * Example: CPI weights from 2015-2019 are merged with the 2015 HBS wave; 2020 CPI weights with the 2020 HBS wave.
@@ -18,32 +23,43 @@
 #' * COICOP codes present in CPI data but absent in HBS data are included with minimal consumption values (1e-6) to avoid data loss.
 #' * Zero values in both CPI and HBS data are replaced with 1e-6 to prevent division by zero errors.
 #'
-#' Weight calculation:
-#' The function calculates final weights using the following steps:
+#' Weight calculation steps:
 #' 1. Multiply CPI weights with HBS consumption data.
 #' 2. Normalize by dividing by total consumption for each COICOP code and year.
 #' 3. Scale weights to sum to 100% for each category and year.
 #'
-#' @param country A character string. ISO 3166-1 alpha-2 (2-digit) country code.
-#' @param category A character string. HBS data category: "income", "age", or "urban".
-#' @param level An integer. COICOP level (1-3). Default is 2.
-#' @param start_year An integer. Start year for the analysis period. Default is NULL (earliest available data).
-#' @param end_year An integer. End year for the analysis period. Default is NULL (latest available data).
+#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
+#' @param category HBS data category: "income", "age", or "urban".
+#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.
+#' @param start_year year of start date.
+#' @param end_year year of end date.
 #'
-#' @return A data.table with the following columns:
-#' * series_name (character): Identifier for the data series
-#' * coicop (character): COICOP code
-#' * year (numeric): Year of the HBS data
-#' * category (character): HBS category (e.g., "QUINTILE1" for income quintile 1)
-#' * weighted_consumption (numeric): Calculated weight (normalized to sum to 100 within each category and year)
-#' * weight_year (numeric): Year of the CPI weight data
+#' @returns An object of class `"weights"` is a list containing the following components:
+#' \item{dt}{a `data.table` object (see below).}
+#' \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
+#' \item{category}{HBS category: `"income"`, `"age"`, or `"urban"`.}
+#' \item{categories}{(Ordered) vector of category types, from lowest to highest.}
+#' \item{level}{COICOP level.}
+#' \item{start_year}{first year of data.}
+#' \item{end_year}{last year of data.}
+#'
+#' The component `dt` has the following columns:
+#' \item{series_name}{identifier for the data series.}
+#' \item{coicop}{COICOP code.}
+#' \item{year}{year of the HBS data.}
+#' \item{category}{HBS category (e.g., "First quintile").}
+#' \item{weighted_consumption}{calculated weight (normalized to sum to 100 within each category and year).}
+#' \item{weight_year}{year of the CPI weight data.}
 #'
 #' @examples
 #' # Calculate weights for France, income category, COICOP level 2, from 2010 to 2020
 #' france_weights <- calculate_weights("FR", "income", level = 2, start_year = 2010, end_year = 2020)
 #'
 #' # Check if weights sum to 100 for a specific category and year
-#' france_weights[category == "QUINTILE1" & weight_year == 2015, sum(weighted_consumption)]
+#' france_weights$dt[category == "First quintile" & weight_year == 2015, sum(weighted_consumption)]
+#'
+#' # Access the data.table component
+#' dt_weights <- france_weights$dt
 #'
 #' @seealso [load_index_weights()], [load_hbs()]
 #'
@@ -63,27 +79,36 @@ calculate_weights <- function(country, category, level = 2,
   }
 
   # Download data
-  dt_weights <- load_index_weights(country,
+  index_weights <- load_index_weights(country,
     level = level,
     start_year = start_year, end_year = end_year
   )
-  dt_hbs <- load_hbs(country, category,
+  hbs <- load_hbs(country, category,
     level = level
   )
 
   # Select COICOP codes
-  hbs_coicops <- unique(dt_hbs$coicop)
-  weight_coicops <- unique(dt_weights$coicop)
+  hbs_coicops <- unique(hbs$dt$coicop)
+  weight_coicops <- unique(index_weights$dt$coicop)
 
   # We do not use COICOP codes that have HBS data but not CPI data
-  dt_hbs <- dt_hbs[coicop %in% weight_coicops, ]
+  hbs$dt <- hbs$dt[coicop %in% weight_coicops, ]
+  rejected_coicops <- setdiff(hbs_coicops, weight_coicops)
+  if (length(rejected_coicops) > 0) {
+    message(sprintf("The following COICOP codes, found in HBS data, are removed for not being included in CPI data: %s", paste(rejected_coicops, collapse = ", ")))
+  }
 
   # Replace 0 with very small values to avoid division by zero (vectorized)
-  dt_hbs[, consumption := pmax(consumption, 1e-6)]
-  dt_weights[, weight := pmax(weight, 1e-6)]
+  hbs$dt[, consumption := pmax(consumption, 1e-6)]
+  index_weights$dt[, weight := pmax(weight, 1e-6)]
 
   # Necessary before the join
-  data.table::setnames(dt_weights, "year", "weight_year")
+  if ("year" %in% colnames(index_weights$dt) &&
+      !"weight_year" %in% colnames(index_weights$dt)) {
+  data.table::setnames(index_weights$dt, "year", "weight_year")
+  } else if (!"weight_year" %in% colnames(index_weights$dt)) {
+    stop("Something's wrong!")
+  }
 
   # COICOP codes that have CPI data but not HBS data
   missing_coicops <- setdiff(weight_coicops, hbs_coicops)
@@ -92,22 +117,22 @@ calculate_weights <- function(country, category, level = 2,
   if (length(missing_coicops) > 0) {
     new_rows <- data.table::CJ(
       coicop = missing_coicops,
-      year = unique(dt_hbs$year),
-      category = unique(dt_hbs$category)
+      year = unique(hbs$dt$year),
+      category = unique(hbs$dt$category)
     )
     new_rows[, `:=`(
       consumption = 1e-6,
       series_name = NA_character_
     )]
-    dt_hbs <- data.table::rbindlist(list(dt_hbs, new_rows), use.names = TRUE, fill = TRUE)
+    hbs$dt <- data.table::rbindlist(list(hbs$dt, new_rows), use.names = TRUE, fill = TRUE)
   }
 
   # Set keys for faster joining
-  data.table::setkey(dt_hbs, coicop, year)
-  data.table::setkey(dt_weights, coicop, weight_year)
+  data.table::setkey(hbs$dt, coicop, year)
+  data.table::setkey(index_weights$dt, coicop, weight_year)
 
   # Now perform the cartesian product (left join)
-  dt_weighted_consumption <- dt_hbs[dt_weights, on = .(coicop), allow.cartesian = TRUE]
+  dt_weighted_consumption <- hbs$dt[index_weights$dt, on = .(coicop), allow.cartesian = TRUE]
 
   dt_weighted_consumption <- dt_weighted_consumption[,
     {
@@ -168,5 +193,12 @@ calculate_weights <- function(country, category, level = 2,
     unnormalized_weighted_consumption = NULL
   )]
 
-  return(dt_weighted_consumption)
+  return(structure(list(dt = dt_weighted_consumption,
+                        country = country,
+                        category = category,
+                        categories = hbs$categories,
+                        level = level,
+                        start_year = min(dt_weighted_consumption$weight_year),
+                        end_year = max(dt_weighted_consumption$weight_year)),
+                   class = "weights"))
 }

@@ -14,38 +14,56 @@ load_cpi(
 )
 }
 \arguments{
-\item{country}{ISO 3166-1 alpha-2 (2 digit) country code.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
-\item{level}{COICOP level. Default value is 2. Possible values are 1-3.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2.}
 
-\item{start_year}{Year of start date. Default value is NULL.}
+\item{start_year}{year of start date.}
 
-\item{start_month}{Month of start date. Default value is NULL.}
+\item{start_month}{month of start date.}
 
-\item{end_year}{Year of end date. Default value is NULL.}
+\item{end_year}{year of end date.}
 
-\item{end_month}{Month of end date. Default value is NULL.}
+\item{end_month}{month of end date.}
 }
 \value{
-A \code{data.table} object.
+An object of class \code{"cpi"} is a list containing the following components:
+\item{dt}{a \code{data.table} object (see below).}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
+\item{level}{COICOP level.}
+\item{start_year}{first year of data.}
+\item{start_month}{first month of data.}
+\item{end_year}{last year of data}
+\item{end_month}{last month of data.}
+
+The component \code{dt} has the following columns:
+\item{series_name}{identifier for the data series.}
+\item{coicop}{COICOP code.}
+\item{value}{price of item category at specified time.}
+\item{year}{year of data series.}
+\item{month}{month of data series.}
 }
 \description{
-\code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country. The user must specify the granularity of the product classification according to the COICOP nomenclature. A time period must also be specified.
-
-The data is formatted as \code{data.table} with following columns:
-\itemize{
-\item \code{series_name} (\code{chr})
-\item \code{coicop} (\code{chr})
-\item \code{value} (\code{num})
-\item \code{year} (\code{num})
-\item \code{month} (\code{num})
+\code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country.
 }
+\details{
+It's possible that some datasets do not contain all available COICOP codes on particular years.
 }
 \examples{
-dt_cpi <- load_cpi("FR")
-dt_cpi <- load_cpi("DE")
-dt_cpi <- load_cpi("IT", level = 1, start_year = 2020, end_year = 2022)
-dt_cpi <- load_cpi("ES", level = 1, end_year = 2023)
+# Download all available French CPI data
+cpi <- load_cpi("FR")
+
+# Download all available German CPI data
+cpi <- load_cpi("DE")
+
+# Download Italian CPI data at COICOP level 1 from 2020 to 2022
+cpi <- load_cpi("IT", level = 1, start_year = 2020, end_year = 2022)
+
+# Download Spanish CPI data at COICOP level 1 up to September 2023
+cpi <- load_cpi("ES", level = 1, end_year = 2023, end_month = 9)
+
+# Access the data.table component
+dt_cpi <- cpi$dt
 
 }
 \seealso{
