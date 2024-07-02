@@ -10,7 +10,7 @@ options(rdbnomics.use_readLines = TRUE)
 #' It's possible that some datasets do not contain all available COICOP codes on particular years.
 #'
 #' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
-#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2.
+#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 (Division), "012" is level 2 (Group), and "0111" is level 3 (Class).
 #' @param start_year year of start date.
 #' @param start_month month of start date.
 #' @param end_year year of end date.

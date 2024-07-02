@@ -16,7 +16,7 @@ load_cpi(
 \arguments{
 \item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
 
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 (Division), "012" is level 2 (Group), and "0111" is level 3 (Class).}
 
 \item{start_year}{year of start date.}
 
