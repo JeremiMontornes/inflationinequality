@@ -56,7 +56,8 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
                                 ensure_complete_cpi = FALSE,
                                 custom_cpi = NULL,
                                 custom_index_weights = NULL,
-                                custom_hbs = NULL) {
+                                custom_hbs = NULL,
+                                interpolated_hbs = FALSE) {
   contributions <- calculate_contributions(country, category,
     level = level,
     start_year = start_year, start_month = start_month,
@@ -64,7 +65,8 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
     ensure_complete_cpi = ensure_complete_cpi,
     custom_cpi = custom_cpi,
     custom_index_weights = custom_index_weights,
-    custom_hbs = custom_hbs
+    custom_hbs = custom_hbs,
+    interpolated_hbs = interpolated_hbs
   )
   dt_inflation <-
     contributions$dt[, .(inflation = sum(contribution)),

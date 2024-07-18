@@ -82,7 +82,8 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     ensure_complete_cpi = FALSE,
                                     custom_cpi = NULL,
                                     custom_index_weights = NULL,
-                                    custom_hbs = NULL) {
+                                    custom_hbs = NULL,
+                                    interpolated_hbs = FALSE) {
   # Input validation
   if (!is.character(country) || nchar(country) != 2) {
     stop("Country must be a 2-character ISO code")
@@ -119,7 +120,8 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       level = level,
       start_year = start_year, end_year = end_year,
       custom_index_weights = custom_index_weights,
-      custom_hbs = custom_hbs)
+      custom_hbs = custom_hbs,
+      interpolated_hbs = interpolated_hbs)
 
   start_year <- if (is.null(start_year) || start_year < cpi$start_year) {
     cpi$start_year
@@ -169,9 +171,10 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
 
   # Fill in missing values
   # cpi_result[is.na(series_name), `:=`(series_name = NA_character_, value = 1e-6)]
-  weights_result[is.na(series_name), `:=`(series_name = NA_character_,
-                                          weighted_consumption = 1e-6,
-                                          year = NA)]
+  # weights_result[is.na(series_name), `:=`(series_name = NA_character_,
+  #                                         weighted_consumption = 1e-6,
+  #                                         year = NA)]
+  weights_result[, weighted_consumption := pmax(weighted_consumption, 1e-6, na.rm = TRUE)]
 
   # If you want to keep only the columns from the original data.table
   # cpi$dt <- cpi_result[, .(series_name, coicop, value, year, month)]
@@ -308,7 +311,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   }
 
   # Drop useless columns
-  contrib2 <- contrib2[, .(coicop, category, year, month, contribution)]
+  # contrib2 <- contrib2[, .(coicop, category, year, month, contribution)]
 
   dt_significant_missing_weights <- dt_missing_weights[, .(average_missing_weight = mean(missing_weight)),
                                                        by = .(coicop, year)]

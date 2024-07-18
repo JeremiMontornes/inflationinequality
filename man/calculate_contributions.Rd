@@ -15,7 +15,8 @@ calculate_contributions(
   ensure_complete_cpi = FALSE,
   custom_cpi = NULL,
   custom_index_weights = NULL,
-  custom_hbs = NULL
+  custom_hbs = NULL,
+  interpolated_hbs = FALSE
 )
 }
 \arguments{
@@ -47,6 +48,8 @@ CPI data when the CPI dataset is incomplete.}
 \item{custom_index_weights}{an object of class \code{"index_weights"}.}
 
 \item{custom_hbs}{an object of class \code{"hbs"}.}
+
+\item{interpolated_hbs}{flag if you want to interpolate HBS weights}
 }
 \value{
 An object of class \code{"contributions"} is a list containing the

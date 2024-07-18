@@ -11,7 +11,8 @@ calculate_weights(
   start_year = NULL,
   end_year = NULL,
   custom_index_weights = NULL,
-  custom_hbs = NULL
+  custom_hbs = NULL,
+  interpolated_hbs = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ level 1 and "012" is level 2. Default value is 2.}
 \item{custom_index_weights}{an object of class \code{"index_weights"}.}
 
 \item{custom_hbs}{an object of class \code{"hbs"}.}
+
+\item{interpolated_hbs}{flag if you want to interpolate HBS weights}
 }
 \value{
 An object of class \code{"weights"} is a list containing the following

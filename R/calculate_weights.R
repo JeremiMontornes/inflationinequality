@@ -33,6 +33,7 @@
 #'   if that argument is missing.
 #' @param custom_index_weights an object of class `"index_weights"`.
 #' @param custom_hbs an object of class `"hbs"`.
+#' @param interpolated_hbs flag if you want to interpolate HBS weights
 #'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
@@ -73,7 +74,8 @@
 calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               start_year = NULL, end_year = NULL,
                               custom_index_weights = NULL,
-                              custom_hbs = NULL) {
+                              custom_hbs = NULL,
+                              interpolated_hbs = FALSE) {
   # Input validation
   if (!is.character(country) || nchar(country) != 2) {
     stop("Country must be a 2-character ISO code")
@@ -107,6 +109,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
       level = level)
   } else {
     custom_hbs
+  }
+
+  if (interpolated_hbs) {
+    hbs <- interpolate_hbs(hbs)
   }
 
   # Select COICOP codes

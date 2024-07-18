@@ -6,6 +6,32 @@
 \usage{
 interpolate_hbs(hbs)
 }
+\arguments{
+\item{hbs}{an object of class \code{"hbs"}.}
+}
+\value{
+an object of class "hbs" with interpolated data.
+}
 \description{
-Interpolate HBS data
+This function performs linear interpolation on Household Budget Survey (HBS) data.
+It interpolates consumption values for each year between the minimum and maximum
+years present in the original data.
+}
+\details{
+The function uses the \code{approx()} function to perform linear interpolation.
+For the main data table (\code{dt}), it interpolates by coicop and category.
+For the total consumption data table (\code{dt_total}), it interpolates by coicop only.
+
+The interpolation creates a row for each year between the minimum and maximum
+years in the original data, for each group (coicop or coicop+category).
+\itemize{
+\item The function assumes that the input \code{hbs} object has \code{dt} and \code{dt_total} components.
+\item In the resulting \code{dt}, a \code{series_name} column is added with NA values.
+\item In \code{dt_total}, the 'consumption' column is renamed to 'total_consumption' for clarity.
+}
+}
+\examples{
+my_hbs <- load_hbs("FR", "income", start_year = 2005)
+interpolated_hbs <- interpolate_hbs(my_hbs)
+
 }

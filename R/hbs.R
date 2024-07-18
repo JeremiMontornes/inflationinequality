@@ -126,6 +126,31 @@ hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.table
 
 #' Interpolate HBS data
 #'
+#' @description
+#' This function performs linear interpolation on Household Budget Survey (HBS) data.
+#' It interpolates consumption values for each year between the minimum and maximum
+#' years present in the original data.
+#'
+#' @param hbs an object of class `"hbs"`.
+#'
+#' @return an object of class "hbs" with interpolated data.
+#'
+#' @details
+#' The function uses the `approx()` function to perform linear interpolation.
+#' For the main data table (`dt`), it interpolates by coicop and category.
+#' For the total consumption data table (`dt_total`), it interpolates by coicop only.
+#'
+#' The interpolation creates a row for each year between the minimum and maximum
+#' years in the original data, for each group (coicop or coicop+category).
+#'
+#' - The function assumes that the input `hbs` object has `dt` and `dt_total` components.
+#' - In the resulting `dt`, a `series_name` column is added with NA values.
+#' - In `dt_total`, the 'consumption' column is renamed to 'total_consumption' for clarity.
+#'
+#' @examples
+#' my_hbs <- load_hbs("FR", "income", start_year = 2005)
+#' interpolated_hbs <- interpolate_hbs(my_hbs)
+#'
 #' @export
 interpolate_hbs <- function(hbs) {
   UseMethod("interpolate_hbs")
@@ -134,4 +159,23 @@ interpolate_hbs <- function(hbs) {
 #' @exportS3Method
 interpolate_hbs.hbs <- function(hbs) {
 
+  # Function to interpolate for a single group
+  interpolate_group <- function(years, consumptions) {
+    new_years <- seq(min(years), max(years), by = 1)
+    new_consumptions <- approx(years, consumptions, xout = new_years)$y
+    data.table::data.table(year = new_years, consumption = new_consumptions)
+  }
+
+  # Apply the interpolation
+  dt <- hbs$dt[, interpolate_group(year, consumption), by = .(coicop, category)] %>%
+    .[, .(series_name = NA_character_, coicop, year, category, consumption)]
+  hbs$dt_total[, consumption := total_consumption]
+  dt_total <-
+    hbs$dt_total[, interpolate_group(year, total_consumption), by = .(coicop)] %>%
+    .[, .(coicop, year, total_consumption = consumption)]
+
+  hbs(dt = dt, dt_total = dt_total,
+      country = hbs$country,
+      categories = hbs$categories,
+      level = hbs$level)
 }
