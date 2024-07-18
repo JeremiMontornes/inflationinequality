@@ -162,7 +162,9 @@ The CSV file also has CPI data over the entire product basket:
 ```{r}
 INSEE_CPI_dt_basket <- INSEE_CPI_monthly_values %>%
   .[`Libellé` == "Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Ensemble", ] %>%
-  melt(id.vars = c("Libellé"), 
+  # For some stupid reason, INSEE's CSV file has two rows for the same data series.
+  .[1] %>%
+  melt(id.vars = c("Libellé"),
                    variable.name = "date", value.name = "value") %>%
   .[, `:=`(
     date = as.character(date),
