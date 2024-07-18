@@ -19,15 +19,18 @@ Imports:
     dplyr,
     stringr,
     lubridate,
-    readr,
     progress,
-    ggplot2,
-    memoise
+    ggplot2
 Encoding: UTF-8
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    httr2,
+    zip,
+    readr,
+    readxl,
+    insee
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

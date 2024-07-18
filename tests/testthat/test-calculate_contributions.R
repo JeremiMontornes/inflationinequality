@@ -16,7 +16,9 @@ mock_load_cpi <- function(country, level, start_year, start_month, end_year, end
   return(cpi_fr2)
 }
 
-mock_calculate_weights <- function(country, category, level, start_year, end_year) {
+mock_calculate_weights <- function(country, category, level, start_year, end_year,
+                                   custom_index_weights,
+                                   custom_hbs) {
   weights_fr2 <- if (category == "income") {
     if (!is.null(start_year) &&
         start_year == 2016 &&
@@ -43,7 +45,6 @@ mock_calculate_weights <- function(country, category, level, start_year, end_yea
 # Replace actual functions with mocks
 assignInNamespace("load_cpi", mock_load_cpi, "inflationinequality")
 assignInNamespace("calculate_weights", mock_calculate_weights, "inflationinequality")
-calculate_contributions <<- memoise::memoise(calculate_contributions)
 
 test_that("calculate_contributions input validation works", {
   expect_error(calculate_contributions("FRA", "income"), "Country must be a 2-character ISO code")
@@ -54,7 +55,7 @@ test_that("calculate_contributions input validation works", {
 test_that("calculate_contributions returns expected structure", {
   result <- calculate_contributions("FR", "income")
   expect_s3_class(result$dt, "data.table")
-  expect_named(result$dt, c("year", "coicop", "month", "category", "contribution"))
+  expect_named(result$dt, c("coicop", "category", "year", "month", "contribution"))
 })
 
 test_that("calculate_contributions handles different date ranges", {
@@ -71,11 +72,4 @@ test_that("calculate_contributions works with different categories", {
   result_urban <- calculate_contributions("FR", "urban")
 
   expect_false(identical(result_income$dt, result_urban$dt))
-})
-
-test_that("has_all_coicop function works correctly", {
-  test_data <- data.table::data.table(year = c(2015, 2015, 2015, 2016, 2016),
-                          coicop = c("01", "02", "03", "01", "02"))
-  expect_true(has_all_coicop(test_data, 2015, c("01", "02", "03")))
-  expect_false(has_all_coicop(test_data, 2016, c("01", "02", "03")))
 })

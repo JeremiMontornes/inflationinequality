@@ -9,20 +9,23 @@ plot_grouped_bar(year, ...)
 \arguments{
 \item{year}{The specific year for which to plot the data.}
 
-\item{...}{One or more objects of class \code{"inflation"} containing inflation data for different countries.}
+\item{...}{One or more objects of class \code{"inflation"} containing inflation
+data for different countries.}
 }
 \value{
 A ggplot object representing the grouped bar chart of inflation rates.
 }
 \description{
-\code{plot_grouped_bar()} creates a grouped bar chart comparing inflation rates across different categories and countries for a specific year.
+\code{plot_grouped_bar()} creates a grouped bar chart comparing inflation rates
+across different categories and countries for a specific year.
 }
 \details{
 The function performs the following operations:
 \enumerate{
 \item Combines inflation data from multiple countries into a single data table.
 \item Calculates the average inflation for each country and category.
-\item Creates a grouped bar chart using ggplot2 with categories on the x-axis and average inflation on the y-axis, grouped by country.
+\item Creates a grouped bar chart using ggplot2 with categories on the x-axis
+and average inflation on the y-axis, grouped by country.
 }
 }
 \examples{

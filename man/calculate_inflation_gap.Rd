@@ -7,16 +7,21 @@
 calculate_inflation_gap(inflation)
 }
 \arguments{
-\item{inflation}{An object of class \code{"inflation"} as produced by \code{calculate_inflation()}.}
+\item{inflation}{An object of class \code{"inflation"}.}
 }
 \value{
 A \code{data.table} with the following columns:
-\item{year}{year of the inflation gap.}
-\item{month}{month of the inflation gap.}
-\item{inflation_gap}{calculated inflation gap (lowest category - highest category).}
+\itemize{
+\item \code{year}: year of the inflation gap.
+\item \code{month}: month of the inflation gap.
+\item \code{inflation_gap}: calculated inflation gap (lowest category - highest
+category).
+}
 }
 \description{
-\code{calculate_inflation_gap()} computes the inflation gap between the lowest and highest income quintiles using the inflation data calculated by \code{calculate_inflation()}.
+\code{calculate_inflation_gap()} computes the inflation gap between the lowest and
+highest income quintiles using the inflation data calculated by
+\code{calculate_inflation()}.
 }
 \details{
 The function performs the following key operations:

@@ -1,39 +1,36 @@
-.onLoad <- function(libname, pkgname) {
-  calculate_contributions <<- memoise::memoise(calculate_contributions)
-}
-
 #' Calculates inflation rates
 #'
 #' @description
-#' `calculate_inflation()` computes inflation rates for different categories over time using the contributions calculated by `calculate_contributions()`.
+#' `calculate_inflation()` computes inflation rates for different categories
+#' over time using the contributions calculated by `calculate_contributions()`.
 #'
 #' @details
 #' The function performs the following key operations:
-#' 1. Calls `calculate_contributions()` to get the inflation contributions at COICOP level 1 since we're aggregating over all products.
+#' 1. Calls `calculate_contributions()` to get the inflation contributions
 #' 2. Sums up the total inflation for each category, year, and month.
 #'
-#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
-#' @param category Category for which to calculate inflation: "income", "age", or "urban".
-#' @param start_year year of start date.
-#' @param start_month month of start date.
-#' @param end_year year of end date.
-#' @param end_month month of end date.
+#' @inheritParams calculate_contributions
 #'
-#' @returns An object of class `"inflation"` is a list containing the following components:
-#' \item{dt}{a `data.table` object (see below).}
-#' \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-#' \item{category}{Category for which inflation was calculated: "income", "age", or "urban".}
-#' \item{categories}{(Ordered) vector of category types, from lowest to highest.}
-#' \item{start_year}{first year of data.}
-#' \item{start_month}{first month of data.}
-#' \item{end_year}{last year of data.}
-#' \item{end_month}{last month of data.}
+#' @returns An object of class `"inflation"` is a list containing the following
+#'   components:
+#'
+#' - `dt`: a `data.table` object (see below).
+#' - `country`: 2-digit country code (see ISO 3166-1 alpha-2).
+#' - `category`: Category for which contributions were calculated: "income",
+#' "age", or "urban".
+#' - `categories`: (Ordered) vector of category types, from lowest to highest.
+#' - `level`: COICOP level.
+#' - `start_year`: first year of data.
+#' - `start_month`: first month of data.
+#' - `end_year`: last year of data.
+#' - `end_month`: last month of data.
 #'
 #' The component `dt` has the following columns:
-#' \item{year}{year of the inflation rate.}
-#' \item{month}{month of the inflation rate.}
-#' \item{category}{demographic category (e.g., income group, age group).}
-#' \item{inflation}{calculated inflation rate.}
+#'
+#' - `year`: year of the inflation rate.
+#' - `month`: month of the inflation rate.
+#' - `category`: demographic category (e.g., income group, age group).
+#' - `contribution`: calculated inflation rate.
 #'
 #' @examples
 #' # Calculate inflation rates for France, income category  from 2010 to 2020
@@ -53,15 +50,25 @@
 #'
 #' @importFrom data.table :=
 #' @export
-calculate_inflation <- function(country, category,
+calculate_inflation <- function(country = NULL, category = NULL, level = 2,
                                 start_year = NULL, start_month = NULL,
-                                end_year = NULL, end_month = NULL) {
+                                end_year = NULL, end_month = NULL,
+                                ensure_complete_cpi = FALSE,
+                                custom_cpi = NULL,
+                                custom_index_weights = NULL,
+                                custom_hbs = NULL) {
   contributions <- calculate_contributions(country, category,
-    level = 1,
+    level = level,
     start_year = start_year, start_month = start_month,
-    end_year = end_year, end_month = end_month
+    end_year = end_year, end_month = end_month,
+    ensure_complete_cpi = ensure_complete_cpi,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs
   )
-  dt_inflation <- contributions$dt[, .(inflation = sum(contribution)), by = .(year, month, category)]
+  dt_inflation <-
+    contributions$dt[, .(inflation = sum(contribution)),
+                     by = .(year, month, category)]
 
   return(structure(list(dt = dt_inflation,
                         country = country,
@@ -77,7 +84,9 @@ calculate_inflation <- function(country, category,
 #' Calculates inflation gap between income quintiles
 #'
 #' @description
-#' `calculate_inflation_gap()` computes the inflation gap between the lowest and highest income quintiles using the inflation data calculated by `calculate_inflation()`.
+#' `calculate_inflation_gap()` computes the inflation gap between the lowest and
+#' highest income quintiles using the inflation data calculated by
+#' `calculate_inflation()`.
 #'
 #' @details
 #' The function performs the following key operations:
@@ -85,12 +94,14 @@ calculate_inflation <- function(country, category,
 #' 2. Filters the inflation data for these two categories.
 #' 3. Calculates the difference in inflation rates between these two categories.
 #'
-#' @param inflation An object of class `"inflation"` as produced by `calculate_inflation()`.
+#' @param inflation An object of class `"inflation"`.
 #'
 #' @returns A `data.table` with the following columns:
-#' \item{year}{year of the inflation gap.}
-#' \item{month}{month of the inflation gap.}
-#' \item{inflation_gap}{calculated inflation gap (lowest category - highest category).}
+#'
+#' - `year`: year of the inflation gap.
+#' - `month`: month of the inflation gap.
+#' - `inflation_gap`: calculated inflation gap (lowest category - highest
+#' category).
 #'
 #' @examples
 #' # Calculate inflation rates for France, income category from 2010 to 2020
@@ -105,7 +116,6 @@ calculate_inflation <- function(country, category,
 #'
 #' @seealso [calculate_inflation()]
 #'
-#' @importFrom data.table :=
 #' @export
 calculate_inflation_gap <- function(inflation) {
   lowest_category <- inflation$categories[1]
@@ -126,4 +136,29 @@ calculate_inflation_gap <- function(inflation) {
   )]
 
   return(dt_gap)
+}
+
+#' Calculate average monthly inflation
+#'
+#' @param inflation An object of class `"inflation"`.
+#'
+#' @returns A `data.table` with the following columns:
+#'
+#' - `year`: year of the inflation gap.
+#' - `month`: month of the inflation gap.
+#' - `total_inflation`: average inflation rate.
+#'
+#' @examples
+#' # Calculate inflation rates for France, income category from 2010 to 2020
+#' france_inflation <- calculate_inflation("FR", "income",
+#' start_year = 2010, end_year = 2020)
+#'
+#' # Calculate average monthly inflation
+#' dt_monthly_inflation_fr <- calculate_total_inflation(france_inflation)
+#'
+#' @seealso [calculate_inflation()]
+#'
+#' @export
+calculate_total_inflation <- function(inflation) {
+  inflation$dt[, .(total_inflation = mean(inflation)), by = .(year, month)]
 }

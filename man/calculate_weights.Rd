@@ -5,41 +5,59 @@
 \title{Calculates combined weights from CPI and HBS data}
 \usage{
 calculate_weights(
-  country,
-  category,
+  country = NULL,
+  category = NULL,
   level = 2,
   start_year = NULL,
-  end_year = NULL
+  end_year = NULL,
+  custom_index_weights = NULL,
+  custom_hbs = NULL
 )
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted. The parameter is optional since we can load
+\code{custom_index_weights} and \code{custom_hbs}, but if both of those arguments are
+missing, then the \code{country} parameter is mandatory.}
 
-\item{category}{HBS data category: "income", "age", or "urban".}
+\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}. The
+parameter is optional since one can load \code{custom_hbs}, but it is mandatory
+if that argument is missing.}
 
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
 \item{end_year}{year of end date.}
+
+\item{custom_index_weights}{an object of class \code{"index_weights"}.}
+
+\item{custom_hbs}{an object of class \code{"hbs"}.}
 }
 \value{
-An object of class \code{"weights"} is a list containing the following components:
-\item{dt}{a \code{data.table} object (see below).}
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-\item{category}{HBS category: \code{"income"}, \code{"age"}, or \code{"urban"}.}
-\item{categories}{(Ordered) vector of category types, from lowest to highest.}
-\item{level}{COICOP level.}
-\item{start_year}{first year of data.}
-\item{end_year}{last year of data.}
+An object of class \code{"weights"} is a list containing the following
+components:
+\itemize{
+\item \code{dt}: a \code{data.table} object (see below).
+\item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
+\item \code{category}: HBS category: \code{"income"}, \code{"age"}, or \code{"urban"}.
+\item \code{categories}: (Ordered) vector of category types, from lowest to highest.
+\item \code{level}: COICOP level.
+\item \code{start_year}: first year of data.
+\item \code{last_year}: last year of data.
+}
 
 The component \code{dt} has the following columns:
-\item{series_name}{identifier for the data series.}
-\item{coicop}{COICOP code.}
-\item{year}{year of the HBS data.}
-\item{category}{HBS category (e.g., "First quintile").}
-\item{weighted_consumption}{calculated weight (normalized to sum to 100 within each category and year).}
-\item{weight_year}{year of the CPI weight data.}
+\itemize{
+\item \code{series_name}: identifier for the data series.
+\item \code{coicop}: COICOP code.
+\item \code{year}: year of the HBS data.
+\item \code{category}: HBS category (e.g., "First quintile").
+\item \code{weighted_consumption}: calculated weight (normalized to sum to 100 within
+each category and year).
+\item \code{weight_year}: year of the CPI weight data.
+}
 }
 \description{
 \code{calculate_weights()} combines annual Consumer Price Index (CPI) weight data with Household Budget Survey (HBS) weight data to create a comprehensive dataset for economic analysis.
@@ -73,16 +91,19 @@ Weight calculation steps:
 }
 }
 \examples{
-# Calculate weights for France, income category, COICOP level 2, from 2010 to 2020
-france_weights <- calculate_weights("FR", "income", level = 2, start_year = 2010, end_year = 2020)
+# Calculate weights for France, income category, COICOP level 2, from 2010 to
+2020
+france_weights <- calculate_weights("FR", "income", level = 2,
+start_year = 2010, end_year = 2020)
 
 # Check if weights sum to 100 for a specific category and year
-france_weights$dt[category == "First quintile" & weight_year == 2015, sum(weighted_consumption)]
+france_weights$dt[category == "First quintile" & weight_year == 2015,
+sum(weighted_consumption)]
 
 # Access the data.table component
 dt_weights <- france_weights$dt
 
 }
 \seealso{
-\code{\link[=load_index_weights]{load_index_weights()}}, \code{\link[=load_hbs]{load_hbs()}}
+\code{\link[=load_index_weights]{load_index_weights()}}, \code{\link[=load_hbs]{load_hbs()}}, \code{\link[=index_weights]{index_weights()}}, \code{\link[=hbs]{hbs()}}
 }

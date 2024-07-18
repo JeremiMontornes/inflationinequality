@@ -1,36 +1,43 @@
 # BdF-specific
 options(rdbnomics.use_readLines = TRUE)
 
+hbs_dataset_data <- list(
+  income = "hbs_str_t223",
+  age = "hbs_str_t225",
+  urban = "hbs_str_t226"
+)
+
+# Map for Eurostat categories
+category_data <- list(
+  income = list(
+    old_names = c("QUINTILE1", "QUINTILE2", "QUINTILE3", "QUINTILE4", "QUINTILE5"),
+    categories = c("First quintile", "Second quintile", "Third quintile", "Fourth quintile", "Fifth quintile")
+  ),
+  age = list(
+    old_names = c("Y_LT30", "Y30-44", "Y45-59", "Y_GE60"),
+    categories = c("Less than 30 years", "From 30 to 44 years", "From 45 to 59 years", "60 years or over")
+  ),
+  urban = list(
+    old_names = c("DEG3", "DEG2", "DEG1"),
+    categories = c("Rural areas", "Towns and suburbs", "Cities")
+  )
+)
+
 #' Downloads monthly CPI (Consumer Price Index) data
 #'
 #' @description
-#' `load_cpi()` downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country.
+#' `load_cpi()` downloads monthly CPI data from Eurostat's HICP (Harmonised
+#' Indices of Consumer Prices) database via DBnomics from a specified country.
 #'
-#' @details
-#' It's possible that some datasets do not contain all available COICOP codes on particular years.
-#'
-#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
-#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 (Division), "012" is level 2 (Group), and "0111" is level 3 (Class).
-#' @param start_year year of start date.
+#' @inheritParams load_index_weights
 #' @param start_month month of start date.
-#' @param end_year year of end date.
 #' @param end_month month of end date.
 #'
-#' @returns An object of class `"cpi"` is a list containing the following components:
-#' \item{dt}{a `data.table` object (see below).}
-#' \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-#' \item{level}{COICOP level.}
-#' \item{start_year}{first year of data.}
-#' \item{start_month}{first month of data.}
-#' \item{end_year}{last year of data}
-#' \item{end_month}{last month of data.}
+#' @details
+#' It's possible that some datasets do not contain all available COICOP codes on
+#' particular years.
 #'
-#' The component `dt` has the following columns:
-#' \item{series_name}{identifier for the data series.}
-#' \item{coicop}{COICOP code.}
-#' \item{value}{price of item category at specified time.}
-#' \item{year}{year of data series.}
-#' \item{month}{month of data series.}
+#' @returns An object of class `"cpi"` (see [cpi()]).
 #'
 #' @examples
 #' # Download all available French CPI data
@@ -48,7 +55,7 @@ options(rdbnomics.use_readLines = TRUE)
 #' # Access the data.table component
 #' dt_cpi <- cpi$dt
 #'
-#' @seealso [load_index_weights()]
+#' @seealso [cpi()]
 #'
 #' @importFrom dplyr %>%
 #' @export
@@ -66,7 +73,9 @@ load_cpi <- function(country, level = 2,
   )
 
   dataset_code <- "prc_hicp_midx"
-  mask_prefix <- "M.I05"
+
+  # Change basis year
+  mask_prefix <- "M.I15"
   filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
 
   # Download dataset
@@ -83,41 +92,36 @@ load_cpi <- function(country, level = 2,
       month = lubridate::month(period)
     )]
 
-  return(structure(
-    list(
-      dt = dt,
-      country = country,
-      level = level,
-      start_year = min(dt$year),
-      start_month = 1,
-      end_year = max(dt$year),
-      end_month = max(dt[year == max(dt$year), month])
-    ),
-    class = "cpi"
-  ))
+  # Download price basket dataset
+  dt_basket <- rdbnomics::rdb("Eurostat", dataset_code,
+    mask = paste0(mask_prefix, ".CP00.", country)
+  ) %>%
+    # Select data in specified time period
+    .[dates$start_date <= period & period <= dates$end_date] %>%
+    # Rearrange columns
+    .[, .(series_name, value,
+      year = lubridate::year(period),
+      month = lubridate::month(period)
+    )]
+
+  return(cpi(dt, dt_basket, country, level))
 }
 
 #' Downloads annual index weights data
 #'
 #' @description
-#' `load_index_weights()` downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country.
+#' `load_index_weights()` downloads annual index weights data from Eurostat's
+#' HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a
+#' specified country.
 #'
-#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
-#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.
+#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one
+#'   country at a time is accepted.
+#' @param level COICOP level. Possible values are 1-3. For example, "01" is
+#'   level 1 and "012" is level 2. Default value is 2.
 #' @param start_year year of start date.
 #' @param end_year year of end date.
 #'
-#' @returns An object of class `"index_weights"` is a list containing the following components:
-#' \item{dt}{a `data.table` object (see below).}
-#' \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-#' \item{level}{COICOP level.}
-#' \item{start_year}{first year of data.}
-#' \item{end_year}{last year of data.}
-#'
-#' The component `dt` has the following columns:
-#' \item{coicop}{COICOP code.}
-#' \item{weight}{weight of item category at specified time.}
-#' \item{year}{year of data series.}
+#' @returns An object of class `"index_weights"`.
 #'
 #' @examples
 #' # Download all available French index weights data
@@ -132,10 +136,7 @@ load_cpi <- function(country, level = 2,
 #' # Download Spanish index weights data at COICOP level 1 up to 2023
 #' weights <- load_index_weights("ES", level = 1, end_year = 2023)
 #'
-#' # Access the data.table component
-#' dt_weights <- weights$dt
-#'
-#' @seealso [load_cpi()]
+#' @seealso [index_weights()]
 #'
 #' @importFrom dplyr %>%
 #' @export
@@ -154,7 +155,8 @@ load_index_weights <- function(country, level = 2,
 
   dataset_code <- "prc_hicp_inw"
   mask_prefix <- "A"
-  filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
+  filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix,
+                                         country, level)
 
   # Download dataset
   dt <- rdbnomics::rdb("Eurostat", dataset_code,
@@ -165,60 +167,29 @@ load_index_weights <- function(country, level = 2,
     # Filter to specified COICOP level
     select_coicop_level(level) %>%
     # Rearrange columns
-    # We don't pick series_name since it's annual (redundant) and has no COICOP code
+    # We don't pick series_name since it's annual (redundant) and has no COICOP
+    # code
     .[, .(coicop,
       weight = value,
       year = lubridate::year(period)
     )]
 
-  # return(new("AnnualTimeSeries",
-  #            dt = dt,
-  #            country = country,
-  #            level = level,
-  #            start_year = min(dt$year),
-  #            end_year = max(dt$year)))
-
-  return(structure(
-    list(
-      dt = dt,
-      country = country,
-      level = level,
-      start_year = min(dt$year),
-      end_year = max(dt$year)
-    ),
-    class = "index_weights"
-  ))
+  return(index_weights(dt, country, level))
 }
 
 #' Downloads HBS (Household Budget Survey) data
 #'
 #' @description
-#' `load_hbs()` downloads HBS data from Eurostat's databases via DBnomics from a specified country.
+#' `load_hbs()` downloads HBS data from Eurostat's databases via DBnomics from a
+#' specified country.
 #'
 #' @details
-#' Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call `load_hbs("FR", category = "income", level = 3, start_year = 2017)`.
+#' Eurostat only provides HBS data at level 1 and level 2 COICOP.
 #'
-#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
+#' @inheritParams load_index_weights
 #' @param category HBS data by category: `"income"`, `"age"`, `"urban"`.
-#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.
-#' @param start_year year of start date.
-#' @param end_year year of end date.
 #'
-#' @returns An object of class `"hbs"` is a list containing the following components:
-#' \item{dt}{a `data.table` object (see below).}
-#' \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-#' \item{category}{HBS category: `"income"`, `"age"`, `"urban"`.}
-#' \item{categories}{(Ordered) vector of category types, from lowest to highest.}
-#' \item{level}{COICOP level.}
-#' \item{start_year}{first year of data.}
-#' \item{end_year}{last year of data.}
-#'
-#' The component `dt` has the following columns:
-#' \item{series_name}{identifier for the data series.}
-#' \item{coicop}{COICOP code.}
-#' \item{year}{year of data series.}
-#' \item{category}{category type within the specified HBS category.}
-#' \item{consumption}{consumption value for the specified category and COICOP code.}
+#' @returns An object of class `"hbs"`.
 #'
 #' @examples
 #' # Download French HBS data by income
@@ -241,8 +212,11 @@ load_index_weights <- function(country, level = 2,
 #' @export
 load_hbs <- function(country, category, level = 2,
                      start_year = NULL, end_year = NULL) {
-  if (level < 1 | 3 < level) {
-    stop("COICOP level must be 1, 2 or 3.")
+  if (!level %in% 1:2) {
+    stop("COICOP level must be 1 or 2.")
+  }
+  if (!category %in% c("income", "age", "urban")) {
+    stop("The category must be either 'income', 'age', or 'urban'.")
   }
 
   # Determine specified time period
@@ -252,72 +226,10 @@ load_hbs <- function(country, category, level = 2,
     end_year, end_month = 12
   )
 
-  if (country == "FR" & level == 3 & category == "income") {
-    # The short-circuiting version of | is ||
-    if (is.null(start_year) || start_year < 2017) {
-      stop("French HBS level 3 COICOP data only exists for 2017.")
-    }
-
-    # Import INSEE's 2017 HBS data post-correction.
-    # INSEE dataset 4648335 TF106
-
-    # Construct file path to the CSV file
-    dt_hbs_file_path <- system.file("extdata", "TF106_3digit.csv",
-      package = "inflationinequality"
-    )
-
-    # Read CSV file with specified locale settings and column types
-    dt_hbs <- data.table::as.data.table(
-      readr::read_csv2(dt_hbs_file_path,
-        # French locale
-        locale = readr::locale(
-          encoding = "latin1",
-          decimal_mark = ",",
-          grouping_mark = " "
-        ),
-        col_types = readr::cols(
-          .default = readr::col_number(),
-          "IDENT" = readr::col_character(),
-          "Regroupement" = readr::col_character()
-        )
-      )
-    )
-
-    # Melt wide format to long format, and rearrange columns
-    dt_hbs <- dt_hbs %>%
-      data.table::melt(
-        id.vars = c("IDENT", "Regroupement"), variable.name = "quantile",
-        value.name = "consumption"
-      ) %>%
-      # Rearrange columns and remove "Ensemble" (Total) values
-      .[quantile != "Ensemble", .(
-        series_name = Regroupement,
-        coicop = IDENT,
-        year = 2017,
-        category = quantile,
-        consumption
-      )] %>%
-      select_coicop_level(level)
-
-    return(structure(
-      list(
-        dt = dt_hbs,
-        country = country,
-        category = category,
-        categories = c("Decile1", "Decile2", "Decile3", "Decile4", "Decile5", "Decile6", "Decile7", "Decile8", "Decile9", "Decile10"),
-        level = level,
-        start_year = min(dt_hbs$year),
-        end_year = max(dt_hbs$year)
-      ),
-      class = "hbs"
-    ))
-  } else if (level < 3) {
-    dataset_code <- switch(category,
-      "income" = "hbs_str_t223",
-      "age" = "hbs_str_t225",
-      "urban" = "hbs_str_t226",
-      stop("Error: Invalid category. Please choose 'income', 'age', or 'urban'.")
-    )
+    # Determine Eurostat dataset code
+    dataset_code <- hbs_dataset_data[[category]]
+    old_names <- category_data[[category]]$old_names
+    categories <- category_data[[category]]$categories
 
     mask_prefix <- "A.PM."
     filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
@@ -327,11 +239,12 @@ load_hbs <- function(country, category, level = 2,
       mask = filtered_mask
     ) %>%
       # Select data in specified time period
-      .[dates$start_date <= period & period <= dates$end_date] %>%
+      .[data.table::between(period, dates$start_date, dates$end_date)] %>%
       # Filter to specified COICOP level
       select_coicop_level(level) %>%
       # Rearrange columns
-      # We don't pick series_name since it's annual (redundant) and has no COICOP code
+      # We don't pick series_name since it's annual (redundant) and has no
+      # COICOP code
       .[, .(series_name, coicop,
         year = lubridate::year(period),
         category = switch(category,
@@ -340,46 +253,29 @@ load_hbs <- function(country, category, level = 2,
           "urban" = deg_urb
         ),
         consumption = value
+      )] %>%
+      .[category %in% old_names,
+        category := categories[match(category, old_names)]] %>%
+      .[category %in% categories]
+
+    # Download dataset
+    dt_total <-
+      rdbnomics::rdb(
+        "Eurostat", "hbs_str_t211",
+        mask = produce_filtered_mask("hbs_str_t211", "A.PM", country, level)
+    ) %>%
+      # Select data in specified time period
+      .[dates$start_date <= period & period <= dates$end_date] %>%
+      # Filter to specified COICOP level
+      select_coicop_level(level) %>%
+      # Rearrange columns
+      # We don't pick series_name since it's annual (redundant) and has no COICOP code
+      .[, .(coicop,
+            year = lubridate::year(period),
+            total_consumption = value
       )]
 
-    # I should change this, this is not clean
-    if (category == "income") {
-      old_names <- c("QUINTILE1", "QUINTILE2", "QUINTILE3", "QUINTILE4", "QUINTILE5")
-      categories <- c("First quintile",
-                     "Second quintile",
-                     "Third quintile",
-                     "Fourth quintile",
-                     "Fifth quintile")
-    } else if (category == "age") {
-      old_names <- c("Y_LT30", "Y30-44", "Y45-59", "Y_GE60")
-      categories <- c("Less than 30 years",
-                     "From 30 to 44 years",
-                     "From 45 to 59 years",
-                     "60 years or over")
-    } else if (category == "urban") {
-      old_names <- c("DEG3", "DEG2", "DEG1")
-      categories <- c("Rural areas",
-                     "Towns and suburbs",
-                     "Cities")
-    }
-
-    dt[category %in% old_names, category := categories[match(category, old_names)]]
-
-    return(structure(
-      list(
-        dt = dt,
-        country = country,
-        category = category,
-        categories = categories,
-        level = level,
-        start_year = min(dt$year),
-        end_year = max(dt$year)
-      ),
-      class = "hbs"
-    ))
-  } else {
-    stop("HBS level 3 COICOP data does not exist for the specified parameters.")
-  }
+    return(hbs(dt, dt_total, country, category, categories, level))
 }
 
 # Select COICOP level
@@ -395,13 +291,23 @@ select_coicop_level <- function(.dt, level) {
     .[nchar(coicop) == level + 1, ]
 }
 
-produce_filtered_mask <- function(dataset_code, mask_prefix, country, level) {
+produce_coicop_mask <- function(dataset_code, mask_prefix, country, level) {
   dimensions <- rdbnomics::rdb_dimensions("Eurostat", dataset_code,
-    mask = paste0(mask_prefix, "..", country)
+                                          mask = paste0(mask_prefix, "..", country)
   )
   coicop_codes <- dimensions[[1]][[1]]$coicop$coicop
   selected <- coicop_codes[grepl("^CP\\d+", coicop_codes) & nchar(coicop_codes) == level + 3]
-  coicop_mask <- paste(selected, collapse = "+")
+
+  # Ignore CP00 when level is 1
+  if (level == 1) {
+    selected <- selected[selected != "CP00"]
+  }
+
+  paste(selected, collapse = "+")
+}
+
+produce_filtered_mask <- function(dataset_code, mask_prefix, country, level) {
+  coicop_mask <- produce_coicop_mask(dataset_code, mask_prefix, country, level)
   paste0(mask_prefix, ".", coicop_mask, ".", country)
 }
 

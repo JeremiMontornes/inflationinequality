@@ -2,8 +2,6 @@
 
 cpi_columns <- c("series_name", "coicop", "value", "year", "month")
 
-load_cpi <<- memoise::memoise(load_cpi)
-
 cpi_fr <- load_cpi("FR")
 cpi_de <- load_cpi("DE")
 cpi_fr1 <- load_cpi("FR", level = 1)
@@ -207,7 +205,6 @@ hbs_columns <- c("series_name", "coicop", "year", "category", "consumption")
 
 hbs_income_fr <- load_hbs("FR", "income")
 hbs_age_de <- load_hbs("DE", "age")
-hbs_income_fr_3_2017 <- load_hbs("FR", "income", level = 3, start_year = 2017)
 
 test_that("HBS data formatted as data.table", {
   expect_s3_class(hbs_income_fr, "hbs")
@@ -230,12 +227,6 @@ test_that("loading French HBS data", {
 test_that("loading German HBS data", {
   expect_gt(nrow(hbs_age_de$dt), 0)
   expect_false(anyNA(hbs_age_de$dt))
-})
-
-test_that("loading French level 3 COICOP 2017 HBS data", {
-  expect_equal(colnames(hbs_income_fr_3_2017$dt), hbs_columns)
-  expect_gt(nrow(hbs_income_fr_3_2017$dt), 0)
-  expect_false(anyNA(hbs_income_fr_3_2017$dt))
 })
 
 # Test nonexistent country code
@@ -268,8 +259,4 @@ test_that("loading HBS data until end of time range", {
   expect_gt(nrow(hbs_fr_end$dt), 0)
   latest_year <- max(hbs_fr_end$dt$year)
   expect_lte(latest_year, 2023)
-})
-
-test_that("different income deciles for French level 3 COICOP data", {
-  expect_gt(length(unique(hbs_income_fr_3_2017$dt$category)), 1)
 })

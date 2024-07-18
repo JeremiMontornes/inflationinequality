@@ -14,9 +14,11 @@ load_cpi(
 )
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted.}
 
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 (Division), "012" is level 2 (Group), and "0111" is level 3 (Class).}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
@@ -27,27 +29,15 @@ load_cpi(
 \item{end_month}{month of end date.}
 }
 \value{
-An object of class \code{"cpi"} is a list containing the following components:
-\item{dt}{a \code{data.table} object (see below).}
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-\item{level}{COICOP level.}
-\item{start_year}{first year of data.}
-\item{start_month}{first month of data.}
-\item{end_year}{last year of data}
-\item{end_month}{last month of data.}
-
-The component \code{dt} has the following columns:
-\item{series_name}{identifier for the data series.}
-\item{coicop}{COICOP code.}
-\item{value}{price of item category at specified time.}
-\item{year}{year of data series.}
-\item{month}{month of data series.}
+An object of class \code{"cpi"} (see \code{\link[=cpi]{cpi()}}).
 }
 \description{
-\code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country.
+\code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised
+Indices of Consumer Prices) database via DBnomics from a specified country.
 }
 \details{
-It's possible that some datasets do not contain all available COICOP codes on particular years.
+It's possible that some datasets do not contain all available COICOP codes on
+particular years.
 }
 \examples{
 # Download all available French CPI data
@@ -67,5 +57,5 @@ dt_cpi <- cpi$dt
 
 }
 \seealso{
-\code{\link[=load_index_weights]{load_index_weights()}}
+\code{\link[=cpi]{cpi()}}
 }

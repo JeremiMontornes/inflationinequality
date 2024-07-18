@@ -5,21 +5,31 @@
 \title{Calculates inflation contributions}
 \usage{
 calculate_contributions(
-  country,
-  category,
+  country = NULL,
+  category = NULL,
   level = 2,
   start_year = NULL,
   start_month = NULL,
   end_year = NULL,
-  end_month = NULL
+  end_month = NULL,
+  ensure_complete_cpi = FALSE,
+  custom_cpi = NULL,
+  custom_index_weights = NULL,
+  custom_hbs = NULL
 )
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted. The parameter is optional since we can load
+\code{custom_index_weights} and \code{custom_hbs}, but if both of those arguments are
+missing, then the \code{country} parameter is mandatory.}
 
-\item{category}{Category for which to calculate contributions: "income", "age", or "urban".}
+\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}. The
+parameter is optional since one can load \code{custom_hbs}, but it is mandatory
+if that argument is missing.}
 
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
@@ -28,36 +38,57 @@ calculate_contributions(
 \item{end_year}{year of end date.}
 
 \item{end_month}{month of end date.}
+
+\item{ensure_complete_cpi}{flag that when set to \code{TRUE}, synthesizes missing
+CPI data when the CPI dataset is incomplete.}
+
+\item{custom_cpi}{an object of class \code{"cpi"}}
+
+\item{custom_index_weights}{an object of class \code{"index_weights"}.}
+
+\item{custom_hbs}{an object of class \code{"hbs"}.}
 }
 \value{
-An object of class \code{"contributions"} is a list containing the following components:
-\item{dt}{a \code{data.table} object (see below).}
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-\item{category}{Category for which contributions were calculated: "income", "age", or "urban".}
-\item{categories}{(Ordered) vector of category types, from lowest to highest.}
-\item{level}{COICOP level.}
-\item{start_year}{first year of data.}
-\item{start_month}{first month of data.}
-\item{end_year}{last year of data.}
-\item{end_month}{last month of data.}
+An object of class \code{"contributions"} is a list containing the
+following components:
+\itemize{
+\item \code{dt}: a \code{data.table} object (see below).
+\item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
+\item \code{category}: Category for which contributions were calculated: "income",
+"age", or "urban".
+\item \code{categories}: (Ordered) vector of category types, from lowest to highest.
+\item \code{level}: COICOP level.
+\item \code{start_year}: first year of data.
+\item \code{start_month}: first month of data.
+\item \code{end_year}: last year of data.
+\item \code{end_month}: last month of data.
+}
 
 The component \code{dt} has the following columns:
-\item{year}{year of the contribution.}
-\item{coicop}{COICOP code.}
-\item{month}{month of the contribution.}
-\item{category}{demographic category (e.g., income group, age group).}
-\item{contribution}{calculated contribution to inflation.}
+\itemize{
+\item \code{year}: year of the contribution.
+\item \code{coicop}: COICOP code.
+\item \code{month}: month of the contribution.
+\item \code{category}: demographic category (e.g., income group, age group).
+\item \code{contribution}: calculated contribution to inflation.
+}
 }
 \description{
-\code{calculate_contributions()} computes the contributions to inflation for different COICOP (Classification of Individual Consumption According to Purpose) categories over time, using Consumer Price Index (CPI) data and weighted consumption data.
+\code{calculate_contributions()} computes the contributions to inflation for
+different COICOP (Classification of Individual Consumption According to
+Purpose) categories over time, using Consumer Price Index (CPI) data and
+weighted consumption data.
 }
 \details{
 The function performs the following key operations:
 \enumerate{
-\item Loads CPI data and calculates weights using \code{load_cpi()} and \code{calculate_weights()}.
+\item Loads CPI data and calculates weights using \code{load_cpi()} and
+\code{calculate_weights()}.
 \item Filters data to ensure consistency across COICOP codes and years.
-\item Calculates contributions using a formula that accounts for year-over-year changes in prices and weights.
-\item Handles multiple categories (e.g., income groups, age groups) simultaneously.
+\item Calculates contributions using a formula that accounts for year-over-year
+changes in prices and weights.
+\item Handles multiple categories (e.g., income groups, age groups)
+simultaneously.
 }
 
 The contribution calculation is based on the following formula:
@@ -75,7 +106,8 @@ Where:
 }
 }
 \examples{
-# Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
+# Calculate inflation contributions for France, income category, COICOP level
+# 2, from 2010 to 2020
 france_contributions <- calculate_contributions("FR", "income", level = 2,
 start_year = 2010, end_year = 2020)
 
@@ -90,5 +122,6 @@ sum(contribution)]
 
 }
 \seealso{
-\code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}
+\code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}, \code{\link[=correct_cpi]{correct_cpi()}} for CPI data
+synthesization, \code{\link[=cpi]{cpi()}}
 }

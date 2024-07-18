@@ -4,16 +4,23 @@
 \alias{plot_contribution_gap}
 \title{Plot contribution to inflation gap}
 \usage{
-plot_contribution_gap(contributions)
+plot_contribution_gap(contributions, category_mapping = NULL)
 }
 \arguments{
-\item{contributions}{An object of class "contributions" containing contribution data.}
+\item{contributions}{an object of class "contributions" containing
+contribution data.}
+
+\item{category_mapping}{a list where keys are new category names and values
+are vectors of COICOP codes.}
 }
 \value{
-A ggplot object representing the stacked bar chart of contribution gaps.
+A ggplot object representing the stacked bar chart of contribution
+gaps.
 }
 \description{
-\code{plot_contribution_gap()} creates a stacked bar chart showing the contribution of different COICOP categories to the inflation gap between the lowest and highest income categories over time.
+\code{plot_contribution_gap()} creates a stacked bar chart showing the
+contribution of different COICOP categories to the inflation gap between the
+lowest and highest income categories over time.
 }
 \details{
 The function performs the following operations:
@@ -22,13 +29,16 @@ The function performs the following operations:
 \item Maps COICOP codes to broader categories.
 \item Aggregates contributions by the new categories.
 \item Calculates the gap between the lowest and highest categories.
-\item Creates a stacked bar chart with date on the x-axis and contribution gap on the y-axis, colored by COICOP category.
-\item Overlays a line representing the total gap between inflation rates of bottom and top quintiles.
+\item Creates a stacked bar chart with date on the x-axis and contribution gap
+on the y-axis, colored by COICOP category.
+\item Overlays a line representing the total gap between inflation rates of
+bottom and top quintiles.
 }
 }
 \examples{
 # Calculate contribution to inflation in Spain at COICOP level 2 from 2019
-contributions <- calculate_contributions("ES", "income", level = 2, start_year = 2019)
+contributions <- calculate_contributions("ES", "income", level = 2,
+start_year = 2019)
 
 # Plot the contribution to inflation gap
 plot_contribution_gap(contributions)

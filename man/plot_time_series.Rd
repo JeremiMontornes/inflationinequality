@@ -13,15 +13,18 @@ plot_time_series(inflation)
 A ggplot object representing the time series of inflation rates.
 }
 \description{
-\code{plot_time_series()} creates a line plot of inflation rates over time for selected categories.
+\code{plot_time_series()} creates a line plot of inflation rates over time for
+selected categories.
 }
 \details{
 The function performs the following operations:
 \enumerate{
 \item Selects the lowest and highest categories from the inflation data.
-\item Calculates the average inflation for each (year, month) pair to create a "Total" category.
+\item Calculates the average inflation for each (year, month) pair to create a
+"Total" category.
 \item Combines the original data with the new "Total" category.
-\item Creates a line plot using ggplot2 with date on the x-axis and inflation rate on the y-axis.
+\item Creates a line plot using ggplot2 with date on the x-axis and inflation
+rate on the y-axis.
 }
 }
 \examples{

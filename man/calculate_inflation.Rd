@@ -5,18 +5,31 @@
 \title{Calculates inflation rates}
 \usage{
 calculate_inflation(
-  country,
-  category,
+  country = NULL,
+  category = NULL,
+  level = 2,
   start_year = NULL,
   start_month = NULL,
   end_year = NULL,
-  end_month = NULL
+  end_month = NULL,
+  ensure_complete_cpi = FALSE,
+  custom_cpi = NULL,
+  custom_index_weights = NULL,
+  custom_hbs = NULL
 )
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted. The parameter is optional since we can load
+\code{custom_index_weights} and \code{custom_hbs}, but if both of those arguments are
+missing, then the \code{country} parameter is mandatory.}
 
-\item{category}{Category for which to calculate inflation: "income", "age", or "urban".}
+\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}. The
+parameter is optional since one can load \code{custom_hbs}, but it is mandatory
+if that argument is missing.}
+
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
@@ -25,31 +38,48 @@ calculate_inflation(
 \item{end_year}{year of end date.}
 
 \item{end_month}{month of end date.}
+
+\item{ensure_complete_cpi}{flag that when set to \code{TRUE}, synthesizes missing
+CPI data when the CPI dataset is incomplete.}
+
+\item{custom_cpi}{an object of class \code{"cpi"}}
+
+\item{custom_index_weights}{an object of class \code{"index_weights"}.}
+
+\item{custom_hbs}{an object of class \code{"hbs"}.}
 }
 \value{
-An object of class \code{"inflation"} is a list containing the following components:
-\item{dt}{a \code{data.table} object (see below).}
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-\item{category}{Category for which inflation was calculated: "income", "age", or "urban".}
-\item{categories}{(Ordered) vector of category types, from lowest to highest.}
-\item{start_year}{first year of data.}
-\item{start_month}{first month of data.}
-\item{end_year}{last year of data.}
-\item{end_month}{last month of data.}
+An object of class \code{"inflation"} is a list containing the following
+components:
+\itemize{
+\item \code{dt}: a \code{data.table} object (see below).
+\item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
+\item \code{category}: Category for which contributions were calculated: "income",
+"age", or "urban".
+\item \code{categories}: (Ordered) vector of category types, from lowest to highest.
+\item \code{level}: COICOP level.
+\item \code{start_year}: first year of data.
+\item \code{start_month}: first month of data.
+\item \code{end_year}: last year of data.
+\item \code{end_month}: last month of data.
+}
 
 The component \code{dt} has the following columns:
-\item{year}{year of the inflation rate.}
-\item{month}{month of the inflation rate.}
-\item{category}{demographic category (e.g., income group, age group).}
-\item{inflation}{calculated inflation rate.}
+\itemize{
+\item \code{year}: year of the inflation rate.
+\item \code{month}: month of the inflation rate.
+\item \code{category}: demographic category (e.g., income group, age group).
+\item \code{contribution}: calculated inflation rate.
+}
 }
 \description{
-\code{calculate_inflation()} computes inflation rates for different categories over time using the contributions calculated by \code{calculate_contributions()}.
+\code{calculate_inflation()} computes inflation rates for different categories
+over time using the contributions calculated by \code{calculate_contributions()}.
 }
 \details{
 The function performs the following key operations:
 \enumerate{
-\item Calls \code{calculate_contributions()} to get the inflation contributions at COICOP level 1 since we're aggregating over all products.
+\item Calls \code{calculate_contributions()} to get the inflation contributions
 \item Sums up the total inflation for each category, year, and month.
 }
 }

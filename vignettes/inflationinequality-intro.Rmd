@@ -183,15 +183,3 @@ plot_contribution_gap(contributions_es)
 
 The selected product categories in the legend are hardcoded in the package for now and requires COICOP level 2 to be calculated when calling `calculate_contributions()`.
 
-## Tips and tricks
-
-### Memoisation
-
-In order to prevent redundant calculations and API calls, we memoise some functions in the package at load time. We recommend that you also memoise the functions `calculate_inflation()` and `calculate_contributions()` to reduce computation using the `memoise` package. 
-
-```{r}
-library(memoise)
-calculate_contributions <- memoise(calculate_contributions)
-calculate_inflation <- memoise(calculate_inflation)
-```
-

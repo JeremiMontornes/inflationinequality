@@ -1,0 +1,289 @@
+---
+title: "Using custom data"
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{Using custom data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(inflationinequality)
+```
+
+This vignette introduces methods to include your own data.
+
+***
+
+## The necessity of using custom data
+
+Thanks to the harmonization efforts of Eurostat, we are able to download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
+
+However, Eurostat does not provide more granular data on a national economy, that is only available from the national statistical institute, like France's INSEE or Italy's Istat.
+
+In this vignette, we will download datasets in CSV format and format the data for our package.
+
+## Downloading CPI from INSEE
+
+Let's download CPI data from INSEE, sourced from this page: [https://www.insee.fr/fr/statistiques/series/102342213](https://www.insee.fr/fr/statistiques/series/102342213). In particular, this CPI dataset is bundled with other data that we do not need so we'll have to process this data.
+
+First, we load some necessary libraries.
+
+```{r}
+# Required for HTTP requests
+library(httr2)
+
+# Required for extracting ZIP archives
+library(zip)
+
+# Required for fast CSV reading
+library(readr)
+
+# Required for reading Excel spreadsheets
+library(readxl)
+
+# Required for manipulating data.table objects,
+# which is the primary data format for this package
+library(data.table)
+
+# Required for the %>% pipe operator
+library(dplyr)
+
+# Required for some string operations
+library(stringr)
+
+# Required for some date operations
+library(lubridate)
+```
+
+In the particular case of INSEE, the dataset is hidden behind a link redirect and is distributed as a ZIP archive.
+So we'll need to send a HTTP request which follows redirects and write the ZIP archive from the HTTP response.
+
+```{r}
+# URL with redirect
+url <- "https://www.insee.fr/fr/statistiques/series/csv/famille/102342213"
+
+# Download the ZIP file, following redirects
+req <- request(url)
+resp <- req_perform(req)
+
+# Save the content to a temporary file
+temp <- tempfile(fileext = ".zip")
+writeBin(resp_body_raw(resp), temp)
+```
+
+We'll then extract the archive and import the sheet "valeurs mensuelles" (monthly values) into a `data.table` object.
+
+```{r}
+# Create a temporary directory to extract files
+temp_dir <- tempdir()
+
+# Extract the ZIP file
+unzip(temp, exdir = temp_dir)
+
+# List the extracted files
+files <- list.files(temp_dir, full.names = TRUE)
+
+# Get CSV file path
+monthly_values_sheet_name <- "valeurs_mensuelles"
+# We identify the file path of the CSV file by filtering out any file that does not have the sheet name in its file path.
+monthly_values_csv_file <- 
+  files[grep(paste0("\\", monthly_values_sheet_name, ".csv"), files)][1]
+
+# Read CSV data into a data.table
+INSEE_CPI_monthly_values <- as.data.table(read_csv2(monthly_values_csv_file))
+```
+
+This dataset bundles together monthly CPI index data with other data like year-on-year change, which we do not need.
+In addition, the COICOP codes are written in the series name (identifier) or "Libellé" so we'll have extract that.
+Moreover, the dataset has a *wide* format rather than our package's preferred *long* format: this means that, excluding other identifiers like the COICOP code, one column is allocated for one date, which is not ideal for data analysis.
+We will write the code will clean the dataset into a format that is readable for our package.
+
+We'll also filter for level 2 COICOP codes, that is 3-digit COICOP.
+
+```{r}
+INSEE_CPI_dt <- INSEE_CPI_monthly_values %>%
+  # First, we remove these useless columns.
+  .[, `:=`(
+    idBank = NULL,
+    `Dernière mise à jour` = NULL,
+    `Période` = NULL
+  )] %>%
+  # Next, we use str_extract to find the COICOP code in the 'Libellé' column.
+  # The regex pattern looks for:
+  # - A positive lookbehind for the specific text preceding the code
+  # - Two digits followed by up to three occurrences of a dot and one or more digits
+  .[, coicop := str_extract(
+    `Libellé`,
+    "(?<=Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )\\d{2}(\\.\\d+){0,3}"
+    )] %>%
+  # Then we use str_remove_all to remove all dots from the extracted COICOP code.
+  # The regex pattern "\\." matches any dot character.
+  .[, coicop := str_remove_all(coicop, "\\.")] %>%
+  # We reshape data from wide to long format.
+  melt(id.vars = c("Libellé", "coicop"), 
+                   variable.name = "date", value.name = "value") %>%
+  # Keep only 3-digit COICOP codes
+  .[nchar(coicop) == 3] %>%
+  # We select and format necessary columns.
+  # Remember, in a "cpi" object, the "dt" component must have the columns:
+  # coicop, series_name, year, month, value
+  # In any order.
+  .[, `:=`(
+    date = as.character(date),
+    value = as.numeric(value),
+    series_name = `Libellé`,
+    year = year(ym(date)),
+    month = month(ym(date))
+  )] %>%
+  # We then remove any remaining unnecessary columns
+  .[, `:=`(
+    date = NULL,
+    `Libellé` = NULL
+  )]
+```
+
+Let's see the layout of our newly formatted dataset.
+
+```{r}
+# Ignore the series_name column because it is very long
+head(INSEE_CPI_dt[, .SD, .SDcols = !c("series_name")], n = 10)
+```
+
+The CSV file also has CPI data over the entire product basket:
+
+```{r}
+INSEE_CPI_dt_basket <- INSEE_CPI_monthly_values %>%
+  .[`Libellé` == "Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Ensemble", ] %>%
+  melt(id.vars = c("Libellé"), 
+                   variable.name = "date", value.name = "value") %>%
+  .[, `:=`(
+    date = as.character(date),
+    value = as.numeric(value),
+    year = year(ym(date)),
+    month = month(ym(date))
+  )] %>%
+  .[, `:=`(
+    date = NULL,
+    `Libellé` = NULL
+  )]
+
+head(INSEE_CPI_dt_basket, n=10)
+```
+
+We can then consolidate both the CPI data for individual product categories `INSEE_CPI_dt` and for the entire product basket `INSEE_CPI_dt_basket` into one `"cpi"` object for our package.
+
+```{r}
+INSEE_CPI <- cpi(dt = INSEE_CPI_dt, dt_basket = INSEE_CPI_dt_basket,
+                 country = "FR", level = 2)
+```
+Similarly, for the CPI weights, we load it from the sheet `"valeurs_annuelles"` (annual values).
+
+```{r}
+annual_values_sheet_name <- "valeurs_annuelles"
+annual_values_csv_file <- 
+  files[grep(paste0("\\", annual_values_sheet_name, ".csv"), files)][1]
+INSEE_CPI_annual_values <- as.data.table(read_csv2(annual_values_csv_file))
+
+INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
+  .[, `:=`(
+    idBank = NULL,
+    `Dernière mise à jour` = NULL,
+    `Période` = NULL
+  )] %>%
+  .[, coicop := str_extract(
+    `Libellé`,
+    "(?<=Pondérations de l'indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )\\d{2}(\\.\\d+){0,3}"
+    )] %>%
+  .[, coicop := str_remove_all(coicop, "\\.")] %>%
+  melt(id.vars = c("Libellé", "coicop"), 
+                   variable.name = "date", value.name = "weight") %>%
+  .[nchar(coicop) == 3] %>%
+  .[, `:=`(
+    weight = as.numeric(weight),
+    year = as.numeric(as.character(date))
+  )] %>%
+  .[, `:=`(
+    date = NULL,
+    `Libellé` = NULL
+  )]
+
+INSEE_CPI_index_weights <- 
+  index_weights(dt = INSEE_CPI_w_dt, country = "FR", level = 2)
+```
+
+We can now use these custom datasets to calculate inflation.
+
+```{r}
+INSEE_inflation <- 
+  calculate_inflation(
+    country = "FR", category = "income",
+    custom_cpi = INSEE_CPI,
+    custom_index_weights = INSEE_CPI_index_weights,
+    start_year = 2019)
+
+plot_time_series(INSEE_inflation)
+```
+
+## Loading HBS data from a XLSX spreadsheet
+
+We can also load data directly from a XLSX spreadsheet.
+
+```{r}
+# Select the file path of the spreadsheet
+# Here, we include our example with the package 
+XLSX_filepath <- 
+  system.file("extdata", "TF106_3digit.xlsx", package = "inflationinequality")
+
+# Read the spreadsheet
+TF106_3digit <- read_xlsx(XLSX_filepath)
+
+# (Partially) convert the spreadsheet to our "hbs" format
+INSEE_HBS_2017_all <- 
+  # Convert to data.table
+  as.data.table(TF106_3digit) %>%
+  # Convert from wide format to long format
+  melt(
+    id.vars = c("IDENT", "Regroupement"), variable.name = "quantile",
+    value.name = "consumption"
+  ) %>%
+  # Rearrange columns and remove "Ensemble" (Total) values
+  .[quantile != "Ensemble", .(
+    series_name = Regroupement,
+    coicop = IDENT,
+    year = 2017,
+    category = quantile,
+    consumption
+  )]
+
+# Select level 2 COICOPs
+INSEE_HBS_2017_dt <- 
+  INSEE_HBS_2017_all %>%
+  .[nchar(coicop) == 3, ]
+
+# Select the total consumption from CP00
+# Don't forget to rename consumption to total_consumption!
+INSEE_HBS_2017_dt_total <- 
+  INSEE_HBS_2017_all %>%
+  .[coicop == "00", 
+    .(series_name, coicop, year, category,
+      total_consumption = consumption)]
+
+# Construct the "hbs" object
+# Don't forget to specify the order of the categories!
+INSEE_HBS_2017 <-
+  hbs(dt = INSEE_HBS_2017_dt,
+      dt_total = INSEE_HBS_2017_dt_total,
+      country = "FR",
+      category = "income",
+      categories = c("Décile1", "Décile2", "Décile3", "Décile4", "Décile5",
+                     "Décile6", "Décile7", "Décile8", "Décile9", "Décile10"),
+      level = 2)
+```

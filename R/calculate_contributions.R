@@ -1,19 +1,20 @@
-.onLoad <- function(libname, pkgname) {
-  load_cpi <<- memoise::memoise(load_cpi)
-  calculate_weights <<- memoise::memoise(calculate_weights)
-}
-
 #' Calculates inflation contributions
 #'
 #' @description
-#' `calculate_contributions()` computes the contributions to inflation for different COICOP (Classification of Individual Consumption According to Purpose) categories over time, using Consumer Price Index (CPI) data and weighted consumption data.
+#' `calculate_contributions()` computes the contributions to inflation for
+#' different COICOP (Classification of Individual Consumption According to
+#' Purpose) categories over time, using Consumer Price Index (CPI) data and
+#' weighted consumption data.
 #'
 #' @details
 #' The function performs the following key operations:
-#' 1. Loads CPI data and calculates weights using `load_cpi()` and `calculate_weights()`.
+#' 1. Loads CPI data and calculates weights using `load_cpi()` and
+#' `calculate_weights()`.
 #' 2. Filters data to ensure consistency across COICOP codes and years.
-#' 3. Calculates contributions using a formula that accounts for year-over-year changes in prices and weights.
-#' 4. Handles multiple categories (e.g., income groups, age groups) simultaneously.
+#' 3. Calculates contributions using a formula that accounts for year-over-year
+#' changes in prices and weights.
+#' 4. Handles multiple categories (e.g., income groups, age groups)
+#' simultaneously.
 #'
 #' The contribution calculation is based on the following formula:
 #' Contribution = (P_{y-1,12} / P_{y-1,m}) * w_{y-1,j,q} * ((P_{y,m,j} - P_{y-1,12,j}) / P_{y-1,12,j}) +
@@ -27,34 +28,37 @@
 #' * j: COICOP category
 #' * q: Demographic category (e.g., income quintile)
 #'
-#' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.
-#' @param category Category for which to calculate contributions: "income", "age", or "urban".
-#' @param level COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.
-#' @param start_year year of start date.
+#' @inheritParams calculate_weights
 #' @param start_month month of start date.
-#' @param end_year year of end date.
 #' @param end_month month of end date.
+#' @param ensure_complete_cpi flag that when set to `TRUE`, synthesizes missing
+#'   CPI data when the CPI dataset is incomplete.
+#' @param custom_cpi an object of class `"cpi"`
 #'
-#' @returns An object of class `"contributions"` is a list containing the following components:
-#' \item{dt}{a `data.table` object (see below).}
-#' \item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-#' \item{category}{Category for which contributions were calculated: "income", "age", or "urban".}
-#' \item{categories}{(Ordered) vector of category types, from lowest to highest.}
-#' \item{level}{COICOP level.}
-#' \item{start_year}{first year of data.}
-#' \item{start_month}{first month of data.}
-#' \item{end_year}{last year of data.}
-#' \item{end_month}{last month of data.}
+#' @returns An object of class `"contributions"` is a list containing the
+#'   following components:
+#' - `dt`: a `data.table` object (see below).
+#' - `country`: 2-digit country code (see ISO 3166-1 alpha-2).
+#' - `category`: Category for which contributions were calculated: "income",
+#' "age", or "urban".
+#' - `categories`: (Ordered) vector of category types, from lowest to highest.
+#' - `level`: COICOP level.
+#' - `start_year`: first year of data.
+#' - `start_month`: first month of data.
+#' - `end_year`: last year of data.
+#' - `end_month`: last month of data.
 #'
 #' The component `dt` has the following columns:
-#' \item{year}{year of the contribution.}
-#' \item{coicop}{COICOP code.}
-#' \item{month}{month of the contribution.}
-#' \item{category}{demographic category (e.g., income group, age group).}
-#' \item{contribution}{calculated contribution to inflation.}
+#'
+#' - `year`: year of the contribution.
+#' - `coicop`: COICOP code.
+#' - `month`: month of the contribution.
+#' - `category`: demographic category (e.g., income group, age group).
+#' - `contribution`: calculated contribution to inflation.
 #'
 #' @examples
-#' # Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
+#' # Calculate inflation contributions for France, income category, COICOP level
+#' # 2, from 2010 to 2020
 #' france_contributions <- calculate_contributions("FR", "income", level = 2,
 #' start_year = 2010, end_year = 2020)
 #'
@@ -67,13 +71,18 @@
 #' category == "First quintile",
 #' sum(contribution)]
 #'
-#' @seealso [load_cpi()], [calculate_weights()]
+#' @seealso [load_cpi()], [calculate_weights()], [correct_cpi()] for CPI data
+#'   synthesization, [cpi()]
 #'
 #' @importFrom data.table :=
 #' @export
-calculate_contributions <- function(country, category, level = 2,
+calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     start_year = NULL, start_month = NULL,
-                                    end_year = NULL, end_month = NULL) {
+                                    end_year = NULL, end_month = NULL,
+                                    ensure_complete_cpi = FALSE,
+                                    custom_cpi = NULL,
+                                    custom_index_weights = NULL,
+                                    custom_hbs = NULL) {
   # Input validation
   if (!is.character(country) || nchar(country) != 2) {
     stop("Country must be a 2-character ISO code")
@@ -92,17 +101,37 @@ calculate_contributions <- function(country, category, level = 2,
     start_year
   }
 
-  # Load data
-  cpi <- load_cpi(country,
-    level = level,
-    start_year = start_year, start_month = start_month,
-    end_year = end_year, end_month = end_month
-  )
+  # Load CPI data
+  cpi <- if (is.null(custom_cpi)) {
+    if (is.null(country)) {
+      stop("Either 'country' or 'custom_cpi' must be provided.")
+    }
+    load_cpi(
+      country, level = level,
+      start_year = start_year, start_month = start_month,
+      end_year = end_year, end_month = end_month)
+  } else {
+    custom_cpi
+  }
   weights <-
-    calculate_weights(country, category,
+    calculate_weights(
+      country, category,
       level = level,
-      start_year = start_year, end_year = end_year
-    )
+      start_year = start_year, end_year = end_year,
+      custom_index_weights = custom_index_weights,
+      custom_hbs = custom_hbs)
+
+  start_year <- if (is.null(start_year) || start_year < cpi$start_year) {
+    cpi$start_year
+  } else {
+    start_year
+  }
+
+  end_year <- if (is.null(end_year) || end_year > cpi$end_year) {
+    cpi$end_year
+  } else {
+    end_year
+  }
 
   # Select COICOP codes
   cpi_coicops <- unique(cpi$dt$coicop)
@@ -115,6 +144,11 @@ calculate_contributions <- function(country, category, level = 2,
     message(sprintf("The following COICOP codes, found in HBS data, are removed for not being included in CPI data: %s", paste(rejected_coicops, collapse = ", ")))
   }
 
+  # Synthesize missing CPI data
+  if (ensure_complete_cpi) {
+    cpi <- correct_cpi(cpi)
+  }
+
   # Create a sequence of all valid year-month combinations
   all_dates <- data.table::data.table(
     year = rep((cpi$start_year):(cpi$end_year), each = 12),
@@ -123,39 +157,38 @@ calculate_contributions <- function(country, category, level = 2,
   all_dates <- all_dates[year < cpi$end_year | (year == cpi$end_year & month <= cpi$end_month)]
 
   # Create a complete grid of all combinations
-  cpi_complete_grid <- all_dates[, .(coicop = cpi_coicops), by = .(year, month)]
+  # cpi_complete_grid <- all_dates[, .(coicop = cpi_coicops), by = .(year, month)]
   weight_complete_grid <- data.table::CJ(coicop = cpi_coicops,
                                          category = weights$categories,
                                          weight_year = all_dates$year,
                                          unique = TRUE)
 
   # Merge the complete grid with the original data
-  cpi_result <- merge(cpi_complete_grid, cpi$dt, by = c("coicop", "year", "month"), all.x = TRUE)
+  # cpi_result <- merge(cpi_complete_grid, cpi$dt, by = c("coicop", "year", "month"), all.x = TRUE)
   weights_result <- merge(weight_complete_grid, weights$dt, by = c("coicop", "category", "weight_year"), all.x = TRUE)
 
   # Fill in missing values
-  cpi_result[is.na(series_name), `:=`(series_name = NA_character_, value = 1e-6)]
+  # cpi_result[is.na(series_name), `:=`(series_name = NA_character_, value = 1e-6)]
   weights_result[is.na(series_name), `:=`(series_name = NA_character_,
                                           weighted_consumption = 1e-6,
                                           year = NA)]
 
   # If you want to keep only the columns from the original data.table
-  cpi$dt <- cpi_result[, .(series_name, coicop, value, year, month)]
+  # cpi$dt <- cpi_result[, .(series_name, coicop, value, year, month)]
   weights$dt <- weights_result[, .(series_name, coicop, category, weight_year, year, weighted_consumption)]
 
   # We also have to assume that for a given COICOP code, the index weight years in the weighted consumption table are exactly the same as the index value years in the CPI table!
   # Hence,
-  for (coicop_code in cpi_coicops) {
-    if (!identical(unique(cpi$dt[coicop == coicop_code, year]), unique(weights$dt[coicop == coicop_code, weight_year]))) {
-      message(coicop_code)
-      stop("We got a problem!")
-    }
-  }
+  # for (coicop_code in cpi_coicops) {
+  #   if (!identical(unique(cpi$dt[coicop == coicop_code, year]), unique(weights$dt[coicop == coicop_code, weight_year]))) {
+  #     warning("We got a problem!")
+  #   }
+  # }
 
   # COICOP codes that have CPI data but not weight data
   missing_coicops <- setdiff(cpi_coicops, weight_coicops)
   if (length(missing_coicops) > 0) {
-    stop("This should not be possible!")
+    warning("This should not be possible!")
   }
 
   contrib2 <- data.table::data.table(
@@ -163,25 +196,46 @@ calculate_contributions <- function(country, category, level = 2,
     coicop = character(),
     month = numeric(),
     category = character(),
+    annee1 = numeric(),
+    annee0 = numeric(),
+    inflation_annee1 = numeric(),
+    inflation_annee0 = numeric(),
+    contrib_annee1 = numeric(),
+    contrib_annee0 = numeric(),
     contribution = numeric()
+  )
+
+  dt_missing_weights <- data.table::data.table(
+    coicop = character(),
+    year = numeric(),
+    category = character(),
+    missing_weight = numeric()
   )
 
   pb <- progress::progress_bar$new(
     format = "calculating contributions [:bar] :percent eta: :eta (elapsed: :elapsed)",
-    total = length((cpi$start_year):(cpi$end_year)) - 2, clear = FALSE
+    total = length(start_year:end_year) - 2, clear = FALSE
   )
   pb$tick(0)
 
   categories <- unique(weights$dt$category)
 
-  for (y in (cpi$start_year+2):(cpi$end_year)) {
+  for (y in (start_year+2):end_year) {
+    # Price index of basket
+    p_y1_12 <- cpi$dt_basket[month == 12 & year == y - 1, value]
+    p_y2_12 <- cpi$dt_basket[month == 12 & year == y - 2, value]
+
+    # We only use COICOP codes that exist in years `y-2`, `y-1`, `y`
+    valid_coicops = cpi$dt[year %in% c(y-2, y-1, y),
+                              .(n_years = data.table::uniqueN(year)),
+                              by = coicop][n_years == 3, coicop]
+
+    # COICOP codes that do not exist that recorded
+    missing_coicops_y <- setdiff(cpi_coicops, valid_coicops)
+
     # This can be further optimised since each COICOP code is independent
-    for (j in cpi_coicops) {
+    for (j in valid_coicops) {
       # Constant values
-      p_y1_12 <- sum(cpi$dt[month == 12 &
-        year == y - 1, value])
-      p_y2_12 <- sum(cpi$dt[month == 12 &
-        year == y - 2, value])
       p_y1_12_j <- cpi$dt[coicop == j &
         month == 12 &
         year == y - 1, value]
@@ -191,15 +245,19 @@ calculate_contributions <- function(country, category, level = 2,
 
       # Calculate HBS weights across all categories
       w_y1_j_q <- weights$dt[coicop == j &
-        weight_year == y - 1, .(category, weighted_consumption)]
+        weight_year == y, .(category, weighted_consumption)]
       data.table::setkey(w_y1_j_q, category)
       w_y2_j_q <- weights$dt[coicop == j &
-        weight_year == y - 2, .(category, weighted_consumption)]
+        weight_year == y - 1, .(category, weighted_consumption)]
+      data.table::setkey(w_y2_j_q, category)
 
       # Calculate index weights across all months
-      # (not necessarily 12 for the latest year)
-      p_y1_m <- cpi$dt[year == y - 1, sum(value), by = .(month)]
+      # This is a vector
+      p_y1_m <- cpi$dt_basket[year == y - 1, sum(value), by = .(month)]
       data.table::setkey(p_y1_m, month)
+      # (not necessarily 12 for the latest year)
+
+      # Note: there is a shift in year: y-2 is actually y-1 and y-1 is actually y!!!
       p_y1_m_j <- cpi$dt[coicop == j &
         year == y - 1, .(month, value)]
       p_y_m_j <- cpi$dt[coicop == j &
@@ -219,20 +277,49 @@ calculate_contributions <- function(country, category, level = 2,
       dt_cj[, p_y_m_j := p_y_m_j[.SD, on = .(month), value]]
 
       # Apply formula
-      dt_cj[, contribution := (p_y1_12 / p_y1_m) * w_y1_j_q * ((p_y_m_j - p_y1_12_j) / p_y1_12_j) +
-        (p_y2_12 / p_y1_m) * w_y2_j_q * ((p_y1_12_j - p_y1_m_j) / p_y2_12_j)]
+      dt_cj[, inflation_annee1 := 100 * (p_y_m_j / p_y1_12_j - 1)]
+      dt_cj[, inflation_annee0 := 100 * ((p_y1_12_j - p_y1_m_j) / p_y2_12_j)]
+
+      dt_cj[, contrib_annee1 := (p_y1_12 / p_y1_m) * w_y1_j_q * inflation_annee1]
+      dt_cj[, contrib_annee0 := (p_y2_12 / p_y1_m) * w_y2_j_q * inflation_annee0]
+
+      dt_cj[, contribution := (contrib_annee1 + contrib_annee0) / 100]
 
       # Clean up
       dt_cj[, `:=`(year = y, coicop = j)]
-      dt_cj <- dt_cj[!is.na(contribution), .(year, coicop, month, category, contribution)]
+      dt_cj <- dt_cj[!is.na(contribution), .(year, coicop, month, category,
+                                             annee1 = w_y1_j_q, annee0 = w_y2_j_q,
+                                             inflation_annee1, inflation_annee0,
+                                             contrib_annee1, contrib_annee0,
+                                             contribution)]
 
       # Bind the new contributions to the existing data table
       contrib2 <- data.table::rbindlist(list(contrib2, dt_cj), use.names = TRUE)
     }
+    dt_missing_weights_y <- weights$dt[coicop %in% missing_coicops_y
+                                       & weight_year == y,
+                                       .(coicop, year = weight_year, category,
+                                         missing_weight = weighted_consumption)]
+
+    dt_missing_weights <- data.table::rbindlist(list(dt_missing_weights, dt_missing_weights_y),
+                                            use.names = TRUE)
+
     pb$tick()
   }
 
+  # Drop useless columns
+  contrib2 <- contrib2[, .(coicop, category, year, month, contribution)]
+
+  dt_significant_missing_weights <- dt_missing_weights[, .(average_missing_weight = mean(missing_weight)),
+                                                       by = .(coicop, year)]
+  dt_significant_missing_weights <- dt_significant_missing_weights[average_missing_weight >= 1, ]
+
+  if (nrow(dt_significant_missing_weights) > 0) {
+    message("There are significant weights (>=1%) that are not included:\n", paste(capture.output(print(dt_significant_missing_weights)), collapse = "\n"))
+  }
+
   return(structure(list(dt = contrib2,
+                        dt_missing_weight = dt_missing_weights,
                         country = country,
                         category = category,
                         categories = weights$categories,
@@ -242,12 +329,4 @@ calculate_contributions <- function(country, category, level = 2,
                         end_year = max(contrib2$year),
                         end_month = max(contrib2[year == max(contrib2$year), month])),
                    class = "contributions"))
-}
-
-memo_calculate_contributions <- memoise::memoise(calculate_contributions)
-
-# Function to check if a weight_year has all unique COICOP codes
-has_all_coicop <- function(data, year, coicops) {
-  coicop_in_year <- unique(data$coicop[data$year == year])
-  all(coicops %in% coicop_in_year)
 }

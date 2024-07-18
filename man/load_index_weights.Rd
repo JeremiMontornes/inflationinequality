@@ -7,29 +7,23 @@
 load_index_weights(country, level = 2, start_year = NULL, end_year = NULL)
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted.}
 
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
 \item{end_year}{year of end date.}
 }
 \value{
-An object of class \code{"index_weights"} is a list containing the following components:
-\item{dt}{a \code{data.table} object (see below).}
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-\item{level}{COICOP level.}
-\item{start_year}{first year of data.}
-\item{end_year}{last year of data.}
-
-The component \code{dt} has the following columns:
-\item{coicop}{COICOP code.}
-\item{weight}{weight of item category at specified time.}
-\item{year}{year of data series.}
+An object of class \code{"index_weights"}.
 }
 \description{
-\code{load_index_weights()} downloads annual index weights data from Eurostat's HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a specified country.
+\code{load_index_weights()} downloads annual index weights data from Eurostat's
+HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a
+specified country.
 }
 \examples{
 # Download all available French index weights data
@@ -44,10 +38,7 @@ weights <- load_index_weights("IT", level = 1, start_year = 2020, end_year = 202
 # Download Spanish index weights data at COICOP level 1 up to 2023
 weights <- load_index_weights("ES", level = 1, end_year = 2023)
 
-# Access the data.table component
-dt_weights <- weights$dt
-
 }
 \seealso{
-\code{\link[=load_cpi]{load_cpi()}}
+\code{\link[=index_weights]{index_weights()}}
 }

@@ -7,38 +7,27 @@
 load_hbs(country, category, level = 2, start_year = NULL, end_year = NULL)
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted.}
 
 \item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}.}
 
-\item{level}{COICOP level. Possible values are 1-3. For example, "01" is level 1 and "012" is level 2. Default value is 2.}
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
 
 \item{start_year}{year of start date.}
 
 \item{end_year}{year of end date.}
 }
 \value{
-An object of class \code{"hbs"} is a list containing the following components:
-\item{dt}{a \code{data.table} object (see below).}
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2).}
-\item{category}{HBS category: \code{"income"}, \code{"age"}, \code{"urban"}.}
-\item{categories}{(Ordered) vector of category types, from lowest to highest.}
-\item{level}{COICOP level.}
-\item{start_year}{first year of data.}
-\item{end_year}{last year of data.}
-
-The component \code{dt} has the following columns:
-\item{series_name}{identifier for the data series.}
-\item{coicop}{COICOP code.}
-\item{year}{year of data series.}
-\item{category}{category type within the specified HBS category.}
-\item{consumption}{consumption value for the specified category and COICOP code.}
+An object of class \code{"hbs"}.
 }
 \description{
-\code{load_hbs()} downloads HBS data from Eurostat's databases via DBnomics from a specified country.
+\code{load_hbs()} downloads HBS data from Eurostat's databases via DBnomics from a
+specified country.
 }
 \details{
-Currently, the only dataset with level 3 COICOP data is from France in 2017 by income decile produced by INSEE. To access it, you must call \code{load_hbs("FR", category = "income", level = 3, start_year = 2017)}.
+Eurostat only provides HBS data at level 1 and level 2 COICOP.
 }
 \examples{
 # Download French HBS data by income
