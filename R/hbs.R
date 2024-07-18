@@ -58,6 +58,9 @@ validate_hbs <- function(hbs) {
     stop("COICOP level must be 1, 2 or 3.")
   }
 
+  hbs$dt[, consumption := pmax(consumption, 1e-6, na.rm = TRUE)]
+  hbs$dt_total[, total_consumption := pmax(total_consumption, 1e-6, na.rm = TRUE)]
+
   hbs
 }
 
@@ -178,4 +181,40 @@ interpolate_hbs.hbs <- function(hbs) {
       country = hbs$country,
       categories = hbs$categories,
       level = hbs$level)
+}
+
+#' Add missing COICOPS
+#'
+#' @description
+#' This function adds missing COICOP (Classification of Individual Consumption According to Purpose) codes to a household budget survey (HBS) dataset.
+#'
+#' @param hbs An object of class `"hbs"` containing household budget survey data.
+#' @param coicops A vector of COICOP codes to be added if missing.
+#'
+#' @return An updated `"hbs"` object with new rows for missing COICOP codes.
+#'
+#' @export
+add_coicops_hbs <- function(hbs, coicops) {
+  UseMethod("add_coicops_hbs")
+}
+
+#' @exportS3Method
+add_coicops_hbs.hbs <- function(hbs, coicops) {
+  # Create new rows for missing coicops
+  new_rows <- data.table::CJ(
+    coicop = coicops,
+    year = unique(hbs$dt$year),
+    category = unique(hbs$dt$category)
+  )
+
+  # Set default values for new rows
+  new_rows[, `:=`(
+    consumption = 1e-6,
+    series_name = NA_character_
+  )]
+
+  # Combine existing data with new rows
+  hbs$dt <- data.table::rbindlist(list(hbs$dt, new_rows), use.names = TRUE, fill = TRUE)
+
+  hbs
 }

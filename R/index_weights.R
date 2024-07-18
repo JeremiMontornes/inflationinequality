@@ -32,6 +32,8 @@ validate_index_weights <- function(index_weights) {
     stop("COICOP level must be 1, 2 or 3.")
   }
 
+  index_weights$dt[, weight := pmax(weight, 1e-6, na.rm = TRUE)]
+
   index_weights
 }
 
