@@ -311,7 +311,10 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   dt_significant_missing_weights <- dt_significant_missing_weights[average_missing_weight >= 1, ]
 
   if (nrow(dt_significant_missing_weights) > 0) {
-    message("There are significant weights (>=1%) that are not included:\n", paste(capture.output(print(dt_significant_missing_weights)), collapse = "\n"))
+    message(
+      "There are significant weights (>=1%) that are not included:\n",
+      paste(capture.output(print(dt_significant_missing_weights)),
+            collapse = "\n"))
   }
 
   return(structure(list(dt = contrib2,
