@@ -257,7 +257,7 @@ INSEE_HBS_2017_all <-
     value.name = "consumption"
   ) %>%
   # Rearrange columns and remove "Ensemble" (Total) values
-  .[quantile != "Ensemble", .(
+  .[, .(
     series_name = Regroupement,
     coicop = IDENT,
     year = 2017,
@@ -265,17 +265,17 @@ INSEE_HBS_2017_all <-
     consumption
   )]
 
-# Select level 2 COICOPs
+# Select level 3 COICOPs
 INSEE_HBS_2017_dt <- 
   INSEE_HBS_2017_all %>%
-  .[nchar(coicop) == 3, ]
+  .[nchar(coicop) == 4 & category != "Ensemble", ]
 
 # Select the total consumption from CP00
 # Don't forget to rename consumption to total_consumption!
 INSEE_HBS_2017_dt_total <- 
   INSEE_HBS_2017_all %>%
-  .[coicop == "00", 
-    .(series_name, coicop, year, category,
+  .[nchar(coicop) == 4 & category == "Ensemble", 
+    .(series_name, coicop, year,
       total_consumption = consumption)]
 
 # Construct the "hbs" object
@@ -287,5 +287,21 @@ INSEE_HBS_2017 <-
       category = "income",
       categories = c("Décile1", "Décile2", "Décile3", "Décile4", "Décile5",
                      "Décile6", "Décile7", "Décile8", "Décile9", "Décile10"),
-      level = 2)
+      level = 3)
+```
+
+## Using level 3 COICOP data
+
+```{r}
+contributions_fr_income3_s2019 <-
+  calculate_contributions("FR", "income", level = 3,
+                          start_year = 2019,
+                          custom_hbs = INSEE_HBS_2017)
+
+plot_contribution_gap(
+  contributions_fr_income3_s2019,
+  category_mapping = list(
+    "Food" = c("01", "02"),
+    "Fuel" = c("0722"),
+    "Electricity, gas" = c("045")))
 ```
