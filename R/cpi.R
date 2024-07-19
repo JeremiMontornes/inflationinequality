@@ -39,20 +39,29 @@ validate_cpi <- function(cpi) {
     stop("COICOP level must be 1, 2 or 3.")
   }
 
-  cpi$dt <- cpi$dt[!is.na(year) | !is.na(month) | !is.na(coicop)]
-  cpi$dt_basket <- cpi$dt_basket[!is.na(year) | !is.na(month)]
-
+  # Set keys
   data.table::setkey(cpi$dt, year, month, coicop)
   data.table::setkey(cpi$dt_basket, year, month)
 
+  # Remove empty keys
+  cpi$dt <- cpi$dt[!is.na(year) | !is.na(month) | !is.na(coicop)]
+  cpi$dt_basket <- cpi$dt_basket[!is.na(year) | !is.na(month)]
+
+  # Set value to at least 1e-6
   cpi$dt[, value := pmax(value, 1e-6, na.rm = TRUE)]
   cpi$dt_basket[, value := pmax(value, 1e-6, na.rm = TRUE)]
 
-  timepoints <- unique(cpi$dt[, .(year, month)])
-  basket_timepoints <- cpi$dt_basket[, .(year, month)]
+  # Grab year months
+  unique_year_months  <- unique(cpi$dt[, .(year, month)])
+  unique_year_months_basket <- unique(cpi$dt_basket[, .(year, month)])
+  missing_year_months_in_basket <-
+    setdiff(unique_year_months, unique_year_months_basket)
 
-  if (!setequal(timepoints, basket_timepoints)) {
-    message("dt_basket does not have the same timepoints as dt!")
+  if (length(missing_year_months_in_basket) > 0) {
+    stop(
+      "There are some year months missing in dt_basket:\n",
+      paste(capture.output(print(missing_year_months_in_basket)),
+            collapse = "\n"))
   }
 
   cpi
