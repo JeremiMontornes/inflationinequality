@@ -203,8 +203,8 @@ add_coicops_hbs.hbs <- function(hbs, coicops) {
   # Create new rows for missing coicops
   new_rows <- data.table::CJ(
     coicop = coicops,
-    year = unique(hbs$dt$year),
-    category = unique(hbs$dt$category)
+    year = hbs$start_year:hbs$end_year,
+    category = hbs$categories
   )
 
   # Set default values for new rows
@@ -214,7 +214,26 @@ add_coicops_hbs.hbs <- function(hbs, coicops) {
   )]
 
   # Combine existing data with new rows
-  hbs$dt <- data.table::rbindlist(list(hbs$dt, new_rows), use.names = TRUE, fill = TRUE)
+  dt <- data.table::rbindlist(list(hbs$dt, new_rows), use.names = TRUE, fill = TRUE)
 
-  hbs
+  # Create new rows for missing coicops
+  new_rows_total <- data.table::CJ(
+    coicop = coicops,
+    year = hbs$start_year:hbs$end_year
+  )
+
+  # Set default values for new rows
+  new_rows_total[, `:=`(
+    total_consumption = 1e-6,
+    series_name = NA_character_
+  )]
+
+  dt_total <- data.table::rbindlist(list(hbs$dt_total, new_rows), use.names = TRUE, fill = TRUE)
+
+  hbs(dt = dt,
+      dt_total = dt_total,
+      country = hbs$country,
+      category = hbs$category,
+      categories = hbs$categories,
+      level = hbs$level)
 }

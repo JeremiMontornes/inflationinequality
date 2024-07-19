@@ -127,14 +127,18 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
   }
 
   # Necessary before the join
-  data.table::setnames(index_weights$dt, "year", "weight_year")
+  if ("year" %in% names(index_weights$dt)) {
+    data.table::setnames(index_weights$dt, "year", "weight_year")
+  } else if (!"weight_year" %in% names(index_weights$dt)) {
+    stop("Something's wrong!")
+  }
 
   # COICOP codes that have CPI data but not HBS data
   missing_coicops <- setdiff(weight_coicops, hbs_coicops)
 
   # Create new rows for missing COICOP codes
   if (length(missing_coicops) > 0) {
-    hbs <- add_coicops_hbs(hbs)
+    hbs <- add_coicops_hbs(hbs, missing_coicops)
   }
 
   # Include total consumption column
