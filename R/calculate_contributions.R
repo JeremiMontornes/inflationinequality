@@ -159,25 +159,18 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   all_dates <- all_dates[year < cpi$end_year | (year == cpi$end_year & month <= cpi$end_month)]
 
   # Create a complete grid of all combinations
-  # cpi_complete_grid <- all_dates[, .(coicop = cpi_coicops), by = .(year, month)]
   weight_complete_grid <- data.table::CJ(coicop = cpi_coicops,
                                          category = weights$categories,
                                          weight_year = all_dates$year,
                                          unique = TRUE)
 
   # Merge the complete grid with the original data
-  # cpi_result <- merge(cpi_complete_grid, cpi$dt, by = c("coicop", "year", "month"), all.x = TRUE)
   weights_result <- merge(weight_complete_grid, weights$dt, by = c("coicop", "category", "weight_year"), all.x = TRUE)
 
   # Fill in missing values
-  # cpi_result[is.na(series_name), `:=`(series_name = NA_character_, value = 1e-6)]
-  # weights_result[is.na(series_name), `:=`(series_name = NA_character_,
-  #                                         weighted_consumption = 1e-6,
-  #                                         year = NA)]
   weights_result[, weighted_consumption := pmax(weighted_consumption, 1e-6, na.rm = TRUE)]
 
   # If you want to keep only the columns from the original data.table
-  # cpi$dt <- cpi_result[, .(series_name, coicop, value, year, month)]
   weights$dt <- weights_result[, .(series_name, coicop, category, weight_year, year, weighted_consumption)]
 
   # We also have to assume that for a given COICOP code, the index weight years in the weighted consumption table are exactly the same as the index value years in the CPI table!
