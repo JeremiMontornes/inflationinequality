@@ -304,7 +304,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   }
 
   # Drop useless columns
-  # contrib2 <- contrib2[, .(coicop, category, year, month, contribution)]
+  contrib2 <- contrib2[, .(coicop, category, year, month, contribution)]
 
   dt_significant_missing_weights <- dt_missing_weights[, .(average_missing_weight = mean(missing_weight)),
                                                        by = .(coicop, year)]
