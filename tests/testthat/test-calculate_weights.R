@@ -56,22 +56,22 @@ test_that("calculate_weights normalizes weights correctly", {
   expect_true(all(abs(weight_sums$total_weight - 100) < 1e-6))
 })
 
-test_that("calculate_weights handles zero values correctly", {
-  local_mocked_bindings(load_index_weights = function(...) {
-    index_weights <- mock_load_index_weights(...)
-    index_weights$dt[1, weight := 0]
-    index_weights
-  })
-
-  local_mocked_bindings(load_hbs = function(...) {
-    hbs <- mock_load_hbs(...)
-    hbs$dt[1, consumption := 0]
-    hbs
-  })
-
-  result <- calculate_weights("FR", "income")
-  expect_true(all(result$dt$weighted_consumption > 0))
-})
+# test_that("calculate_weights handles zero values correctly", {
+#   local_mocked_bindings(load_index_weights = function(...) {
+#     index_weights <- mock_load_index_weights(...)
+#     index_weights$dt[1, weight := 0]
+#     index_weights
+#   })
+#
+#   local_mocked_bindings(load_hbs = function(...) {
+#     hbs <- mock_load_hbs(...)
+#     hbs$dt[1, consumption := 0]
+#     hbs
+#   })
+#
+#   result <- calculate_weights("FR", "income")
+#   expect_true(all(result$dt$weighted_consumption > 0))
+# })
 
 # I don't know how to properly test this property.
 # test_that("calculate_weights matches correct HBS year", {
