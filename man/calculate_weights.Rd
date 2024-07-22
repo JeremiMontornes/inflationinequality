@@ -12,7 +12,8 @@ calculate_weights(
   end_year = NULL,
   custom_index_weights = NULL,
   custom_hbs = NULL,
-  interpolated_hbs = FALSE
+  interpolated_hbs = FALSE,
+  specific_hbs_year = NULL
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ level 1 and "012" is level 2. Default value is 2.}
 \item{custom_hbs}{an object of class \code{"hbs"}.}
 
 \item{interpolated_hbs}{flag if you want to interpolate HBS weights}
+
+\item{specific_hbs_year}{year of selected HBS wave. It's recommended to
+download HBS data first to see what HBS years are available.}
 }
 \value{
 An object of class \code{"weights"} is a list containing the following

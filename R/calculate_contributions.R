@@ -83,7 +83,8 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     custom_cpi = NULL,
                                     custom_index_weights = NULL,
                                     custom_hbs = NULL,
-                                    interpolated_hbs = FALSE) {
+                                    interpolated_hbs = FALSE,
+                                    specific_hbs_year = NULL) {
   # Input validation
   if (!is.character(country) || nchar(country) != 2) {
     stop("Country must be a 2-character ISO code")
@@ -121,7 +122,8 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       start_year = start_year, end_year = end_year,
       custom_index_weights = custom_index_weights,
       custom_hbs = custom_hbs,
-      interpolated_hbs = interpolated_hbs)
+      interpolated_hbs = interpolated_hbs,
+      specific_hbs_year = specific_hbs_year)
 
   start_year <- if (is.null(start_year) || start_year < cpi$start_year) {
     cpi$start_year

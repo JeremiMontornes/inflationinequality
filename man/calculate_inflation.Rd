@@ -16,7 +16,8 @@ calculate_inflation(
   custom_cpi = NULL,
   custom_index_weights = NULL,
   custom_hbs = NULL,
-  interpolated_hbs = FALSE
+  interpolated_hbs = FALSE,
+  specific_hbs_year = NULL
 )
 }
 \arguments{
@@ -50,6 +51,9 @@ CPI data when the CPI dataset is incomplete.}
 \item{custom_hbs}{an object of class \code{"hbs"}.}
 
 \item{interpolated_hbs}{flag if you want to interpolate HBS weights}
+
+\item{specific_hbs_year}{year of selected HBS wave. It's recommended to
+download HBS data first to see what HBS years are available.}
 }
 \value{
 An object of class \code{"inflation"} is a list containing the following

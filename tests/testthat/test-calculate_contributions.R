@@ -19,7 +19,8 @@ mock_load_cpi <- function(country, level, start_year, start_month, end_year, end
 mock_calculate_weights <- function(country, category, level, start_year, end_year,
                                    custom_index_weights,
                                    custom_hbs,
-                                   interpolated_hbs) {
+                                   interpolated_hbs,
+                                   specific_hbs_year) {
   weights_fr2 <- if (category == "income") {
     if (!is.null(start_year) &&
         start_year == 2016 &&

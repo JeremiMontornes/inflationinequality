@@ -34,6 +34,8 @@
 #' @param custom_index_weights an object of class `"index_weights"`.
 #' @param custom_hbs an object of class `"hbs"`.
 #' @param interpolated_hbs flag if you want to interpolate HBS weights
+#' @param specific_hbs_year year of selected HBS wave. It's recommended to
+#'   download HBS data first to see what HBS years are available.
 #'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
@@ -75,7 +77,8 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               start_year = NULL, end_year = NULL,
                               custom_index_weights = NULL,
                               custom_hbs = NULL,
-                              interpolated_hbs = FALSE) {
+                              interpolated_hbs = FALSE,
+                              specific_hbs_year = NULL) {
   # Input validation
   if (!is.character(country) || nchar(country) != 2) {
     stop("Country must be a 2-character ISO code")
@@ -143,6 +146,11 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
 
   # Include total consumption column
   dt_hbs <- dt_hbs[hbs$dt_total, on = .(coicop, year)]
+
+  # Select specific HBS year if applicable
+  if (!is.null(specific_hbs_year)) {
+    dt_hbs <- dt_hbs[year == specific_hbs_year, ]
+  }
 
   # Now perform the Cartesian product (left join)
   dt_weighted_consumption <-
