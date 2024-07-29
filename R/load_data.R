@@ -76,6 +76,7 @@ load_cpi <- function(country, level = 2,
 
   # Change basis year
   mask_prefix <- "M.I15"
+
   filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
 
   # Download dataset
@@ -231,8 +232,13 @@ load_hbs <- function(country, category, level = 2,
     old_names <- category_data[[category]]$old_names
     categories <- category_data[[category]]$categories
 
-    mask_prefix <- "A.PM."
-    filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
+    mask_prefix <- "A."
+    filtered_mask <- produce_filtered_mask(
+      dataset_code,
+      mask_prefix,
+      paste0("PM.", country),
+      level
+    )
 
     # Download dataset
     dt <- rdbnomics::rdb("Eurostat", dataset_code,
@@ -262,7 +268,7 @@ load_hbs <- function(country, category, level = 2,
     dt_total <-
       rdbnomics::rdb(
         "Eurostat", "hbs_str_t211",
-        mask = produce_filtered_mask("hbs_str_t211", "A.PM", country, level)
+        mask = produce_filtered_mask("hbs_str_t211", "A", paste0("PM.", country), level)
     ) %>%
       # Select data in specified time period
       .[dates$start_date <= period & period <= dates$end_date] %>%
@@ -291,9 +297,9 @@ select_coicop_level <- function(.dt, level) {
     .[nchar(coicop) == level + 1, ]
 }
 
-produce_coicop_mask <- function(dataset_code, mask_prefix, country, level) {
+produce_coicop_mask <- function(dataset_code, prefix, suffix, level) {
   dimensions <- rdbnomics::rdb_dimensions("Eurostat", dataset_code,
-                                          mask = paste0(mask_prefix, "..", country)
+                                          mask = paste0(prefix, "..", suffix)
   )
   coicop_codes <- dimensions[[1]][[1]]$coicop$coicop
   selected <- coicop_codes[grepl("^CP\\d+", coicop_codes) & nchar(coicop_codes) == level + 3]
@@ -306,9 +312,9 @@ produce_coicop_mask <- function(dataset_code, mask_prefix, country, level) {
   paste(selected, collapse = "+")
 }
 
-produce_filtered_mask <- function(dataset_code, mask_prefix, country, level) {
-  coicop_mask <- produce_coicop_mask(dataset_code, mask_prefix, country, level)
-  paste0(mask_prefix, ".", coicop_mask, ".", country)
+produce_filtered_mask <- function(dataset_code, prefix, suffix, level) {
+  coicop_mask <- produce_coicop_mask(dataset_code, prefix, country, level)
+  paste0(prefix, ".", coicop_mask, ".", suffix)
 }
 
 get_start_end_dates <- function(start_year = NULL, start_month = NULL,
