@@ -4,6 +4,12 @@ new_index_weights <- function(dt = data.table::data.table(),
   stopifnot(is.character(country))
   stopifnot(is.numeric(level))
 
+  # Remove empty keys
+  dt <- dt[!is.na(year) | !is.na(coicop)]
+
+  # Set value to at least 1e-6
+  dt[, weight := pmax(weight, 1e-6, na.rm = TRUE)]
+
   start_year = dt[, min(year)]
   end_year = dt[, max(year)]
 
@@ -18,6 +24,7 @@ new_index_weights <- function(dt = data.table::data.table(),
 }
 
 validate_index_weights <- function(index_weights) {
+  ## Verify columns are correct
   required_columns <- c("coicop", "weight", "year")
   missing_columns <- setdiff(required_columns, names(index_weights$dt))
 
@@ -28,11 +35,22 @@ validate_index_weights <- function(index_weights) {
     )
   }
 
-  if (index_weights$level < 1 | 3 < index_weights$level) {
+  if (!index_weights$level %in% 1:3) {
     stop("COICOP level must be 1, 2 or 3.")
   }
 
-  index_weights$dt[, weight := pmax(weight, 1e-6, na.rm = TRUE)]
+  ## Verify data are coherent
+  if (nrow(index_weights$dt[is.na(year) | is.na(coicop), ]) > 0) {
+    stop("Data are not coherent, there are some NA values")
+  }
+  if (nrow(index_weights$dt[weight <= 0, ]) > 0) {
+    stop("Data are not coherent, CPI weights must be strictly positive (>0)")
+  }
+
+  ## No duplicates
+  if (anyDuplicated(index_weights$dt[, .(coicop, year)])) {
+    stop("Data contain duplicates")
+  }
 
   index_weights
 }

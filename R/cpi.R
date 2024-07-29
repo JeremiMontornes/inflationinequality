@@ -6,6 +6,14 @@ new_cpi <- function(dt = data.table::data.table(),
   stopifnot(is.character(country))
   stopifnot(is.numeric(level))
 
+  # Remove empty keys
+  dt <- dt[!is.na(year) | !is.na(month) | !is.na(coicop)]
+  dt_basket <- dt_basket[!is.na(year) | !is.na(month)]
+
+  # Set value to at least 1e-6
+  dt[, value := pmax(value, 1e-6, na.rm = TRUE)]
+  dt_basket[, value := pmax(value, 1e-6, na.rm = TRUE)]
+
   start_year = dt[, min(year)]
   start_month = dt[year == start_year, min(month)]
   end_year = dt[, max(year)]
@@ -25,6 +33,7 @@ new_cpi <- function(dt = data.table::data.table(),
 }
 
 validate_cpi <- function(cpi) {
+  ## Verify columns are correct
   required_columns <- c("series_name", "coicop", "value", "year", "month")
   missing_columns <- setdiff(required_columns, names(cpi$dt))
 
@@ -35,32 +44,52 @@ validate_cpi <- function(cpi) {
     )
   }
 
-  if (cpi$level < 1 | 3 < cpi$level) {
+  if (!cpi$level %in% 1:3) {
     stop("COICOP level must be 1, 2 or 3.")
   }
 
-  # Set keys
-  data.table::setkey(cpi$dt, year, month, coicop)
-  data.table::setkey(cpi$dt_basket, year, month)
+  ## Verify data are coherent
+  if (nrow(cpi$dt[is.na(year) | is.na(month) | is.na(coicop), ]) > 0
+      | nrow(cpi$dt_basket[is.na(year) | is.na(month), ]) > 0) {
+    stop("Data are not coherent, there are some NA values")
+  }
+  if (nrow(cpi$dt[value <= 0, ]) > 0
+      | nrow(cpi$dt_basket[value <= 0,]) > 0) {
+    stop("Data are not coherent, CPI values must be strictly positive (>0)")
+  }
+  if (nrow(cpi$dt[nchar(coicop) != cpi$level + 1, ]) > 0) {
+    stop("Data are not coherent, there are COICOP codes with the incorrect level")
+  }
+  if (nrow(cpi$dt[coicop == "00", ]) > 0) {
+    stop("Data are not coherent, COICOP code 00 cannot exist in `dt`")
+  }
 
-  # Remove empty keys
-  cpi$dt <- cpi$dt[!is.na(year) | !is.na(month) | !is.na(coicop)]
-  cpi$dt_basket <- cpi$dt_basket[!is.na(year) | !is.na(month)]
+  ## No duplicates
+  if (anyDuplicated(cpi$dt[, .(coicop, year, month)])
+      | anyDuplicated(cpi$dt_basket[, .(year, month)])) {
+    stop("Data contain duplicates")
+  }
 
-  # Set value to at least 1e-6
-  cpi$dt[, value := pmax(value, 1e-6, na.rm = TRUE)]
-  cpi$dt_basket[, value := pmax(value, 1e-6, na.rm = TRUE)]
 
-  # Grab year months
+  ## Verify both `dt` and `dt_basket` have the same months
   unique_year_months  <- unique(cpi$dt[, .(year, month)])
   unique_year_months_basket <- unique(cpi$dt_basket[, .(year, month)])
   missing_year_months_in_basket <-
-    setdiff(unique_year_months, unique_year_months_basket)
+    data.table::fsetdiff(unique_year_months, unique_year_months_basket)
 
-  if (length(missing_year_months_in_basket) > 0) {
+  if (nrow(missing_year_months_in_basket) > 0) {
     stop(
       "There are some year months missing in dt_basket:\n",
       paste(capture.output(print(missing_year_months_in_basket)),
+            collapse = "\n"))
+  }
+  extra_year_months_in_basket <-
+    data.table::fsetdiff(unique_year_months_basket, unique_year_months)
+
+  if (nrow(extra_year_months_in_basket) > 0) {
+    warning(
+      "There are some extra year months in dt_basket:\n",
+      paste(capture.output(print(extra_year_months_in_basket)),
             collapse = "\n"))
   }
 
@@ -163,9 +192,16 @@ get_missing_cpi_tuples.cpi <- function(cpi) {
                                year = (cpi$start_year):(cpi$end_year),
                                month = 1:12)
 
-  # Filter out future dates
-  all_tuples <- all_tuples[year < cpi$end_year
-                           | (year == cpi$end_year & month <= cpi$end_month)]
+  # Filter dates for all COICOP codes
+  all_tuples <- all_tuples[
+    (year > cpi$start_year & year < cpi$end_year)
+    | (year == cpi$start_year & year == cpi$end_year
+       & cpi$start_month <= month & month <= cpi$end_month)
+    | (cpi$start_year != cpi$end_year
+       & (year == cpi$start_year & cpi$start_month <= month
+          | year == cpi$end_year & month <= cpi$end_month)
+       )
+  ]
 
   # Get existing tuples
   existing_tuples <- unique(cpi$dt[, .(coicop, year, month)])
@@ -231,25 +267,29 @@ correct_cpi.cpi <- function(cpi) {
 
   # Pick specific COICOPs for more efficiency
   level1_cpi <- load_cpi(cpi$country, level = 1,
-                         start_year = missing_cpi_tuples[, min(year)],
-                         # We need an extra year...
-                         end_year = missing_cpi_tuples[, max(year)] + 1)
+                         start_year = cpi$start_year,
+                         start_month = cpi$start_month,
+                         end_year = cpi$end_year + 1)
+
+  if (nrow(level1_cpi$dt[nchar(coicop) != 2, ]) > 0) {
+    stop("Failed to load level 1 COICOP")
+  }
 
   ### Calculate annual growth rates
   # Ensure the data is sorted correctly first
   data.table::setorder(cpi$dt, coicop, year, month)
 
   # Create a year-month column for easier shifting
-  cpi$dt[, yearmonth := as.Date(paste(year, month, "01", sep = "-"))]
+  level1_cpi$dt[, yearmonth := as.Date(paste(year, month, "01", sep = "-"))]
 
   # Now calculate the lagged value
-  cpi$dt[, lagging_value := shift(value, n = 12, type = "lag"), by = coicop]
+  level1_cpi$dt[, lagging_value := shift(value, n = 12, type = "lag"), by = coicop]
 
   # Calculate the growth rate
   # The growth rate g_t follows the equation
   # x_(t+12) = x_t * (1 + (g_t / 100))
   # Also, growth_rate is expressed in percentages
-  cpi$dt[, growth_rate := (value / lagging_value - 1) * 100]
+  level1_cpi$dt[, growth_rate := (value / lagging_value - 1) * 100]
   ###
 
   # Ensure data is sorted
@@ -287,6 +327,12 @@ correct_cpi.cpi <- function(cpi) {
       value = numeric()
     )
 
+    # We need at least 1 year of data.
+    if (nrow(coicop_data) < 12) {
+      warning(paste0("We need at least 1 year of data for ", coicop_level2))
+      return(result)
+    }
+
     # We iterate for each next_date, which is a date that is missing CPI data
     next_date <- coicop_data[, min(date) - months(1)]
     while (next_date %in% level1_data[, date]) {
@@ -311,6 +357,7 @@ correct_cpi.cpi <- function(cpi) {
       )
 
       result <- data.table::rbindlist(list(result, next_row))
+
       next_date <- next_date - months(1)
     }
 
@@ -329,5 +376,5 @@ correct_cpi.cpi <- function(cpi) {
     all_backfilled[, .(series_name, coicop, year, month, value)]
   ), use.names = TRUE, fill = TRUE)
 
-  return(cpi(result, dt_basket, country, level))
+  return(cpi(result, cpi$dt_basket, cpi$country, cpi$level))
 }

@@ -9,11 +9,13 @@ new_hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.t
   stopifnot(is.vector(categories))
   stopifnot(is.numeric(level))
 
-  start_year = dt[, min(year)]
-  end_year = dt[, max(year)]
+  # Remove empty keys
+  dt <- dt[!is.na(coicop) | !is.na(year) | !is.na(category)]
+  dt_total <- dt_total[!is.na(coicop) | !is.na(year)]
 
-  # Replace NA values with 1e-6
+  # Set value to at least 1e-6
   dt[, consumption := pmax(consumption, 1e-6, na.rm = TRUE)]
+  dt_total[, total_consumption := pmax(total_consumption, 1e-6, na.rm = TRUE)]
 
   # Identify (coicop, year) pairs where total_consumption is 0
   zero_pairs <- dt_total[total_consumption == 0, .(coicop, year)]
@@ -27,6 +29,9 @@ new_hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.t
 
   # Remove the temporary data.tables
   rm(zero_pairs, dt_mean)
+
+  start_year = dt[, min(year)]
+  end_year = dt[, max(year)]
 
   return(structure(
     list(
@@ -44,6 +49,7 @@ new_hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.t
 }
 
 validate_hbs <- function(hbs) {
+  ## Verify columns are correct
   required_columns <- c("series_name", "coicop", "year", "consumption", "category")
   missing_columns <- setdiff(required_columns, names(hbs$dt))
 
@@ -54,12 +60,25 @@ validate_hbs <- function(hbs) {
     )
   }
 
-  if (hbs$level < 1 | 3 < hbs$level) {
+  if (!hbs$level %in% 1:3) {
     stop("COICOP level must be 1, 2 or 3.")
   }
 
-  hbs$dt[, consumption := pmax(consumption, 1e-6, na.rm = TRUE)]
-  hbs$dt_total[, total_consumption := pmax(total_consumption, 1e-6, na.rm = TRUE)]
+  ## Verify data are coherent
+  if (nrow(hbs$dt[is.na(year) | is.na(coicop) | is.na(category), ]) > 0
+      | nrow(hbs$dt_total[is.na(year) | is.na(coicop), ]) > 0) {
+    stop("Data are not coherent, there are some NA values")
+  }
+  if (nrow(hbs$dt[consumption <= 0, ]) > 0
+      | nrow(hbs$dt_total[total_consumption <= 0,]) > 0) {
+    stop("Data are not coherent, HBS weights must be strictly positive (>0)")
+  }
+  if (nrow(hbs$dt[nchar(coicop) != hbs$level + 1, ]) > 0) {
+    stop("Data are not coherent, there are COICOP codes with the incorrect level")
+  }
+  if (nrow(hbs$dt[coicop == "00", ]) > 0) {
+    stop("Data are not coherent, COICOP code 00 cannot exist in `dt`")
+  }
 
   hbs
 }
