@@ -43,24 +43,25 @@ mock_calculate_weights <- function(country, category, level, start_year, end_yea
   return(weights_fr2)
 }
 
-
-# Replace actual functions with mocks
-assignInNamespace("load_cpi", mock_load_cpi, "inflationinequality")
-assignInNamespace("calculate_weights", mock_calculate_weights, "inflationinequality")
-
 test_that("calculate_contributions input validation works", {
+  local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   expect_error(calculate_contributions("FRA", "income"), "Country must be a 2-character ISO code")
   expect_error(calculate_contributions("FR", "invalid"), "Category must be one of 'income', 'age', or 'urban'")
   expect_error(calculate_contributions("FR", "income", level = 4), "Level must be an integer between 1 and 3")
 })
 
 test_that("calculate_contributions returns expected structure", {
+  local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   result <- calculate_contributions("FR", "income")
   expect_s3_class(result$dt, "data.table")
   expect_named(result$dt, c("coicop", "category", "year", "month", "contribution"))
 })
 
 test_that("calculate_contributions handles different date ranges", {
+  local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   result_full <- calculate_contributions("FR", "income")
   result_partial <- calculate_contributions("FR", "income", start_year = 2016, end_year = 2017)
 
@@ -69,6 +70,8 @@ test_that("calculate_contributions handles different date ranges", {
 })
 
 test_that("calculate_contributions works with different categories", {
+  local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   result_income <- calculate_contributions("FR", "income")
   result_age <- calculate_contributions("FR", "age")
   result_urban <- calculate_contributions("FR", "urban")

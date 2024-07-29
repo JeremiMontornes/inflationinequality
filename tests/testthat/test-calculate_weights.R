@@ -18,11 +18,9 @@ mock_load_hbs <- function(country, category, level, start_year, end_year) {
          "urban" = readRDS("fixtures/hbs_fr_urban2.RDS"))
 }
 
-# Replace actual functions with mocks
-assignInNamespace("load_index_weights", mock_load_index_weights, "inflationinequality")
-assignInNamespace("load_hbs", mock_load_hbs, "inflationinequality")
-
 test_that("calculate_weights input validation works", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
   expect_error(calculate_weights("FRA", "income"), "Country must be a 2-character ISO code")
   expect_error(calculate_weights("FR", "invalid"), "Category must be one of 'income', 'age', or 'urban'")
   expect_error(calculate_weights("FR", "income", level = 4), "Level must be an integer between 1 and 3")
@@ -30,6 +28,8 @@ test_that("calculate_weights input validation works", {
 })
 
 test_that("calculate_weights returns expected structure", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
   result <- calculate_weights("FR", "income")
   expect_s3_class(result, "weights")
   expect_s3_class(result$dt, "data.table")
@@ -37,6 +37,9 @@ test_that("calculate_weights returns expected structure", {
 })
 
 test_that("calculate_weights handles missing COICOP codes", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
+
   # Modify mock function to simulate missing COICOP code
   local_mocked_bindings(load_hbs = function(...) {
     hbs <- mock_load_hbs(...)
@@ -49,6 +52,8 @@ test_that("calculate_weights handles missing COICOP codes", {
 })
 
 test_that("calculate_weights normalizes weights correctly", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
   result <- calculate_weights("FR", "income")
 
   # Check if weights sum to 100 for each category and weight_year
@@ -87,6 +92,8 @@ test_that("calculate_weights normalizes weights correctly", {
 # })
 
 test_that("calculate_weights handles different date ranges", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
   result_full <- calculate_weights("FR", "income")
   result_partial <- calculate_weights("FR", "income", start_year = 2016, end_year = 2017)
 
@@ -95,6 +102,8 @@ test_that("calculate_weights handles different date ranges", {
 })
 
 test_that("calculate_weights works with different categories", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
   result_income <- calculate_weights("FR", "income")
   result_age <- calculate_weights("FR", "age")
   result_urban <- calculate_weights("FR", "urban")
