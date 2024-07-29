@@ -313,7 +313,7 @@ produce_coicop_mask <- function(dataset_code, prefix, suffix, level) {
 }
 
 produce_filtered_mask <- function(dataset_code, prefix, suffix, level) {
-  coicop_mask <- produce_coicop_mask(dataset_code, prefix, country, level)
+  coicop_mask <- produce_coicop_mask(dataset_code, prefix, suffix, level)
   paste0(prefix, ".", coicop_mask, ".", suffix)
 }
 
