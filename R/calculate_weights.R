@@ -215,6 +215,28 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     unnormalized_weighted_consumption = NULL
   )]
 
+  # Stop if there are abnormally large weights
+  abnormal_weighted_consumption <-
+    dt_weighted_consumption[weighted_consumption >= 50, ]
+
+  if (nrow(abnormal_weighted_consumption) > 0) {
+    stop(
+      "There are weights that are anormally large (>=50%):\n",
+      paste(capture.output(head(abnormal_weighted_consumption[, .(coicop, category, weight_year, year, weighted_consumption)], n = 10)),
+            collapse = "\n"))
+  }
+
+  # Usually, weights don't go above 20% but it doesn't mean there's an error.
+  very_large_weighted_consumption <-
+    dt_weighted_consumption[weighted_consumption >= 20, ]
+
+  if (nrow(very_large_weighted_consumption) > 0) {
+    message(
+      "There are weights that are very large (>=20%):\n",
+      paste(capture.output(head(very_large_weighted_consumption[, .(coicop, category, weight_year, year, weighted_consumption)], n = 10)),
+            collapse = "\n"))
+  }
+
   return(structure(list(dt = dt_weighted_consumption,
                         country = country,
                         category = category,
