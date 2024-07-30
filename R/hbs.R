@@ -13,22 +13,20 @@ new_hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.t
   dt <- dt[!is.na(coicop) | !is.na(year) | !is.na(category)]
   dt_total <- dt_total[!is.na(coicop) | !is.na(year)]
 
-  # Set value to at least 1e-6
+  # Ensure strictly positive consumption
   dt[, consumption := pmax(consumption, 1e-6, na.rm = TRUE)]
-  dt_total[, total_consumption := pmax(total_consumption, 1e-6, na.rm = TRUE)]
 
-  # Identify (coicop, year) pairs where total_consumption is 0
-  zero_pairs <- dt_total[total_consumption == 0, .(coicop, year)]
-
-  # Calculate mean consumption only for these pairs
-  dt_mean <- dt[zero_pairs, on = .(coicop, year)
-  ][, .(mean_consumption = mean(consumption)), by = .(coicop, year)]
-
-  # Update dt_total
-  dt_total[dt_mean, total_consumption := i.mean_consumption, on = .(coicop, year)]
-
-  # Remove the temporary data.tables
-  rm(zero_pairs, dt_mean)
+  # Identify incoherent total_consumption values and update them
+  dt_total[
+    # Select rows where total_consumption is NA or non-positive
+    is.na(total_consumption) | total_consumption <= 0,
+    total_consumption := dt[
+      .SD, # Join with dt
+      on = .(coicop, year), # Join based on coicop and year
+      mean(consumption), # Calculate mean consumption
+      by = .EACHI # Do this for each row in the subset
+    ]$V1 # Extract the resulting means as a vector
+  ]
 
   start_year = dt[, min(year)]
   end_year = dt[, max(year)]
