@@ -16,17 +16,29 @@ new_hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.t
   # Ensure strictly positive consumption
   dt[, consumption := pmax(consumption, 1e-6, na.rm = TRUE)]
 
-  # Identify incoherent total_consumption values and update them
-  dt_total[
-    # Select rows where total_consumption is NA or non-positive
-    is.na(total_consumption) | total_consumption <= 0,
-    total_consumption := dt[
-      .SD, # Join with dt
-      on = .(coicop, year), # Join based on coicop and year
-      mean(consumption), # Calculate mean consumption
-      by = .EACHI # Do this for each row in the subset
-    ]$V1 # Extract the resulting means as a vector
-  ]
+  # Select rows where total_consumption is NA or non-positive
+  missing_total_weights <-
+    dt_total[is.na(total_consumption) | total_consumption <= 0, ]
+
+  if (nrow(missing_total_weights) > 0) {
+    message(
+      "There are some total consumption weights that are missing.
+      These will be calculated as a simple average:\n",
+      paste(capture.output(print(missing_total_weights[, .(coicop, year)])),
+            collapse = "\n"))
+
+    # Identify incoherent total_consumption values and update them
+    dt_total[
+      missing_total_weights,
+      on = .(coicop, year),
+      total_consumption := dt[
+        .SD, # Join with dt
+        on = .(coicop, year), # Join based on coicop and year
+        mean(consumption), # Calculate mean consumption
+        by = .EACHI # Do this for each row in the subset
+      ]$V1 # Extract the resulting means as a vector
+    ]
+  }
 
   start_year = dt[, min(year)]
   end_year = dt[, max(year)]
@@ -77,6 +89,17 @@ validate_hbs <- function(hbs) {
   if (nrow(hbs$dt[coicop == "00", ]) > 0) {
     stop("Data are not coherent, COICOP code 00 cannot exist in `dt`")
   }
+
+  ## No duplicates
+  if (anyDuplicated(hbs$dt[, .(coicop, year, category)])
+      | anyDuplicated(hbs$dt_total[, .(coicop, year)])) {
+    stop("Data contain duplicates")
+  }
+
+  # We may need to verify that for each (coicop, year) pair in dt, there exists
+  # all categories in the attribute categories.
+  # Also, we would need to check that for each (coicop, year) in dt, there exist
+  # the same (coicop, year) pair in dt_total.
 
   hbs
 }
