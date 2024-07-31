@@ -240,9 +240,17 @@ add_coicops_hbs <- function(hbs, coicops) {
 
 #' @exportS3Method
 add_coicops_hbs.hbs <- function(hbs, coicops) {
+  existing_coicops <- intersect(coicops, hbs$dt[, unique(coicop)])
+  if (length(existing_coicops) > 0) {
+    warning(
+      sprintf("The following COICOP codes, found in HBS data, already exist: %s", paste(existing_coicops, collapse = ", "))
+    )
+  }
+  coicops_to_be_added <- setdiff(coicops, existing_coicops)
+
   # Create new rows for missing coicops
   new_rows <- data.table::CJ(
-    coicop = coicops,
+    coicop = coicops_to_be_added,
     year = hbs$start_year:hbs$end_year,
     category = hbs$categories
   )
@@ -258,7 +266,7 @@ add_coicops_hbs.hbs <- function(hbs, coicops) {
 
   # Create new rows for missing coicops
   new_rows_total <- data.table::CJ(
-    coicop = coicops,
+    coicop = coicops_to_be_added,
     year = hbs$start_year:hbs$end_year
   )
 
@@ -268,7 +276,7 @@ add_coicops_hbs.hbs <- function(hbs, coicops) {
     series_name = NA_character_
   )]
 
-  dt_total <- data.table::rbindlist(list(hbs$dt_total, new_rows), use.names = TRUE, fill = TRUE)
+  dt_total <- data.table::rbindlist(list(hbs$dt_total, new_rows_total), use.names = TRUE, fill = TRUE)
 
   hbs(dt = dt,
       dt_total = dt_total,
