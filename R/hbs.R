@@ -219,6 +219,7 @@ interpolate_hbs.hbs <- function(hbs) {
 
   hbs(dt = dt, dt_total = dt_total,
       country = hbs$country,
+      category = hbs$category,
       categories = hbs$categories,
       level = hbs$level)
 }
