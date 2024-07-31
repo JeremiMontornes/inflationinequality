@@ -135,6 +135,73 @@ test_that("HBS constructor ensures strictly positive consumption", {
   expect_true(all(hbs_obj$dt$consumption > 0))
 })
 
+# Helper function to create a mock HBS object with gaps
+create_mock_hbs_with_gaps <- function() {
+  dt <- data.table::data.table(
+    series_name = c("HBS", "HBS", "HBS", "HBS"),
+    coicop = c("01", "01", "02", "02"),
+    year = c(2020, 2022, 2020, 2022),
+    category = c("A", "A", "B", "B"),
+    consumption = c(100, 200, 150, 250)
+  )
+
+  dt_total <- data.table::data.table(
+    series_name = c("HBS", "HBS", "HBS", "HBS"),
+    coicop = c("01", "01", "02", "02"),
+    year = c(2020, 2022, 2020, 2022),
+    total_consumption = c(300, 400, 350, 450)
+  )
+
+  hbs(dt = dt,
+      dt_total = dt_total,
+      country = "FR",
+      category = "test_category",
+      categories = c("A", "B"),
+      level = 1)
+}
+
+test_that("interpolate_hbs fills in missing years", {
+  mock_hbs <- create_mock_hbs_with_gaps()
+  result <- interpolate_hbs(mock_hbs)
+
+  expect_equal(sort(unique(result$dt$year)), 2020:2022)
+  expect_equal(sort(unique(result$dt_total$year)), 2020:2022)
+})
+
+test_that("interpolate_hbs correctly interpolates values", {
+  mock_hbs <- create_mock_hbs_with_gaps()
+  result <- interpolate_hbs(mock_hbs)
+
+  # Check interpolated values for dt
+  expect_equal(result$dt[coicop == "01" & category == "A" & year == 2021]$consumption, 150)
+  expect_equal(result$dt[coicop == "02" & category == "B" & year == 2021]$consumption, 200)
+
+  # Check interpolated values for dt_total
+  expect_equal(result$dt_total[coicop == "01" & year == 2021]$total_consumption, 350)
+  expect_equal(result$dt_total[coicop == "02" & year == 2021]$total_consumption, 400)
+})
+
+test_that("interpolate_hbs preserves original data", {
+  mock_hbs <- create_mock_hbs_with_gaps()
+  result <- interpolate_hbs(mock_hbs)
+
+  expect_equal(nrow(mock_hbs$dt), 4)
+  expect_equal(nrow(result$dt), 6)
+  expect_equal(nrow(mock_hbs$dt_total), 4)
+  expect_equal(nrow(result$dt_total), 6)
+})
+
+test_that("interpolate_hbs maintains hbs object structure", {
+  mock_hbs <- create_mock_hbs_with_gaps()
+  result <- interpolate_hbs(mock_hbs)
+
+  expect_s3_class(result, "hbs")
+  expect_equal(result$country, mock_hbs$country)
+  expect_equal(result$category, mock_hbs$category)
+  expect_equal(result$categories, mock_hbs$categories)
+  expect_equal(result$level, mock_hbs$level)
+})
+
 test_that("add_coicops_hbs adds missing COICOPs", {
   hbs_data <- mock_hbs_data()
   mock_hbs <- hbs(
