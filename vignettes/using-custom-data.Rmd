@@ -22,7 +22,7 @@ This vignette introduces methods to include your own data.
 
 ***
 
-## The necessity of using custom data
+## Downloading HICP from Eurostat
 
 Using DBnomics, we are able to download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
 
