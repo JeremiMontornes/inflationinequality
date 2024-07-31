@@ -146,6 +146,29 @@ validate_cpi <- function(cpi) {
 #' - `end_year`: last year of data.
 #' - `end_month`: last month of data.
 #'
+#' @examples
+#' # Create a sample CPI dataset
+#' dt <- data.table(
+#'   series_name = c("CPI", "CPI", "CPI", "CPI"),
+#'   coicop = c("01", "02", "01", "02"),
+#'   value = c(100, 102, 103, 105),
+#'   year = c(2022, 2022, 2023, 2023),
+#'   month = c(12, 12, 1, 1)
+#' )
+#'
+#' dt_basket <- data.table(
+#'   series_name = c("CPI", "CPI"),
+#'   value = c(100, 101),
+#'   year = c(2022, 2023),
+#'   month = c(12, 1)
+#' )
+#'
+#' # Create a CPI object
+#' my_cpi <- cpi(dt = dt,
+#'               dt_basket = dt_basket,
+#'               country = "FR",
+#'               level = 1)
+#'
 #' @export
 cpi <- function(dt = data.table::data.table(),
                 dt_basket = data.table::data.table(),

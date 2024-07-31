@@ -160,6 +160,31 @@ validate_hbs <- function(hbs) {
 #' - `start_year`: first year of data.
 #' - `end_year`: last year of data.
 #'
+#' @examples
+#' # Create a sample HBS dataset
+#' dt <- data.table(
+#'   series_name = c("HBS", "HBS", "HBS", "HBS"),
+#'   coicop = c("01", "02", "01", "02"),
+#'   year = c(2022, 2022, 2023, 2023),
+#'   category = c("A", "A", "B", "B"),
+#'   consumption = c(100, 200, 150, 250)
+#' )
+#'
+#' dt_total <- data.table(
+#'   series_name = c("HBS", "HBS", "HBS", "HBS"),
+#'   coicop = c("01", "02", "01", "02"),
+#'   year = c(2022, 2022, 2023, 2023),
+#'   total_consumption = c(300, 400, 350, 450)
+#' )
+#'
+#' # Create an HBS object
+#' my_hbs <- hbs(dt = dt,
+#'               dt_total = dt_total,
+#'               country = "FR",
+#'               category = "income",
+#'               categories = c("A", "B"),
+#'               level = 1)
+#'
 #' @export
 hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.table(),
                 country = character(), category = character(),
@@ -233,6 +258,12 @@ interpolate_hbs.hbs <- function(hbs) {
 #' @param coicops A vector of COICOP codes to be added if missing.
 #'
 #' @return An updated `"hbs"` object with new rows for missing COICOP codes.
+#'
+#' @examples
+#' \dontrun{
+#' # Add missing COICOPs
+#' updated_hbs <- add_coicops_hbs(my_hbs, c("03", "04"))
+#' }
 #'
 #' @export
 add_coicops_hbs <- function(hbs, coicops) {
