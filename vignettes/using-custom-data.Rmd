@@ -24,7 +24,7 @@ This vignette introduces methods to include your own data.
 
 ## The necessity of using custom data
 
-Thanks to the harmonization efforts of Eurostat, we are able to download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
+Using DBnomics, we are able to download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
 
 However, Eurostat does not provide more granular data on a national economy, that is only available from the national statistical institute, like France's INSEE or Italy's Istat.
 
