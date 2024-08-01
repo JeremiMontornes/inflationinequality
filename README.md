@@ -23,7 +23,7 @@ date: 2024-07-31
 
 #### Simulation
 
-- [ ] Implement simple simulation algorithm
+- [x] Implement simple simulation algorithm
 
 #### Documentation
 
