@@ -1,6 +1,6 @@
 ---
 title: "README"
-author: Jérémi MONTORNÈS, Pradana AUMARS
+author: Pradana AUMARS, Jérémi MONTORNÈS
 date: 2024-07-31
 ---
 
@@ -10,7 +10,7 @@ date: 2024-07-31
 
 ## Features
 
-* Calculate and visualize inflation and contributions to inflation
+* Calculate and visualize inflation and contributions to inflation by households categories
 * Simulate counterfactual price indices
 
 ## To-do
@@ -28,7 +28,7 @@ date: 2024-07-31
 
 - [ ] Finish sections of the working paper that are related to the package
 - [ ] Re-adjust wording of certain terms 
-- [ ] Improve writing and explanation in vignettes
+- [ ] Improve writing and explanation in vignettes 
 
 #### Maintenance
 
