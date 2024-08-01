@@ -334,64 +334,6 @@ combined_dt <- data.table::rbindlist(
 combined_dt
 ```
 
-For age:
-
-```{r}
-inflation_insee_age <-
-    calculate_inflation(
-      "FR", "age",
-      custom_cpi = INSEE_CPI,
-      custom_index_weights = INSEE_CPI_index_weights)
-
-# Less than 30
-dt_age1 <- calculate_cpi_inflation(load_insee_inflation("010054279"))
-# 30 to 44
-dt_age2 <- calculate_cpi_inflation(load_insee_inflation("010054280"))
-# 45 to 59
-dt_age3 <- calculate_cpi_inflation(load_insee_inflation("010054281"))
-# 60 to 74
-dt_age4 <- calculate_cpi_inflation(load_insee_inflation("010054282"))
-# Over 75
-dt_age5 <- calculate_cpi_inflation(load_insee_inflation("010054283"))
-
-# Combine to 60 and over (not very accurate)
-dt_age4 <- dt_age5[dt_age4, on = .(year)] %>%
-  .[!is.na(inflation), .(inflation = mean(inflation)), by = .(year)]
-
-compare_insee_age_inflation_offset <- function(dt_age, category) {
-  dt_annual_inflation <-
-    inflation_insee_age$dt[category == inflation_insee_age$categories[1],
-                       .(calculated_inflation = mean(inflation)),
-                       by = .(year)]
-  dt_compared_inflation <-
-    dt_age[
-      dt_annual_inflation,
-      on = .(year),
-      nomatch = NULL]
-  dt_compared_inflation <-
-    dt_compared_inflation[!is.na(inflation) & !is.na(calculated_inflation), ]
-  dt_compared_inflation[,
-                        .(year, offset = calculated_inflation - inflation)]
-}
-
-dt_age1_compare <- compare_insee_age_inflation_offset(dt_age1, 1)
-dt_age2_compare <- compare_insee_age_inflation_offset(dt_age2, 2)
-dt_age3_compare <- compare_insee_age_inflation_offset(dt_age3, 3)
-dt_age4_compare <- compare_insee_age_inflation_offset(dt_age4, 4)
-
-# Create a list of your data.tables
-dt_list <- list(dt_age1_compare, dt_age2_compare, dt_age3_compare, dt_age4_compare)
-dt_list <- lapply(dt_list, summarize_inflation_offet_stats)
-
-# Combine all data.tables and add the quintile column
-combined_dt <- data.table::rbindlist(
-  lapply(seq_along(dt_list), function(i) {
-    dt_list[[i]][, quintile := inflation_insee$categories[i]]
-  })
-)
-
-combined_dt
-```
 
 ## Eurozone aggregation
 
