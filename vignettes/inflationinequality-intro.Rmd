@@ -1,8 +1,8 @@
 ---
-title: "Introduction to inflationinequality"
+title: "Introduction to inflation inequality"
 output: rmarkdown::html_document
 vignette: >
-  %\VignetteIndexEntry{Introduction to inflationinequality}
+  %\VignetteIndexEntry{Introduction to inflation inequality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -24,7 +24,7 @@ This vignette introduces the fundamental features of the `inflationinequality` p
 
 ## What is the purpose of this package?
 
-Inflation is the general and prolonged increase of prices. Different demographic categories have different spending habits and as a result, some are more affected than inflation by others. This package provides methods that calculates and visualizes inflation and contribution to inflation by demographic category, using public data from Eurostat. Currently, only EU countries are supported.
+Inflation is the general and prolonged increase of prices. Different demographic categories have different spending habits and as a result, some are more affected than inflation by others. This package provides methods that calculates and visualizes inflation and contribution to inflation by demographic category, using public data.Euro area countries are supported.
 
 ## How is inflation calculated?
 
@@ -90,12 +90,6 @@ cpi <- load_cpi("FR")
 head(cpi$dt)
 ```
 
-Now, let's download CPI data from Spain from 2019.
-
-```{r}
-cpi <- load_cpi("ES", start_year = 2019)
-head(cpi$dt)
-```
 
 You can also choose the month since CPI data is released monthly:
 
@@ -181,5 +175,5 @@ Furthermore, we can plot the contributions to the inflation gap.
 plot_contribution_gap(contributions_es)
 ```
 
-The selected product categories in the legend are hardcoded in the package for now and requires COICOP level 2 to be calculated when calling `calculate_contributions()`.
+The selected product categories in the legend are hardcoded in the package and requires COICOP level 2 to be calculated when calling `calculate_contributions()`.
 
