@@ -17,7 +17,7 @@
 #' @details
 #' `simulations` will have the following component:
 #'
-#' - `coicop`: the COICÖP code
+#' - `coicop`: the COICOP code
 #' - `shock`: the change in the COICOP code's CPI by percentage, must be at least -100.
 #' - `start_year`: start year
 #' - `start_month`: start month
