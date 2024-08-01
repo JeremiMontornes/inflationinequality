@@ -18,13 +18,13 @@ knitr::opts_chunk$set(
 library(inflationinequality)
 ```
 
-This vignette calculates the offsets between the package's calculated inflation rate and the real inflation rate published by Eurostat and other national statistical institutes.
+This vignette calculates the gap between the package's calculated inflation rate and the headline inflation rate published by Eurostat and other national statistical institutes.
 
 ***
 
 ## Comparing inflation rates in France, Germany and Italy
 
-First, let's write a function that downloads the real inflation rate of a country from Eurostat.
+First, let's write a function that downloads the headline inflation rate of a country from Eurostat.
 
 ```{r}
 library(rdbnomics)
@@ -38,24 +38,24 @@ load_real_inflation <- function(country) {
     .[, .(year = year(period),
           month = month(period),
           coicop,
-          real_inflation = value
+          headline_inflation = value
     )]
 
 }
 ```
 
-Now let's write a function that calculates the offset between the real inflation and the calculated inflation.
+Now let's write a function that calculates the gap between the headline inflation and the calculated inflation.
 
 ```{r}
 calculate_inflation_offset <- function(country, category) {
   inflation <- calculate_inflation(country, category)
   dt_total_inflation <- calculate_total_inflation(inflation)
-  dt_real_inflation <- load_real_inflation(country)
+  dt_headline_inflation <- load_headline_inflation(country)
 
   dt_compared_inflation <- 
-    dt_real_inflation[dt_total_inflation,
+    dt_headline_inflation[dt_total_inflation,
                       on = .(year, month)] %>%
-    .[, offset := total_inflation - real_inflation]
+    .[, offset := total_inflation - headline_inflation]
 }
 ```
 
@@ -67,15 +67,15 @@ plot_inflation_comparison <- function(dt_compared_inflation) {
   ggplot(dt_compared_inflation) +
     # Time series lines
     geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = total_inflation, color = "Calculated Inflation")) +
-    geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = real_inflation, color = "Real Inflation")) +
+    geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = headline_inflation, color = "Headline Inflation")) +
     # Histogram bars
     geom_col(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = offset, fill = "Offset")) +
     # Scales and labels
     scale_y_continuous(name = "Inflation Rate",
                        sec.axis = sec_axis(~., name = "Offset")) +
-    scale_color_manual(values = c("Calculated Inflation" = "blue", "Real Inflation" = "red")) +
+    scale_color_manual(values = c("Calculated Inflation" = "blue", "Headline Inflation" = "red")) +
     scale_fill_manual(values = c("Offset" = "grey")) +
-    labs(title = "Comparison of Calculated and Real Inflation with Offset",
+    labs(title = "Comparison of Calculated and headline Inflation with Offset",
                   x = "Date",
                   color = "Inflation Type",
                   fill = "Offset") +
@@ -145,7 +145,6 @@ Let's calculate the summary statistics for France, Germany and Italy.
 
 ```{r}
 inflaton_diagnostics <- compute_diagnostics(c("FR", "DE", "IT"))
-inflaton_diagnostics
 ```
 
 ## Comparing inflation rates to those from INSEE
@@ -254,23 +253,23 @@ inflation_insee <-
       custom_index_weights = INSEE_CPI_index_weights)
 ```
 
-Let's write a function that compares real inflation to calculated inflation from INSEE.
+Let's write a function that compares headline inflation to calculated inflation from INSEE.
 
 ```{r}
 library(insee)
 dt_monthly_inflation_insee <- calculate_total_inflation(inflation_insee)
 
-dt_real_inflation_insee <-
+dt_headline_inflation_insee <-
   as.data.table(get_insee_idbank("001768594")) %>%
   .[, .(year = year(DATE), 
         month = month(DATE), 
-        real_inflation = OBS_VALUE)]
+        headline_inflation = OBS_VALUE)]
 
 dt_compared_inflation <-
-  dt_real_inflation_insee[
+  dt_headline_inflation_insee[
     dt_monthly_inflation_insee,
     on = .(year, month)] %>%
-  .[, offset := total_inflation - real_inflation]
+  .[, offset := total_inflation - headline_inflation]
 
 plot_inflation_comparison(dt_compared_inflation)
 ```
@@ -301,7 +300,7 @@ compare_insee_quantile_inflation_offset <- function(inflation_insee, idbank1, id
   dt_decile01 <- calculate_cpi_inflation(load_insee_inflation(idbank1))
   dt_decile02 <- calculate_cpi_inflation(load_insee_inflation(idbank2))
   dt_quantile1 <- dt_decile01[dt_decile02, on = .(year)] %>%
-    .[!is.na(inflation), .(real_inflation = mean(inflation)), by = .(year)]
+    .[!is.na(inflation), .(headline_inflation = mean(inflation)), by = .(year)]
 
   dt_annual_inflation <-
     inflation_insee$dt[category == inflation_insee$categories[quantile],
@@ -312,7 +311,7 @@ compare_insee_quantile_inflation_offset <- function(inflation_insee, idbank1, id
       dt_annual_inflation,
       on = .(year),
       nomatch = NULL]
-  dt_compared_inflation[, offset := calculated_inflation - real_inflation]
+  dt_compared_inflation[, offset := calculated_inflation - headline_inflation]
   dt_compared_inflation
 }
 
@@ -444,14 +443,14 @@ aggregate_european_inflation <- function() {
 }
 
 eurozone_inflation <- aggregate_european_inflation()
-dt_real_eurozone_inflation <-
+dt_headline_eurozone_inflation <-
   rdbnomics::rdb("Eurostat", "prc_hicp_manr",
                  mask = "M.RCH_A.CP00.EA19") %>%
   .[, .(year = lubridate::year(lubridate::ym(original_period)),
         month = lubridate::month(lubridate::ym(original_period)),
-        real_inflation = as.numeric(original_value)
+        headline_inflation = as.numeric(original_value)
         )]
-dt_compared <- dt_real_eurozone_inflation[eurozone_inflation$dt_eurozone,
+dt_compared <- dt_headline_eurozone_inflation[eurozone_inflation$dt_eurozone,
                                           on = .(year, month)]
 
 dt_compared_income <-
