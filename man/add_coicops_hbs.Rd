@@ -17,3 +17,10 @@ An updated \code{"hbs"} object with new rows for missing COICOP codes.
 \description{
 This function adds missing COICOP (Classification of Individual Consumption According to Purpose) codes to a household budget survey (HBS) dataset.
 }
+\examples{
+\dontrun{
+# Add missing COICOPs
+updated_hbs <- add_coicops_hbs(my_hbs, c("03", "04"))
+}
+
+}
