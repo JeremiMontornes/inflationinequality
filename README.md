@@ -18,7 +18,7 @@ date: 2024-07-31
 #### Bug-fixing
 
 - [ ] Reach 100% code coverage
-- [ ] Proxy configuration or connection error to Dbnomics or Insee websites
+- [ ] Proxy configuration or connection error to Dbnomics or Insee websites (without CNTLM)
 - [ ] Add more error checking and remove the silly ones
 
 #### Simulation
