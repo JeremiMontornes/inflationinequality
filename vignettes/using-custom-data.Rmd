@@ -1,8 +1,8 @@
 ---
-title: "Using custom data"
+title: "Using national CPI-HBS data"
 output: rmarkdown::html_document
 vignette: >
-  %\VignetteIndexEntry{Using custom data}
+  %\VignetteIndexEntry{Using national CPI-HBS data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -22,13 +22,14 @@ This vignette introduces methods to include your own data.
 
 ***
 
-## Downloading HICP from Eurostat
+## Downloading data from Eurostat
 
-Using DBnomics, we are able to download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
+Using DBnomics, we download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
 
-However, Eurostat does not provide more granular data on a national economy, that is only available from the national statistical institute, like France's INSEE or Italy's Istat.
+However, Eurostat  only provides 2-digit COICOP HBS data. For some countries (France, Italy, etc.), instead of using the data published by Eurostat, data published directly by national statistical institutes can be used like France's INSEE or Italy's Istat.
 
-In this vignette, we will download datasets in CSV format and format the data for our package.
+
+In this vignette, we will download datasets in CSV format and format the data for the package.
 
 ## Downloading CPI from INSEE
 
@@ -221,7 +222,7 @@ INSEE_CPI_index_weights <-
   index_weights(dt = INSEE_CPI_w_dt, country = "FR", level = 2)
 ```
 
-We can now use these custom datasets to calculate inflation.
+We can now use these national HBS datasets to calculate inflation inequalities.
 
 ```{r}
 INSEE_inflation <- 
