@@ -1,8 +1,8 @@
 ---
-title: "Introduction to inflation inequality"
+title: "Introduction to inflationinequality"
 output: rmarkdown::html_document
 vignette: >
-  %\VignetteIndexEntry{Introduction to inflation inequality}
+  %\VignetteIndexEntry{Introduction to inflationinequality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
