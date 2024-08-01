@@ -18,6 +18,7 @@ date: 2024-07-31
 #### Bug-fixing
 
 - [ ] Reach 100% code coverage
+- [ ] Proxy configuration or connection error to Dbnomics or Insee websites
 - [ ] Add more error checking and remove the silly ones
 
 #### Simulation
