@@ -91,12 +91,6 @@ dt_compared_inflation_fr_income <- calculate_inflation_offset("FR", "income")
 plot_inflation_comparison(dt_compared_inflation_fr_income)
 ```
 
-And for Italy inflation rate by income.
-
-```{r}
-dt_compared_inflation_it_income <- calculate_inflation_offset("IT", "income")
-plot_inflation_comparison(dt_compared_inflation_it_income)
-```
 
 We should also get some summary statistics of these offsets.
 
