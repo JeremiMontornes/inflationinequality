@@ -175,5 +175,5 @@ test_that("correct_cpi throws warning for not having enough data", {
   country <- "FR"
   level <- 2
   cpi <- cpi(dt, dt_basket, country, level)
-  expect_warning(correct_cpi(cpi))
+  expect_warning(correct_cpi(cpi), regexp = "We need at least 1 year of data for 012")
 })
