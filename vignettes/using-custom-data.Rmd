@@ -100,8 +100,6 @@ INSEE_CPI_dt <- INSEE_CPI_monthly_values %>%
   # We reshape data from wide to long format.
   melt(id.vars = c("Libellé", "coicop"), 
                    variable.name = "date", value.name = "value") %>%
-  # Keep only 3-digit COICOP codes
-  .[nchar(coicop) == 3] %>%
   # We select and format necessary columns.
   # Remember, in a "cpi" object, the "dt" component must have the columns:
   # coicop, series_name, year, month, value
@@ -153,9 +151,16 @@ head(INSEE_CPI_dt_basket, n=10)
 We can then consolidate both the CPI data for individual product categories `INSEE_CPI_dt` and for the entire product basket `INSEE_CPI_dt_basket` into one `"cpi"` object for our package.
 
 ```{r}
-INSEE_CPI <- cpi(dt = INSEE_CPI_dt, dt_basket = INSEE_CPI_dt_basket,
-                 country = "FR", level = 2)
-saveRDS(INSEE_CPI, "INSEE_CPI_level2.RDS")
+INSEE_CPI <- cpi(dt = INSEE_CPI_dt %>%
+                  # Keep only 3-digit COICOP codes
+                  .[nchar(coicop) == 3], dt_basket = INSEE_CPI_dt_basket,
+                                 country = "FR", level = 2)
+saveRDS(INSEE_CPI, "articles/INSEE_CPI_level2.RDS")
+
+INSEE_CPI_level3 <- cpi(dt = INSEE_CPI_dt %>%
+                  .[nchar(coicop) == 4], dt_basket = INSEE_CPI_dt_basket,
+                                 country = "FR", level = 3)
+saveRDS(INSEE_CPI_level3, "articles/INSEE_CPI_level3.RDS")
 ```
 
 Similarly, for the CPI weights, we load it from the sheet `"valeurs_annuelles"` (annual values).
@@ -176,8 +181,7 @@ INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
     )] %>%
   .[, coicop := str_remove_all(coicop, "\\.")] %>%
   melt(id.vars = c("Libellé", "coicop"), 
-                   variable.name = "date", value.name = "weight") %>%
-  .[nchar(coicop) == 3] %>%
+                   variable.name = "date", value.name = "weight")  %>%
   .[, `:=`(
     weight = as.numeric(weight),
     year = as.numeric(as.character(date))
@@ -188,8 +192,12 @@ INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
   )]
 
 INSEE_CPI_index_weights <- 
-  index_weights(dt = INSEE_CPI_w_dt, country = "FR", level = 2)
-saveRDS(INSEE_CPI_index_weights, "INSEE_CPI_index_weights_level2.RDS")
+  index_weights(dt = INSEE_CPI_w_dt %>% .[nchar(coicop) == 3], country = "FR", level = 2)
+saveRDS(INSEE_CPI_index_weights, "articles/INSEE_CPI_index_weights_level2.RDS")
+
+INSEE_CPI_index_weights_level3 <- 
+  index_weights(dt = INSEE_CPI_w_dt %>% .[nchar(coicop) == 4], country = "FR", level = 3)
+saveRDS(INSEE_CPI_index_weights_level3, "articles/INSEE_CPI_index_weights_level3.RDS")
 ```
 
 We can now use these national HBS datasets to calculate inflation inequalities.
@@ -258,7 +266,7 @@ INSEE_HBS_2017 <-
       categories = c("Décile1", "Décile2", "Décile3", "Décile4", "Décile5",
                      "Décile6", "Décile7", "Décile8", "Décile9", "Décile10"),
       level = 3)
-saveRDS(INSEE_HBS_2017, "INSEE_HBS_2017_level3.RDS")
+saveRDS(INSEE_HBS_2017, "articles/INSEE_HBS_2017_level3.RDS")
 ```
 
 ## Using level 3 COICOP data
