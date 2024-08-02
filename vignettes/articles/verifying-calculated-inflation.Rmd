@@ -162,6 +162,12 @@ INSEE_CPI_index_weights <- readRDS("INSEE_CPI_index_weights_level2.RDS")
 Now we can compute the inflation rate.
 
 ```{r}
+contributions_insee <-
+  calculate_contributions(
+    "FR", "income",
+    custom_cpi = INSEE_CPI,
+    custom_index_weights = INSEE_CPI_index_weights)
+
 inflation_insee <-
     calculate_inflation(
       "FR", "income",
@@ -330,129 +336,29 @@ dt_eurozone_offset_stats <- data.table::rbindlist(list(dt_compared_income,
 Level 3 CPI value data
 
 ```{r}
-INSEE_CPI_dt3 <- INSEE_CPI_monthly_values %>%
-  .[, `:=`(
-    idBank = NULL,
-    `Dernière mise à jour` = NULL,
-    `Période` = NULL
-  )] %>%
-  .[, coicop := str_extract(
-    `Libellé`,
-    "(?<=Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )\\d{2}(\\.\\d+){0,3}"
-    )] %>%
-  .[, coicop := str_remove_all(coicop, "\\.")] %>%
-  melt(id.vars = c("Libellé", "coicop"), 
-                   variable.name = "date", value.name = "value") %>%
-  .[nchar(coicop) == 4] %>%
-  .[, `:=`(
-    date = as.character(date),
-    value = as.numeric(value),
-    series_name = `Libellé`,
-    year = year(ym(date)),
-    month = month(ym(date))
-  )] %>%
-  .[, `:=`(
-    date = NULL,
-    `Libellé` = NULL
-  )]
-
-INSEE_CPI3 <- cpi(dt = INSEE_CPI_dt3, dt_basket = INSEE_CPI_dt_basket,
-                 country = "FR", level = 3)
+INSEE_CPI_level3 <- readRDS("INSEE_CPI_level3.RDS")
 ```
 
 Level 3 CPI weights
 
 ```{r}
-INSEE_CPI_w_dt3 <- INSEE_CPI_annual_values %>%
-  .[, `:=`(
-    idBank = NULL,
-    `Dernière mise à jour` = NULL,
-    `Période` = NULL
-  )] %>%
-  .[, coicop := str_extract(
-    `Libellé`,
-    "(?<=Pondérations de l'indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )\\d{2}(\\.\\d+){0,3}"
-    )] %>%
-  .[, coicop := str_remove_all(coicop, "\\.")] %>%
-  melt(id.vars = c("Libellé", "coicop"), 
-                   variable.name = "date", value.name = "weight") %>%
-  .[nchar(coicop) == 4] %>%
-  .[, `:=`(
-    weight = as.numeric(weight),
-    year = as.numeric(as.character(date))
-  )] %>%
-  .[, `:=`(
-    date = NULL,
-    `Libellé` = NULL
-  )]
-
-INSEE_CPI_index_weights3 <- 
-  index_weights(dt = INSEE_CPI_w_dt3, country = "FR", level = 3)
+INSEE_CPI_index_weights_level3 <- 
+  readRDS("INSEE_CPI_index_weights_level3.RDS")
 ```
 
 Level 3 HBS
 
 ```{r}
-# Select the file path of the spreadsheet
-# Here, we include our example with the package 
-XLSX_filepath <- 
-  system.file("extdata", "TF106_3digit.xlsx", package = "inflationinequality")
-
-# Read the spreadsheet
-library(readxl)
-TF106_3digit <- read_xlsx(XLSX_filepath)
-
-# (Partially) convert the spreadsheet to our "hbs" format
-INSEE_HBS_2017_all <- 
-  # Convert to data.table
-  as.data.table(TF106_3digit) %>%
-  # Convert from wide format to long format
-  melt(
-    id.vars = c("IDENT", "Regroupement"), variable.name = "quantile",
-    value.name = "consumption"
-  ) %>%
-  # Rearrange columns and remove "Ensemble" (Total) values
-  .[, .(
-    series_name = Regroupement,
-    coicop = IDENT,
-    year = 2017,
-    category = quantile,
-    consumption
-  )]
-
-# Select level 3 COICOPs
-INSEE_HBS_2017_dt <- 
-  INSEE_HBS_2017_all %>%
-  .[nchar(coicop) == 4 & category != "Ensemble", ]
-
-# Select the total consumption from CP00
-# Don't forget to rename consumption to total_consumption!
-INSEE_HBS_2017_dt_total <- 
-  INSEE_HBS_2017_all %>%
-  .[nchar(coicop) == 4 & category == "Ensemble", 
-    .(series_name, coicop, year,
-      total_consumption = consumption)]
-
-# Construct the "hbs" object
-# Don't forget to specify the order of the categories!
 INSEE_HBS_2017 <-
-  hbs(dt = INSEE_HBS_2017_dt,
-      dt_total = INSEE_HBS_2017_dt_total,
-      country = "FR",
-      category = "income",
-      categories = c("Décile1", "Décile2", "Décile3", "Décile4", "Décile5",
-                     "Décile6", "Décile7", "Décile8", "Décile9", "Décile10"),
-      level = 3)
+  readRDS("INSEE_HBS_2017_level3.RDS")
 ```
 
 Calculate inflation at level 3 COICOP
 
 ```{r}
 inflation_fr3 <- calculate_inflation(country = "FR", category = "income", level = 3,
-                                     custom_cpi = INSEE_CPI3,
-                                     custom_index_weights = INSEE_CPI_index_weights3,
+                                     custom_cpi = INSEE_CPI_level3,
+                                     custom_index_weights = INSEE_CPI_index_weights_level3,
                                      custom_hbs = INSEE_HBS_2017)
 ```
-```{r}
 
-```
