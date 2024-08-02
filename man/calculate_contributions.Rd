@@ -17,9 +17,7 @@ calculate_contributions(
   custom_index_weights = NULL,
   custom_hbs = NULL,
   interpolated_hbs = FALSE,
-  specific_hbs_year = NULL,
-  simulations = NULL,
-  recalculate_price_basket = FALSE
+  specific_hbs_year = NULL
 )
 }
 \arguments{
@@ -56,10 +54,6 @@ CPI data when the CPI dataset is incomplete.}
 
 \item{specific_hbs_year}{year of selected HBS wave. It's recommended to
 download HBS data first to see what HBS years are available.}
-
-\item{simulations}{see \code{simulate_cpi}.}
-
-\item{recalculate_price_basket}{see \code{simulate_cpi}.}
 }
 \value{
 An object of class \code{"contributions"} is a list containing the
@@ -136,5 +130,5 @@ sum(contribution)]
 }
 \seealso{
 \code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}, \code{\link[=correct_cpi]{correct_cpi()}} for CPI data
-synthesization, \code{\link[=simulate_cpi]{simulate_cpi()}} to CPI simulations
+synthesization, \code{\link[=cpi]{cpi()}}
 }
