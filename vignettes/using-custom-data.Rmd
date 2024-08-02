@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE}
 library(inflationinequality)
+options(rdbnomics.use_readLines = TRUE)
 ```
 
 This vignette introduces methods to include your own data.
@@ -38,12 +39,6 @@ Let's download CPI data from INSEE, sourced from this page: [https://www.insee.f
 First, we load some necessary libraries.
 
 ```{r}
-# Required for HTTP requests
-library(httr2)
-
-# Required for extracting ZIP archives
-library(zip)
-
 # Required for fast CSV reading
 library(readr)
 
@@ -64,39 +59,13 @@ library(stringr)
 library(lubridate)
 ```
 
-In the particular case of INSEE, the dataset is hidden behind a link redirect and is distributed as a ZIP archive.
-So we'll need to send a HTTP request which follows redirects and write the ZIP archive from the HTTP response.
-
-```{r}
-# URL with redirect
-url <- "https://www.insee.fr/fr/statistiques/series/csv/famille/102342213"
-
-# Download the ZIP file, following redirects
-req <- request(url)
-resp <- req_perform(req)
-
-# Save the content to a temporary file
-temp <- tempfile(fileext = ".zip")
-writeBin(resp_body_raw(resp), temp)
-```
+Download the ZIP archive from the website.
 
 We'll then extract the archive and import the sheet "valeurs mensuelles" (monthly values) into a `data.table` object.
 
 ```{r}
-# Create a temporary directory to extract files
-temp_dir <- tempdir()
-
-# Extract the ZIP file
-unzip(temp, exdir = temp_dir)
-
-# List the extracted files
-files <- list.files(temp_dir, full.names = TRUE)
-
 # Get CSV file path
-monthly_values_sheet_name <- "valeurs_mensuelles"
-# We identify the file path of the CSV file by filtering out any file that does not have the sheet name in its file path.
-monthly_values_csv_file <- 
-  files[grep(paste0("\\", monthly_values_sheet_name, ".csv"), files)][1]
+monthly_values_csv_file <- "famille_IPC-2015/valeurs_mensuelles.csv"
 
 # Read CSV data into a data.table
 INSEE_CPI_monthly_values <- as.data.table(read_csv2(monthly_values_csv_file))
@@ -186,13 +155,13 @@ We can then consolidate both the CPI data for individual product categories `INS
 ```{r}
 INSEE_CPI <- cpi(dt = INSEE_CPI_dt, dt_basket = INSEE_CPI_dt_basket,
                  country = "FR", level = 2)
+saveRDS(INSEE_CPI, "INSEE_CPI_level2.RDS")
 ```
+
 Similarly, for the CPI weights, we load it from the sheet `"valeurs_annuelles"` (annual values).
 
 ```{r}
-annual_values_sheet_name <- "valeurs_annuelles"
-annual_values_csv_file <- 
-  files[grep(paste0("\\", annual_values_sheet_name, ".csv"), files)][1]
+annual_values_csv_file <- "famille_IPC-2015/valeurs_annuelles.csv"
 INSEE_CPI_annual_values <- as.data.table(read_csv2(annual_values_csv_file))
 
 INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
@@ -220,6 +189,7 @@ INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
 
 INSEE_CPI_index_weights <- 
   index_weights(dt = INSEE_CPI_w_dt, country = "FR", level = 2)
+saveRDS(INSEE_CPI_index_weights, "INSEE_CPI_index_weights_level2.RDS")
 ```
 
 We can now use these national HBS datasets to calculate inflation inequalities.
@@ -242,8 +212,7 @@ We can also load data directly from a XLSX spreadsheet.
 ```{r}
 # Select the file path of the spreadsheet
 # Here, we include our example with the package 
-XLSX_filepath <- 
-  system.file("extdata", "TF106_3digit.xlsx", package = "inflationinequality")
+XLSX_filepath <- "TF106_3digit.xlsx"
 
 # Read the spreadsheet
 TF106_3digit <- read_xlsx(XLSX_filepath)
@@ -289,6 +258,7 @@ INSEE_HBS_2017 <-
       categories = c("Décile1", "Décile2", "Décile3", "Décile4", "Décile5",
                      "Décile6", "Décile7", "Décile8", "Décile9", "Décile10"),
       level = 3)
+saveRDS(INSEE_HBS_2017, "INSEE_HBS_2017_level3.RDS")
 ```
 
 ## Using level 3 COICOP data
