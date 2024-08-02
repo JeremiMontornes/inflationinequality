@@ -356,9 +356,43 @@ INSEE_HBS_2017 <-
 Calculate inflation at level 3 COICOP
 
 ```{r}
-inflation_fr3 <- calculate_inflation(country = "FR", category = "income", level = 3,
+inflation_level3 <- calculate_inflation(country = "FR", category = "income", level = 3,
                                      custom_cpi = INSEE_CPI_level3,
                                      custom_index_weights = INSEE_CPI_index_weights_level3,
                                      custom_hbs = INSEE_HBS_2017)
 ```
 
+```{r}
+dt_inflation_level3 <- 
+  calculate_total_inflation(inflation_level3) %>% 
+  .[, .(year, month, inflation3 = total_inflation)]
+dt_inflation_level2 <- 
+  calculate_total_inflation(inflation_insee) %>% 
+  .[, .(year, month, inflation2 = total_inflation)]
+dt_compared_inflation <- 
+  dt_inflation_level3[
+    dt_inflation_level2,
+    on = .(year, month)
+    ] %>%
+  .[, offset := inflation3 - inflation2]
+
+# First, calculate the scaling factor
+scale_factor <- max(dt_compared_inflation$inflation3, dt_compared_inflation$inflation2, na.rm = TRUE) / max(dt_compared_inflation$offset, na.rm = TRUE)
+
+ggplot(dt_compared_inflation) +
+  # Time series lines
+  geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = inflation3, color = "Level 3 Inflation")) +
+  geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = inflation2, color = "Level 2 Inflation")) +
+  # Histogram bars (scaled)
+  geom_col(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = offset * scale_factor), fill = "gray", alpha = 0.6) +
+  # Scales and labels
+  scale_y_continuous(name = "Inflation Rate",
+                     sec.axis = sec_axis(~./scale_factor, name = "Offset")) +
+  scale_color_manual(values = c("Level 3 Inflation" = "blue", "Level 2 Inflation" = "red")) +
+  labs(title = "Comparison of Aggregated Inflation with Offset",
+       x = "Date",
+       color = "Inflation Type",
+       fill = "Offset") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
