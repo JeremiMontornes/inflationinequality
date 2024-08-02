@@ -73,18 +73,19 @@ We should also write a plotting function.
 
 ```{r}
 plot_inflation_comparison <- function(dt_compared_inflation) {
+  scale_factor <- max(dt_compared_inflation$total_inflation, dt_compared_inflation$headline_inflation, na.rm = TRUE) / max(dt_compared_inflation$offset, na.rm = TRUE)
+  
   ggplot(dt_compared_inflation) +
     # Time series lines
     geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = total_inflation, color = "Calculated Inflation")) +
     geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = headline_inflation, color = "Headline Inflation")) +
-    # Histogram bars
-    geom_col(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = offset, fill = "Offset")) +
+    # Histogram bars (scaled)
+    geom_col(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = offset * scale_factor), fill = "gray", alpha = 0.6) +
     # Scales and labels
     scale_y_continuous(name = "Inflation Rate",
-                       sec.axis = sec_axis(~., name = "Offset")) +
+                       sec.axis = sec_axis(~./scale_factor, name = "Offset")) +
     scale_color_manual(values = c("Calculated Inflation" = "blue", "Headline Inflation" = "red")) +
-    scale_fill_manual(values = c("Offset" = "grey")) +
-    labs(title = "Comparison of Calculated and headline Inflation with Offset",
+    labs(title = "Comparison of Calculated and Headline Inflation with Offset",
                   x = "Date",
                   color = "Inflation Type",
                   fill = "Offset") +
