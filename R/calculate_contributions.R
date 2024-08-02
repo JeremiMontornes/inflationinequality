@@ -34,6 +34,8 @@
 #' @param ensure_complete_cpi flag that when set to `TRUE`, synthesizes missing
 #'   CPI data when the CPI dataset is incomplete.
 #' @param custom_cpi an object of class `"cpi"`
+#' @param simulations see `simulate_cpi`.
+#' @param recalculate_price_basket see `simulate_cpi`.
 #'
 #' @returns An object of class `"contributions"` is a list containing the
 #'   following components:
@@ -72,7 +74,7 @@
 #' sum(contribution)]
 #'
 #' @seealso [load_cpi()], [calculate_weights()], [correct_cpi()] for CPI data
-#'   synthesization, [cpi()]
+#'   synthesization, [simulate_cpi()] to CPI simulations
 #'
 #' @importFrom data.table :=
 #' @export
@@ -84,7 +86,9 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     custom_index_weights = NULL,
                                     custom_hbs = NULL,
                                     interpolated_hbs = FALSE,
-                                    specific_hbs_year = NULL) {
+                                    specific_hbs_year = NULL,
+                                    simulations = NULL,
+                                    recalculate_price_basket = FALSE) {
   # Input validation
   if (!is.character(country) || nchar(country) != 2) {
     stop("Country must be a 2-character ISO code")
@@ -115,6 +119,13 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   } else {
     custom_cpi
   }
+
+  # Run simulation
+  if (!is.null(simulations)) {
+    cpi <- simulate_cpi(cpi, simulations, recalculate_price_basket)
+  }
+
+  # Load weights
   weights <-
     calculate_weights(
       country, category,
