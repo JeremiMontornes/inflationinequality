@@ -30,7 +30,6 @@ Suggests:
     zip,
     readr,
     readxl,
-    insee,
     memoise
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
