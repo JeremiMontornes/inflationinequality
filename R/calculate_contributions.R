@@ -235,9 +235,11 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     p_y2_12 <- cpi$dt_basket[month == 12 & year == y - 2, value]
 
     # We only use COICOP codes that exist in years `y-2`, `y-1`, `y`
-    valid_coicops = cpi$dt[year %in% c(y-2, y-1, y),
-                              .(n_years = data.table::uniqueN(year)),
-                              by = coicop][n_years == 3, coicop]
+    # but also have more than 1e-6 in those years.
+    valid_coicops <- cpi$dt[year %in% c(y-2, y-1, y),
+                            .(n_years = data.table::uniqueN(year),
+                              all_valid = all(value > 1e-6)),
+                            by = coicop][n_years == 3 & all_valid == TRUE, unique(coicop)]
 
     # COICOP codes that do not exist that recorded
     missing_coicops_y <- setdiff(cpi_coicops, valid_coicops)
