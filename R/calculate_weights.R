@@ -99,6 +99,19 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
       country, level = level,
       start_year = start_year, end_year = end_year)
   } else {
+    # Check if date range is sufficient
+    if (!is.null(start_year)) {
+      if (start_year < custom_index_weights$start_year) {
+        stop(paste0("Not enough CPI weight data. Latest possible start year: ", start_year))
+      }
+    }
+
+    if (!is.null(end_year)) {
+      if (end_year > custom_index_weights$start_year) {
+        stop(paste0("Not enough CPI weight data. Earliest possible end year: ", end_year))
+      }
+    }
+
     custom_index_weights
   }
 
@@ -111,6 +124,19 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
       country, category,
       level = level)
   } else {
+    # Check if date range is sufficient
+    if (!is.null(start_year)) {
+      if (start_year < custom_hbs$start_year) {
+        stop(paste0("Not enough HBS weight data. Latest possible start year: ", start_year))
+      }
+    }
+
+    if (!is.null(end_year)) {
+      if (end_year > custom_hbs$start_year) {
+        stop(paste0("Not enough HBS weight data. Earliest possible end year: ", end_year))
+      }
+    }
+
     custom_hbs
   }
 

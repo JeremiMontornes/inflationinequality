@@ -97,7 +97,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   }
 
   # Set start year 2 years behind due to the requirements of the equation
-  start_year <- if (!is.null(start_year)) {
+  data_start_year <- if (!is.null(start_year)) {
     start_year - 2
   } else {
     start_year
@@ -110,21 +110,46 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     }
     load_cpi(
       country, level = level,
-      start_year = start_year, start_month = start_month,
+      start_year = data_start_year, start_month = start_month,
       end_year = end_year, end_month = end_month)
   } else {
+    # Check if date range is sufficient
+    if (!is.null(data_start_year)) {
+      if (data_start_year < custom_cpi$start_year) {
+        stop(paste0("Not enough CPI data. Latest possible start year: ", data_start_year))
+      }
+      if (!is.null(start_month)
+          && data_start_year == custom_cpi$start_year
+          && start_month < custom_cpi$start_month) {
+        stop(paste0("Not enough CPI data. Latest possible start date: ", data_start_year, "-", start_month))
+      }
+    }
+
+    if (!is.null(end_year)) {
+      if (end_year > custom_cpi$start_year) {
+        stop(paste0("Not enough CPI data. Earliest possible end year: ", end_year))
+      }
+      if (!is.null(end_month)
+          && end_year == custom_cpi$end_year
+          && end_month > custom_cpi$end_month) {
+        stop(paste0("Not enough CPI data. Earliest possible end date: ", end_year, "-", end_year))
+      }
+    }
+
     custom_cpi
   }
+
   weights <-
     calculate_weights(
       country, category,
       level = level,
-      start_year = start_year, end_year = end_year,
+      start_year = data_start_year, end_year = end_year,
       custom_index_weights = custom_index_weights,
       custom_hbs = custom_hbs,
       interpolated_hbs = interpolated_hbs,
       specific_hbs_year = specific_hbs_year)
 
+  # Definitely set start_year and end_year for the ticker
   start_year <- if (is.null(start_year) || start_year < cpi$start_year) {
     cpi$start_year
   } else {
@@ -153,6 +178,11 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     cpi <- correct_cpi(cpi)
   }
 
+  # ----------------------------------------------------------------------------
+
+  # The goal of this section is to ensure that all dates in CPI for each COICOP
+  # code has a weight associated to it
+
   # Create a sequence of all valid year-month combinations
   all_dates <- data.table::data.table(
     year = rep((cpi$start_year):(cpi$end_year), each = 12),
@@ -175,19 +205,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   # If you want to keep only the columns from the original data.table
   weights$dt <- weights_result[, .(series_name, coicop, category, weight_year, year, weighted_consumption)]
 
-  # We also have to assume that for a given COICOP code, the index weight years in the weighted consumption table are exactly the same as the index value years in the CPI table!
-  # Hence,
-  # for (coicop_code in cpi_coicops) {
-  #   if (!identical(unique(cpi$dt[coicop == coicop_code, year]), unique(weights$dt[coicop == coicop_code, weight_year]))) {
-  #     warning("We got a problem!")
-  #   }
-  # }
-
-  # COICOP codes that have CPI data but not weight data
-  missing_coicops <- setdiff(cpi_coicops, weight_coicops)
-  if (length(missing_coicops) > 0) {
-    warning("This should not be possible!")
-  }
+  # ----------------------------------------------------------------------------
 
   contrib2 <- data.table::data.table(
     year = numeric(),
@@ -212,13 +230,13 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
 
   pb <- progress::progress_bar$new(
     format = "calculating contributions [:bar] :percent eta: :eta (elapsed: :elapsed)",
-    total = length(start_year:end_year) - 2, clear = FALSE
+    total = length(start_year:end_year), clear = FALSE
   )
   pb$tick(0)
 
   categories <- unique(weights$dt$category)
 
-  for (y in (start_year+2):end_year) {
+  for (y in start_year:end_year) {
     # Price index of basket
     p_y1_12 <- cpi$dt_basket[month == 12 & year == y - 1, value]
     p_y2_12 <- cpi$dt_basket[month == 12 & year == y - 2, value]
