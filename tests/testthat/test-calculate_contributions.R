@@ -78,3 +78,10 @@ test_that("calculate_contributions works with different categories", {
 
   expect_false(identical(result_income$dt, result_urban$dt))
 })
+
+test_that("calculate_contributions with sideloaded CPI data fails with mismatched dates", {
+  local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
+  dt_cpi_fr <- load_cpi("FR",start_year = 2016, end_year = 2017)
+  expect_error(calculate_contributions("FR", "income", start_year = 2015, custom_cpi = dt_cpi_fr))
+})
