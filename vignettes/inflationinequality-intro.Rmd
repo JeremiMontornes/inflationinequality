@@ -38,7 +38,7 @@ NOTE: In keeping with the Eurostat HICP methodology, we do not include imputed r
 
 ### Calculating weights
 
-We first calculate the ratio between the expenditure for each income quintile of this product $j$ and that observed for all households as defined by the HBS at year $y'$, denoted $\text{HBS}^{y'}_{j, \text{quintile}}$ and $\text{HBS}^{y'}_{j, \text{total}}$ respectively.
+We first calculate the ratio between the expenditure for each income quintile of this product $j$ and that observed for all households as defined by the HBS at year $y'$, denoted ${\text{HBS}^{y'}}_{j, \text{quintile}}$ and $\text{HBS}^{y'}_{j, \text{total}}$ respectively.
 
 This term "corrects" the annual CPI weight corresponding to product $j$, denoted $w^y_{\text{CPI},j}$, therefore
 
