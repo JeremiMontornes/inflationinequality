@@ -81,10 +81,16 @@ where
 * $p^{y,m}_j$ is the price index of product $j$ in month $m$ of year $y$
 * $p^{y,m}$ is the price index of the product basket in month $m$ of year $y$
 
-The formula is implemented in `calculate_contributions()` which downloads the price index $p^{y,m}_j$ using `load_cpi()` and calculates the weights 
+The formula is implemented in `calculate_contributions()` which downloads the price index 
+$$
+p^{y,m}_j
+$$
+ using `load_cpi()` and calculates the weights 
+
 $$
 w^{y}_{j,\text{quintile}}
-$$ with `calculate_weights()`.   
+$$ 
+with `calculate_weights()`.   
 
 ### Calculating inflation and the inflation gap
 
