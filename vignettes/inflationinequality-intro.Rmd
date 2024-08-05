@@ -98,7 +98,9 @@ This formula is implemented in `calculate_inflation()`.
 
 By calculating the inflation by income quintile, we can calculate the inflation gap to measure inflation equalities:
 
-* $$\text{Inflation_gap}^{y,m} = \text{Inflation}^{y,m}_\text{quintile1} - \text{Inflation}^{y,m}_\text{quintile5}$$
+$$
+\text{Inflation_gap}^{y,m} = \text{Inflation}^{y,m}_\text{quintile1} - \text{Inflation}^{y,m}_\text{quintile5}
+$$
 
 This formula is implemented in `calculate_inflation_gap()`.
 
