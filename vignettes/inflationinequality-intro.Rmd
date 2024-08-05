@@ -37,7 +37,7 @@ In order to calculate inflation, we use Household Budget Surveys (HBS) to calcul
 NOTE: Eurostat harmonizes HBS income data by quintiles, but we can include HBS data with different categories like deciles in the case of INSEE (France).
 NOTE: In keeping with the Eurostat HICP methodology, we do not include imputed rent (CP042) in our analysis.
 
-### Calculating weights
+### Weights formula
 
 We first calculate the ratio between the expenditure for each income quintile of this product $j$ and that observed for all households as defined by the HBS at year $y'$, 
 denoted 
@@ -69,7 +69,7 @@ You may notice that the year of the HBS data $y'$ and the year of the CPI weight
 
 These operations are implemented in `calculate_weights()` and data is downloaded using `load_index_weights()` and `load_hbs()`.
 
-### Calculating contributions to inflation
+### Contributions to inflation formula
 
 The CPI is chained index whose weightings change each year. We calculate the contributions using the following formula:
 
@@ -87,7 +87,7 @@ The formula is implemented in `calculate_contributions()` which downloads the pr
  using `load_cpi()` and calculates the weights 
 * $w^{y}_{j,\text{quintile}}$ with `calculate_weights()`.   
 
-### Calculating inflation and the inflation gap
+### Inflation and inflation gap formula
 
 Inflation in a given month for each quintile results from the sum of the contributions of product $j$.
 
