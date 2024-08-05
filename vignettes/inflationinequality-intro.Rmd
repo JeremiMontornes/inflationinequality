@@ -84,11 +84,7 @@ where
 The formula is implemented in `calculate_contributions()` which downloads the price index 
 * $p^{y,m}_j$
  using `load_cpi()` and calculates the weights 
-
-$$
-w^{y}_{j,\text{quintile}}
-$$ 
-with `calculate_weights()`.   
+* $w^{y}_{j,\text{quintile}}$ with `calculate_weights()`.   
 
 ### Calculating inflation and the inflation gap
 
