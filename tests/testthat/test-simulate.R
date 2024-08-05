@@ -152,6 +152,9 @@ test_that("simulate_cpi handles case with date range outside data", {
 
 test_that("simulate_cpi recalculates price basket correctly", {
   skip_if_no_internet()
+  # Constant seed required because some recalculated price basket indices
+  # actually decrease during the simulation period
+  set.seed(0)
   dt <- data.table::CJ(
     coicop = c("01", "02"),
     year = 2022:2023,
