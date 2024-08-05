@@ -42,7 +42,9 @@ We first calculate the ratio between the expenditure for each income quintile of
 
 This term "corrects" the annual CPI weight corresponding to product $j$, denoted $w^y_{\text{CPI},j}$, therefore
 
-$$w^y_{j, \text{quintile}} = w^y_{\text{CPI},j} \times \text{HBS}^{y'}_{j, \text{quintile}} / \text{HBS}^{y'}_{j, \text{total}}$$
+$$
+w^y_{j, \text{quintile}} = w^y_{\text{CPI},j} \times \text{HBS}^{y'}_{j, \text{quintile}} / \text{HBS}^{y'}_{j, \text{total}}
+$$
 
 After this correction, the weights are then renormalized to sum to 100 for each income quintile.
 
