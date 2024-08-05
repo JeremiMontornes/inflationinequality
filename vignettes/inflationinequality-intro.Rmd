@@ -20,7 +20,7 @@ library(inflationinequality)
 options(rdbnomics.use_readLines = TRUE)
 ```
 
-This vignette introduces the fundamental features of the `inflationinequality` package.
+This vignette introduces the fundamental features of the `inflationinequality` package: how to compute inflation and contributions to inflation across demographics, how to download CPI and HBS datasets, and useful plotting functions.
 
 ***
 
