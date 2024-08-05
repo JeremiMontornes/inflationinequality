@@ -87,7 +87,7 @@ validate_cpi <- function(cpi) {
     data.table::fsetdiff(unique_year_months_basket, unique_year_months)
 
   if (nrow(extra_year_months_in_basket) > 0) {
-    warning(
+    message(
       "There are some extra year months in dt_basket:\n",
       paste(capture.output(print(extra_year_months_in_basket)),
             collapse = "\n"))
