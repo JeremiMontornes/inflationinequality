@@ -26,7 +26,7 @@ This vignette introduces the fundamental features of the `inflationinequality` p
 
 ## What is the purpose of this package?
 
-Inflation is the general and prolonged increase of prices. Different demographic categories have different spending habits and as a result, some are more affected than inflation by others. This package provides methods that calculates and visualizes inflation and contribution to inflation by demographic category, using public data.Euro area countries are supported.
+Inflation is the general and prolonged increase of prices. Different demographic categories have different spending habits and as a result, some are more affected than inflation by others. This package provides methods that calculates and visualizes inflation and contribution to inflation by demographic category, using public data. Currently, the package only officially supports Euro area (EA-19) countries.
 
 ## How is inflation calculated?
 
