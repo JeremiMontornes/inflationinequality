@@ -96,13 +96,17 @@ with `calculate_weights()`.
 
 Inflation in a given month for each quintile results from the sum of the contributions of product $j$.
 
-$$\text{Inflation}^{y,m}_\text{quintile} = \sum_j \text{Contrib}^{y,m}_{j,\text{quintile}}$$
+$$
+\text{Inflation}^{y,m}_\text{quintile} = \sum_j \text{Contrib}^{y,m}_{j,\text{quintile}}
+$$
 
 This formula is implemented in `calculate_inflation()`.
 
 By calculating the inflation by income quintile, we can calculate the inflation gap to measure inflation equalities:
 
-$$\text{Inflation_gap}^{y,m} = \text{Inflation}^{y,m}_\text{quintile1} - \text{Inflation}^{y,m}_\text{quintile5}$$
+$$
+\text{Inflation_gap}^{y,m} = \text{Inflation}^{y,m}_\text{quintile1} - \text{Inflation}^{y,m}_\text{quintile5}
+$$
 
 This formula is implemented in `calculate_inflation_gap()`.
 
