@@ -38,11 +38,26 @@ NOTE: In keeping with the Eurostat HICP methodology, we do not include imputed r
 
 ### Calculating weights
 
-We first calculate the ratio between the expenditure for each income quintile of this product $j$ and that observed for all households as defined by the HBS at year $y'$, denoted $\text{HBS}^{y'}_{j, \text{quintile}}$ and $\text{HBS}^{y'}_{j, \text{total}}$ respectively.
+We first calculate the ratio between the expenditure for each income quintile of this product $j$ and that observed for all households as defined by the HBS at year $y'$, 
+denoted 
+
+$$
+\text{HBS}^{y'}_{j, \text{quintile}}
+$$ 
+
+and
+
+$$
+\text{HBS}^{y'}_{j, \text{total}}
+$$ 
+
+respectively.
 
 This term "corrects" the annual CPI weight corresponding to product $j$, denoted $w^y_{\text{CPI},j}$, therefore
 
-$$w^y_{j, \text{quintile}} = w^y_{\text{CPI},j} \times \text{HBS}^{y'}_{j, \text{quintile}} / \text{HBS}^{y'}_{j, \text{total}}$$
+$$
+w^y_{j, \text{quintile}} = w^y_{\text{CPI},j} \times \text{HBS}^{y'}_{j, \text{quintile}} / \text{HBS}^{y'}_{j, \text{total}}
+$$
 
 After this correction, the weights are then renormalized to sum to 100 for each income quintile.
 
@@ -66,19 +81,26 @@ where
 * $p^{y,m}_j$ is the price index of product $j$ in month $m$ of year $y$
 * $p^{y,m}$ is the price index of the product basket in month $m$ of year $y$
 
-The formula is implemented in `calculate_contributions()` which downloads the price index $p^{y,m}_j$ using `load_cpi()` and calculates the weights $w^{y}_{j,\text{quintile}}$ with `calculate_weights()`.   
+The formula is implemented in `calculate_contributions()` which downloads the price index 
+* $p^{y,m}_j$
+ using `load_cpi()` and calculates the weights 
+* $w^{y}_{j,\text{quintile}}$ with `calculate_weights()`.   
 
 ### Calculating inflation and the inflation gap
 
 Inflation in a given month for each quintile results from the sum of the contributions of product $j$.
 
-$$\text{Inflation}^{y,m}_\text{quintile} = \sum_j \text{Contrib}^{y,m}_{j,\text{quintile}}$$
+$$
+\text{Inflation}^{y,m}_\text{quintile} = \sum_j \text{Contrib}^{y,m}_{j,\text{quintile}}
+$$
 
 This formula is implemented in `calculate_inflation()`.
 
 By calculating the inflation by income quintile, we can calculate the inflation gap to measure inflation equalities:
 
-$$\text{Inflation_gap}^{y,m} = \text{Inflation}^{y,m}_\text{quintile1} - \text{Inflation}^{y,m}_\text{quintile5}$$
+$$
+InflationGap^{y,m} = Inflation^{y,m}_{quintile1} - Inflation^{y,m}_{quintile5}
+$$
 
 This formula is implemented in `calculate_inflation_gap()`.
 
