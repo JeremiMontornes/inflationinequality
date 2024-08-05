@@ -108,13 +108,41 @@ This formula is implemented in `calculate_inflation_gap()`.
 
 ## Calculating inflation using `inflationinequality`
 
-For most cases, you will probably call the functions `calculate_inflation()` and `calculate_contributions()` instead of downloading the CPI or HBS data directly.
-
-Let's calculate inflation in France and Germany by income quintiles. For France, we'll calculate from 2019 onwards and for Germany we'll only consider 2020.
+In `inflationinequality`, the function `calculate_inflation()` computes the inflation rate of a given country and across a specified demographic category. For example, we can calculate French inflation rates from 2019 onwards by income category: 
 
 ```{r}
 inflation_fr <- calculate_inflation("FR", "income", start_year = 2019)
-inflation_de <- calculate_inflation("DE", "income", start_year = 2020, end_year = 2020)
+inflation_fr
+```
+
+Notice that `inflation_fr` is an object of class `"inflation"` which is composed of the actual inflation data in the component `dt` but is also composed of useful metadata: `categories` (an ordered list of demographic classifications), the `start_year` and `start_month`, and the `end_year` and `end_month`.
+
+The `inflationinequality` package uses objects to effectively handle the metadata associated with different datasets.
+
+We can access the component `dt` using the `$` operator:
+
+```{r}
+head(inflation_fr$dt)
+```
+
+In the inflation dataset, the annualized inflation rate has been computed for every month since 2019 and for each income category.
+
+We can visualize this time series with `ggplot2`.
+
+```{r}
+library(ggplot2)
+
+ggplot(inflation_fr$dt, aes(x = as.Date(ISOdate(year, month, 1)), y = inflation, color = factor(category, levels = inflation_fr$categories), group = category)) +
+  geom_line() +
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
+  labs(
+    title = "French inflation by income category",
+    x = "Date",
+    y = "Annualized inflation rate"
+  ) +
+  scale_color_discrete(name = "Income category") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 
 We can also calculate the contributions to inflation. Here, we're calculating contributions to inflation in Spain by income quintiles from 2019 to 2023.
@@ -201,4 +229,3 @@ Note that HBS data is released periodically, not annually, so downloading within
 hbs <- load_hbs("FR", "age", start_year = 2016, end_year = 2017)
 head(hbs$dt)
 ```
-
