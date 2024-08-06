@@ -234,8 +234,6 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
   )
   pb$tick(0)
 
-  categories <- unique(weights$dt$category)
-
   for (y in start_year:end_year) {
     # Price index of basket
     p_y1_12 <- cpi$dt_basket[month == 12 & year == y - 1, value]
