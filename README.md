@@ -20,8 +20,7 @@ date: 2024-07-31
 - [ ] Reach 100% code coverage
 - [x] Connection error to Dbnomics  (add option readlines)
 - [ ] Add more error checking and remove the silly ones
-- [ ] check : simulation_cpi() : large shocks (+40%) =>total > Q1 or Q5
-- [ ] check : simulation_cpi() : symetry between the results of a shock (+20% vs -20%)
+- [ ] check : simulation_cpi() : for coicop ="011" large shocks (+40%) =>total > Q1 or Q5 but not true for every coicop
 - [ ] check : calculate_inflation() coicop level 3 comparison with results in the REF article
 
 #### Simulation
