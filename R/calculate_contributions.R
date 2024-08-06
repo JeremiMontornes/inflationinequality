@@ -264,15 +264,12 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       # Calculate HBS weights across all categories
       w_y1_j_q <- weights$dt[coicop == j &
         weight_year == y, .(category, weighted_consumption)]
-      data.table::setkey(w_y1_j_q, category)
       w_y2_j_q <- weights$dt[coicop == j &
         weight_year == y - 1, .(category, weighted_consumption)]
-      data.table::setkey(w_y2_j_q, category)
 
       # Calculate index weights across all months
       # This is a vector
       p_y1_m <- cpi$dt_basket[year == y - 1, sum(value), by = .(month)]
-      data.table::setkey(p_y1_m, month)
       # (not necessarily 12 for the latest year)
 
       # Note: there is a shift in year: y-2 is actually y-1 and y-1 is actually y!!!
@@ -284,7 +281,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       # Cross join month and category
       dt_cj <- data.table::CJ(
         month = p_y1_m$month,
-        category = w_y1_j_q$category
+        category = weights$categories
       )
 
       # Fill up columns according to their respective keys
