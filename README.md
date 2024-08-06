@@ -31,7 +31,7 @@ date: 2024-07-31
 
 - [ ] Finish sections of the working paper that are related to the package
 - [ ] Re-adjust wording of certain terms 
-- [ ] correct level 02  "For example, "01" is level 1 and "012" is level 2."
+- [ ] correct ?calculate_inflation() level 02  "For example, "01" is level 1 and "012" is level 2."
 - [ ] Improve writing and explanation in vignettes (for instance How to implement level=3 for France)
 
 #### Maintenance
