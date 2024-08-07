@@ -275,6 +275,33 @@ INSEE_HBS_2017 <-
 saveRDS(INSEE_HBS_2017, "articles/INSEE_HBS_2017_level3.RDS")
 ```
 
+## Extracting headline INSEE inflation
+
+```{r}
+INSEE_inflation_income_dt <- INSEE_CPI_annual_values %>%
+  .[, `:=`(
+    idBank = NULL,
+    `Dernière mise à jour` = NULL,
+    `Période` = NULL
+  )] %>%
+  .[`Libellé` %like% "Indice annuel des prix à la consommation - Base 2015 - Niveau de vie du ménage", ] %>%
+  melt(id.vars = c("Libellé"), 
+                   variable.name = "date", value.name = "cpi")  %>%
+  .[!is.na(cpi), .(
+    series_name = `Libellé`,
+    category = c("Décile2", "Décile3", "Décile4", "Décile5", "Décile6", "Décile7", "Décile8", "Décile9", "Décile10", "Décile1"),
+    cpi = as.numeric(cpi),
+    year = as.numeric(as.character(date))
+  )] %>%
+  .[, headline_inflation := ((cpi / shift(cpi, 1)) - 1) * 100, by = .(category)] %>%
+  .[!is.na(headline_inflation), .(series_name, category, year, headline_inflation)]
+
+saveRDS(
+  INSEE_inflation_income_dt, 
+  file = "articles/INSEE_inflation_income_dt.RDS"
+)
+```
+
 ## Using level 3 COICOP data
 
 ```{r}
