@@ -197,73 +197,6 @@ dt_compared_inflation <-
 plot_inflation_comparison(dt_compared_inflation)
 ```
 
-We also want to load the CPI from INSEE from certain demographic categories.
-
-```{r}
-load_insee_inflation <- function(idbank) {
-  as.data.table(get_insee_idbank(idbank)) %>%
-    .[, .(year = as.numeric(TIME_PERIOD),
-          cpi = OBS_VALUE,
-          inflation = NA_real_)]
-}
-```
-
-For income:
-
-```{r}
-calculate_cpi_inflation <- function(dt_decile) {
-  data.table::setorder(dt_decile, year)
-  for (i in 2:nrow(dt_decile)) {
-    dt_decile$inflation[i] <- ((dt_decile$cpi[i] / dt_decile$cpi[i-1]) - 1) * 100
-  }
-  dt_decile
-}
-
-compare_insee_quantile_inflation_offset <- function(inflation_insee, idbank1, idbank2, quantile) {
-  dt_decile01 <- calculate_cpi_inflation(load_insee_inflation(idbank1))
-  dt_decile02 <- calculate_cpi_inflation(load_insee_inflation(idbank2))
-  dt_quantile1 <- dt_decile01[dt_decile02, on = .(year)] %>%
-    .[!is.na(inflation), .(headline_inflation = mean(inflation)), by = .(year)]
-
-  dt_annual_inflation <-
-    inflation_insee$dt[category == inflation_insee$categories[quantile],
-                       .(calculated_inflation = mean(inflation)),
-                       by = .(year)]
-  dt_compared_inflation <-
-    dt_quantile1[
-      dt_annual_inflation,
-      on = .(year),
-      nomatch = NULL]
-  dt_compared_inflation[, offset := calculated_inflation - headline_inflation]
-  dt_compared_inflation
-}
-
-dt1 <-
-  compare_insee_quantile_inflation_offset(inflation_insee, "010054292", "010054293", 1)
-dt2 <-
-  compare_insee_quantile_inflation_offset(inflation_insee, "010054294", "010054295", 2)
-dt3 <-
-  compare_insee_quantile_inflation_offset(inflation_insee, "010054296", "010054297", 3)
-dt4 <-
-  compare_insee_quantile_inflation_offset(inflation_insee, "010054298", "010054299", 4)
-dt5 <-
-  compare_insee_quantile_inflation_offset(inflation_insee, "010054300", "010054301", 4)
-
-# Create a list of your data.tables
-dt_list <- list(dt1, dt2, dt3, dt4, dt5)
-dt_list <- lapply(dt_list, summarize_inflation_offet_stats)
-
-# Combine all data.tables and add the quintile column
-combined_dt <- data.table::rbindlist(
-  lapply(seq_along(dt_list), function(i) {
-    dt_list[[i]][, quintile := inflation_insee$categories[i]]
-  })
-)
-
-combined_dt
-```
-
-
 ## Eurozone aggregation
 
 We can also compare with the Eurozone aggregate.
@@ -397,3 +330,51 @@ ggplot(dt_compared_inflation) +
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
+
+## Comparing INSEE inflation by income quintile
+
+
+We also want to load the CPI from INSEE from certain demographic categories.
+
+Load headline inflation and calculate inflation from level 3 CPI and HBS data from INSEE.
+
+```{r}
+INSEE_inflation_income_dt <-
+  readRDS("INSEE_inflation_income_dt.RDS")
+
+inflation_fr_income3 <-
+  calculate_inflation(
+    "FR", "income", level = 3,
+    custom_cpi = INSEE_CPI_level3,
+    custom_index_weights = INSEE_CPI_index_weights_level3,
+    custom_hbs = INSEE_HBS_2017)
+
+```
+
+We compare each income decile's annualized inflation rate and compute summary statistics.
+
+```{r}
+dt_annual_inflation_decile <-
+  inflation_fr_income3$dt[, .(calculated_inflation = mean(inflation)), by = .(year, category)]
+
+dt_compared_inflation <-
+  INSEE_inflation_income_dt[
+    dt_annual_inflation_decile,
+    on = .(year, category),
+    nomatch = NULL] %>%
+  .[, offset := calculated_inflation - headline_inflation]
+
+dt_insee_inflation_stats <- 
+  dt_compared_inflation[, .(
+    mean_offset = mean(offset),
+    mean_abs_offset = mean(abs(offset)),
+    sd_offset = sd(offset),
+    sd_abs_offset = sd(abs(offset)),
+    min_offset = min(offset),
+    max_offset = max(offset)
+  ), by = .(category)]
+
+dt_insee_inflation_stats
+```
+
+
