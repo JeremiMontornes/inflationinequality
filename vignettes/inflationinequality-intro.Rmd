@@ -140,7 +140,11 @@ ggplot(inflation_fr$dt, aes(x = as.Date(ISOdate(year, month, 1)), y = inflation,
     x = "Date",
     y = "Annualized inflation rate"
   ) +
-  scale_color_discrete(name = "Income category") +
+  scale_color_manual(
+    name = "Income category",
+    values = c("red", "darkorange", "yellow", "green", "darkgreen"),
+    breaks = inflation_fr$categories
+  ) +
   theme_minimal() +
   theme(legend.position = "bottom")
 ```

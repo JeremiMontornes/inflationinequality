@@ -57,7 +57,7 @@ plot_time_series <- function(inflation) {
     ) +
     ggplot2::theme_minimal() +
     ggplot2::scale_color_manual(
-      values = c("red", "green", "black"),
+      values = c("red", "darkgreen", "black"),
       breaks = pruned_categories
     ) +
     ggplot2::theme(
