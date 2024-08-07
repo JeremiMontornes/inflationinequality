@@ -1,3 +1,20 @@
+#' Helper function to check internet connectivity
+has_internet <- function() {
+  tryCatch({
+    readLines("https://cran.r-project.org", n = 1)
+    TRUE
+  }, warning = function(w) FALSE,
+  error = function(e) FALSE)
+}
+
+
+#' Custom skip function
+skip_if_no_internet <- function() {
+  if (!has_internet()) {
+    skip("No internet connection")
+  }
+}
+
 # Mock functions to simulate data loading
 mock_load_cpi <- function(country, level, start_year, start_month, end_year, end_month) {
   cpi_fr2 <- if (!is.null(start_year) &&
@@ -84,4 +101,65 @@ test_that("calculate_contributions with sideloaded CPI data fails with mismatche
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   dt_cpi_fr <- load_cpi("FR",start_year = 2016, end_year = 2017)
   expect_error(calculate_contributions("FR", "income", start_year = 2015, custom_cpi = dt_cpi_fr))
+})
+
+test_that("calculate_contributions does not mix up data between categories: single category", {
+  skip_if_no_internet()
+  hbs <- load_hbs("FR", "income")
+  dt_reduced_hbs <- hbs$dt[category == "Fifth quintile"]
+  reduced_hbs <- hbs(
+    dt = dt_reduced_hbs, dt_total = hbs$dt_total,
+    country = hbs$category, category = hbs$category,
+    categories = "Fifth quintile", level = 2
+  )
+
+  contributions <- calculate_contributions("FR", "income", custom_hbs = hbs)
+  reduced_contributions <- calculate_contributions("FR", "income", custom_hbs = reduced_hbs)
+
+  dt_contributions <- contributions$dt[category == "Fifth quintile"]
+  dt_reduced_contributions <- reduced_contributions$dt[, .(coicop, year, month, category, reduced_contribution = contribution)]
+
+  # Merge the two data.tables
+  merged_dt <-
+    dt_contributions[dt_reduced_contributions, on = .(coicop, year, month, category)]
+
+  # Compare contributions
+  merged_dt[, match := contribution == reduced_contribution]
+
+  # Check for mismatches
+  mismatches <- merged_dt[match == FALSE | is.na(match)]
+
+  # Test assertion
+  expect_equal(nrow(mismatches), 0,
+               info = "Mismatches found in contributions between the two data.tables")
+})
+
+test_that("calculate_contributions does not mix up data between categories: random order of categories", {
+  skip_if_no_internet()
+  hbs <- load_hbs("FR", "income")
+  reduced_hbs <- hbs(
+    dt = hbs$dt, dt_total = hbs$dt_total,
+    country = hbs$category, category = hbs$category,
+    categories = c("Third quintile", "Fifth quintile", "Fourth quintile", "Second quintile", "First quintile"), level = 2
+  )
+
+  contributions <- calculate_contributions("FR", "income", custom_hbs = hbs)
+  reduced_contributions <- calculate_contributions("FR", "income", custom_hbs = reduced_hbs)
+
+  dt_contributions <- contributions$dt
+  dt_reduced_contributions <- reduced_contributions$dt[, .(coicop, year, month, category, reduced_contribution = contribution)]
+
+  # Merge the two data.tables
+  merged_dt <-
+    dt_contributions[dt_reduced_contributions, on = .(coicop, year, month, category)]
+
+  # Compare contributions
+  merged_dt[, match := contribution == reduced_contribution]
+
+  # Check for mismatches
+  mismatches <- merged_dt[match == FALSE | is.na(match)]
+
+  # Test assertion
+  expect_equal(nrow(mismatches), 0,
+               info = "Mismatches found in contributions between the two data.tables")
 })
