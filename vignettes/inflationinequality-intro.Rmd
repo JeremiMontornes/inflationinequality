@@ -158,25 +158,33 @@ head(contributions_es$dt)
 
 ## Plotting graphs: time series, grouped bar charts, and more
 
+The `inflationinequality` package also provides useful plotting functions.
+
 ### Time series
 
-Using the inflation data that we just calculated, we can plot them as a time series.
+Using the French inflation rates that we just calculated, we can plot the inflation rates as a time series according to their demographic. Here, the `plot_time_series()` function allows us to compare how inflation disproportionately affects the top and bottom income quintiles (or categories, in general) and also displays the average inflation over the entire population.
 
 ```{r}
 plot_time_series(inflation_fr)
 ```
 
-By default, the time series plots the top and bottom income quintiles (or categories, in general) along with the total inflation.
+We can also visualize the inflation regime in Italy since 2019.
+
+```{r}
+inflation_it <- calculate_inflation("IT", "income", start_year = 2019)
+plot_time_series(inflation_it)
+```
 
 ### Grouped bar charts
 
 We can also plot a grouped bar chart to compare inflation by demographic category in a specific year.
 
 ```{r}
-plot_grouped_bar(2020, inflation_fr, inflation_de)
+inflation_de <- calculate_inflation("DE", "income", start_year = 2022, end_year = 2022)
+plot_grouped_bar(2022, inflation_de, inflation_it)
 ```
 
-Here, we compare 2020 inflation rates between France and Germany by income quintiles.
+Here, we compare 2022 inflation rates between France and Germany by income quintiles.
 
 ### Contributions to inflation gap chart
 
