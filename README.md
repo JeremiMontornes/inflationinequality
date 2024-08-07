@@ -31,7 +31,11 @@ date: 2024-07-31
 
 - [ ] correct ?calculate_inflation() level 02  "For example, "01" is level 1 and "012" is level 2."
 - [ ] Improve writing and explanation in vignettes (for instance How to implement level=3 for France)
-- [ ] Re-adjust wording of certain terms (offset vs. gap ?)
+- [ ] Improve writing and explanation in vignettes : interpolation time varying weithts
+- [ ] Improve writing and explanation in vignettes : reduce the number of pages / suppress output of the vignette "Verifying calculated inflation"
+- [ ] Re-adjust wording of certain terms: offset vs. gap ?
+- [ ] Re-adjust wording of certain terms: avoid "our package" prefer "the package" (already corrected)
+
 #### Maintenance
 
 - [ ] Migrate to Jérémi's GitHub account in a private repository
