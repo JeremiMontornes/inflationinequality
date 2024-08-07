@@ -177,24 +177,32 @@ plot_time_series(inflation_it)
 
 ### Grouped bar charts
 
-We can also plot a grouped bar chart to compare inflation by demographic category in a specific year.
+We can also plot a grouped bar chart to compare inflation in different countries for a specific year. In this case, we are comparing 2022 inflation rates in Germany and Italy by income quintile.
 
 ```{r}
 inflation_de <- calculate_inflation("DE", "income", start_year = 2022, end_year = 2022)
 plot_grouped_bar(2022, inflation_de, inflation_it)
 ```
 
-Here, we compare 2022 inflation rates between France and Germany by income quintiles.
-
 ### Contributions to inflation gap chart
 
-Furthermore, we can plot the contributions to the inflation gap.
+Furthermore, we can plot the contributions to the inflation gap with `plot_contribution_gap()`.
 
 ```{r}
 plot_contribution_gap(contributions_es)
 ```
 
-The selected product categories in the legend are hardcoded in the package and requires COICOP level 2 to be calculated when calling `calculate_contributions()`.
+The above selected product categories in the legend are the default selection, but you can customize the selection by setting the `category_mapping` parameter as follows:
+
+```{r}
+plot_contribution_gap(
+  contributions_es,
+  category_mapping = list(
+    "Food" = "011",
+    "Water, electricity, gas and other fuels" = c("044", "045")
+  )
+)
+```
 
 ## Loading CPI data or HBS data
 
