@@ -153,6 +153,7 @@ We can also calculate the contributions to inflation. Here, we're calculating co
 
 ```{r}
 contributions_es <- calculate_contributions("ES", "income", start_year = 2019, end_year = 2023)
+head(contributions_es$dt)
 ```
 
 ## Plotting graphs: time series, grouped bar charts, and more
