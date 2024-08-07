@@ -43,16 +43,23 @@ plot_time_series <- function(inflation) {
   dt <- data.table::rbindlist(list(dt, total_rows), use.names=TRUE)
 
   dt <- dt[category %in% pruned_categories, ]
-  dt <- dt[, date := lubridate::ymd(paste(year, month, "01", sep = "-"))]
 
-  ggplot2::ggplot(dt, ggplot2::aes(x = date, y = inflation, color = category, group = category)) +
-    ggplot2::geom_line() +
+  ggplot2::ggplot(dt, ggplot2::aes(x = as.Date(ISOdate(year, month, 1)), y = inflation)) +
+    ggplot2::geom_line(ggplot2::aes(color = lowest_category), data = dt[category == lowest_category]) +
+    ggplot2::geom_line(ggplot2::aes(color = highest_category), data = dt[category == highest_category]) +
+    ggplot2::geom_line(ggplot2::aes(color = "Total"), data = dt[category == "Total"]) +
     ggplot2::scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
-    ggplot2::labs(color = "",  # Removes legend label (assuming fill is used for color)
-         title = "",  # Removes plot title (optional)
-         x = "",      # Removes x-axis label
-         y = "") +  # Removes y-axis label
+    ggplot2::labs(
+      color = "",
+      title = "",
+      x = "",
+      y = ""
+    ) +
     ggplot2::theme_minimal() +
+    ggplot2::scale_color_manual(
+      values = c("red", "green", "black"),
+      breaks = pruned_categories
+    ) +
     ggplot2::theme(
       legend.position = "bottom",
       axis.text = ggplot2::element_text(size = 12),
