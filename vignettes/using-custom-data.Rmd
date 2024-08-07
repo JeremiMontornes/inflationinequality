@@ -305,15 +305,29 @@ saveRDS(
 ## Using level 3 COICOP data
 
 ```{r}
+inflation_fr_income3_s2019 <-
+  calculate_inflation(
+    "FR", "income", level = 3, start_year = 2019,
+    custom_cpi = INSEE_CPI_level3,
+    custom_index_weights = INSEE_CPI_index_weights_level3,
+    custom_hbs = INSEE_HBS_2017
+  )
+
+plot_time_series(inflation_fr_income3_s2019)
+```
+
+```{r}
 contributions_fr_income3_s2019 <-
-  calculate_contributions("FR", "income", level = 3,
-                          start_year = 2019,
-                          custom_hbs = INSEE_HBS_2017)
+  calculate_contributions(
+    "FR", "income", level = 3, start_year = 2019,
+    custom_hbs = INSEE_HBS_2017
+  )
 
 plot_contribution_gap(
   contributions_fr_income3_s2019,
   category_mapping = list(
     "Food" = c("01", "02"),
     "Fuel" = c("0722"),
-    "Electricity, gas" = c("045")))
+    "Electricity, gas" = c("045"))
+  )
 ```
