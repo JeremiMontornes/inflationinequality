@@ -210,6 +210,13 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     coicop = character(),
     month = numeric(),
     category = character(),
+    p_y_m_j = numeric(),
+    p_y1_m = numeric(),
+    p_y1_m_j = numeric(),
+    p_y1_12 = numeric(),
+    p_y1_12_j = numeric(),
+    p_y2_12 = numeric(),
+    p_y2_12_j = numeric(),
     annee1 = numeric(),
     annee0 = numeric(),
     inflation_annee1 = numeric(),
@@ -298,11 +305,16 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
 
       # Clean up
       dt_cj[, `:=`(year = y, coicop = j)]
-      dt_cj <- dt_cj[!is.na(contribution), .(year, coicop, month, category,
-                                             annee1 = w_y1_j_q, annee0 = w_y2_j_q,
-                                             inflation_annee1, inflation_annee0,
-                                             contrib_annee1, contrib_annee0,
-                                             contribution)]
+      dt_cj <- dt_cj[
+        !is.na(contribution),
+        .(year, coicop, month, category,
+          p_y_m_j, p_y1_m, p_y1_m_j, p_y1_12, p_y1_12_j, p_y2_12, p_y2_12_j,
+          annee1 = w_y1_j_q, annee0 = w_y2_j_q,
+          inflation_annee1, inflation_annee0,
+          contrib_annee1, contrib_annee0,
+          contribution
+        )
+      ]
 
       # Bind the new contributions to the existing data table
       contrib2 <- data.table::rbindlist(list(contrib2, dt_cj), use.names = TRUE)
