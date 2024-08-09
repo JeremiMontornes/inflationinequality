@@ -180,7 +180,13 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
 
   # Now perform the Cartesian product (left join)
   dt_weighted_consumption <-
-    dt_hbs[index_weights$dt, on = .(coicop), allow.cartesian = TRUE]
+    dt_hbs[index_weights$dt, on = .(coicop), allow.cartesian = TRUE] %>%
+    .[!is.na(category)
+      & !is.na(weight_year)
+      & !is.na(weight)
+      & !is.na(year)
+      & !is.na(consumption)
+    ]
 
   dt_weighted_consumption <- dt_weighted_consumption[,
     {
