@@ -151,49 +151,8 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     hbs <- interpolate_hbs(hbs)
   }
 
-  # Select COICOP codes
-  hbs_coicops <- unique(hbs$dt$coicop)
-  weight_coicops <- unique(index_weights$dt$coicop)
-
-  # We do not use COICOP codes that have HBS data but not CPI data
-  dt_hbs <- hbs$dt[coicop %in% weight_coicops, ]
-  rejected_coicops <- setdiff(hbs_coicops, weight_coicops)
-  if (length(rejected_coicops) > 0) {
-    message(sprintf("The following COICOP codes, found in HBS data, are removed for not being included in CPI data: %s", paste(rejected_coicops, collapse = ", ")))
-  }
-
-  # Necessary before the join
-  if ("year" %in% names(index_weights$dt)) {
-    data.table::setnames(index_weights$dt, "year", "weight_year")
-  } else if (!"weight_year" %in% names(index_weights$dt)) {
-    stop("Something's wrong!")
-  }
-
-  # COICOP codes that have CPI data but not HBS data
-  missing_coicops <- setdiff(weight_coicops, hbs_coicops)
-
-  # Create new rows for missing COICOP codes
-  if (length(missing_coicops) > 0) {
-    hbs <- add_coicops_hbs(hbs, missing_coicops)
-  }
-
-  # Include total consumption column
-  dt_hbs <- dt_hbs[hbs$dt_total, on = .(coicop, year)]
-
-  # Select specific HBS year if applicable
-  if (!is.null(specific_hbs_year)) {
-    dt_hbs <- dt_hbs[year == specific_hbs_year, ]
-  }
-
-  # Now perform the Cartesian product (left join)
   dt_weighted_consumption <-
-    dt_hbs[index_weights$dt, on = .(coicop), allow.cartesian = TRUE] %>%
-    .[!is.na(category)
-      & !is.na(weight_year)
-      & !is.na(weight)
-      & !is.na(year)
-      & !is.na(consumption)
-    ]
+    merge_index_and_hbs(index_weights, hbs, specific_hbs_year)
 
   dt_weighted_consumption <- dt_weighted_consumption[,
     {
@@ -289,4 +248,52 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                         start_year = min(dt_weighted_consumption$weight_year),
                         end_year = max(dt_weighted_consumption$weight_year)),
                    class = "weights"))
+}
+
+merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
+  # Select COICOP codes
+  hbs_coicops <- unique(hbs$dt$coicop)
+  weight_coicops <- unique(index_weights$dt$coicop)
+
+  # We do not use COICOP codes that have HBS data but not CPI data
+  dt_hbs <- hbs$dt[coicop %in% weight_coicops, ]
+  rejected_coicops <- setdiff(hbs_coicops, weight_coicops)
+  if (length(rejected_coicops) > 0) {
+    message(sprintf("The following COICOP codes, found in HBS data, are removed for not being included in CPI data: %s", paste(rejected_coicops, collapse = ", ")))
+  }
+
+  # Necessary before the join
+  if ("year" %in% names(index_weights$dt)) {
+    data.table::setnames(index_weights$dt, "year", "weight_year")
+  } else if (!"weight_year" %in% names(index_weights$dt)) {
+    stop("Something's wrong!")
+  }
+
+  # COICOP codes that have CPI data but not HBS data
+  missing_coicops <- setdiff(weight_coicops, hbs_coicops)
+
+  # Create new rows for missing COICOP codes
+  if (length(missing_coicops) > 0) {
+    hbs <- add_coicops_hbs(hbs, missing_coicops)
+  }
+
+  # Include total consumption column
+  dt_hbs <- dt_hbs[hbs$dt_total, on = .(coicop, year)]
+
+  # Select specific HBS year if applicable
+  if (!is.null(specific_hbs_year)) {
+    dt_hbs <- dt_hbs[year == specific_hbs_year, ]
+  }
+
+  # Now perform the Cartesian product (left join)
+  dt_weighted_consumption <-
+    dt_hbs[index_weights$dt, on = .(coicop), allow.cartesian = TRUE] %>%
+    .[!is.na(category)
+      & !is.na(weight_year)
+      & !is.na(weight)
+      & !is.na(year)
+      & !is.na(consumption)
+    ]
+
+  return(dt_weighted_consumption)
 }
