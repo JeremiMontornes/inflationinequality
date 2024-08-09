@@ -47,6 +47,7 @@ An object of class \code{"weights"} is a list containing the following
 components:
 \itemize{
 \item \code{dt}: a \code{data.table} object (see below).
+\item \code{dt_coverage}: a \code{data.table} object (see below).
 \item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
 \item \code{category}: HBS category: \code{"income"}, \code{"age"}, or \code{"urban"}.
 \item \code{categories}: (Ordered) vector of category types, from lowest to highest.
@@ -64,6 +65,12 @@ The component \code{dt} has the following columns:
 \item \code{weighted_consumption}: calculated weight (normalized to sum to 100 within
 each category and year).
 \item \code{weight_year}: year of the CPI weight data.
+}
+
+The component \code{dt_coverage} has the following columns:
+\describe{
+\item{weight_year}{year}
+\item{weight_sum_avg}{total weight coverage of price index in percentage points}
 }
 }
 \description{

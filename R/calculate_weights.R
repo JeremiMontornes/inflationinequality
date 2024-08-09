@@ -40,6 +40,7 @@
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
 #' - `dt`: a `data.table` object (see below).
+#' - `dt_coverage`: a `data.table` object (see below).
 #' - `country`: 2-digit country code (see ISO 3166-1 alpha-2).
 #' - `category`: HBS category: `"income"`, `"age"`, or `"urban"`.
 #' - `categories`: (Ordered) vector of category types, from lowest to highest.
@@ -55,6 +56,12 @@
 #' - `weighted_consumption`: calculated weight (normalized to sum to 100 within
 #' each category and year).
 #' - `weight_year`: year of the CPI weight data.
+#'
+#' The component `dt_coverage` has the following columns:
+#' \describe{
+#'   \item{weight_year}{year}
+#'   \item{weight_sum_avg}{total weight coverage of price index in percentage points}
+#' }
 #'
 #' @examples
 #' # Calculate weights for France, income category, COICOP level 2, from 2010 to
@@ -223,6 +230,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     by = .(coicop, category, weight_year)
   ]
 
+  # Test weight is 100%
+  dt_sums <- dt_weighted_consumption[, .(weight_sum = sum(weight)), by = .(weight_year, category)]
+  dt_avg <- dt_sums[, .(weight_sum_avg = mean(weight_sum) * 100 / index_weights$base_total), by = .(weight_year)]
+
   ### Equation (1)
   # Calculate the weighted consumption by multiplying 'weight' and 'consumption' column-wise
   dt_weighted_consumption[, preweighted_consumption := weight * consumption]
@@ -270,6 +281,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
   }
 
   return(structure(list(dt = dt_weighted_consumption,
+                        dt_coverage = dt_avg,
                         country = country,
                         category = category,
                         categories = hbs$categories,
