@@ -71,7 +71,7 @@ test_that("CPI constructor fails when missing basket data", {
   expect_error(cpi(cpi_data$dt, cpi_data$dt_basket, cpi_data$country, cpi_data$level))
 })
 
-test_that("CPI constructor throws warning when basket data has more data", {
+test_that("CPI constructor throws message when basket data has more data", {
   cpi_data <- mock_cpi_data()
   cpi_data$dt_basket <- data.table::data.table(
     series_name = c("CPI", NA_character_, NA_character_),
@@ -79,7 +79,7 @@ test_that("CPI constructor throws warning when basket data has more data", {
     year = c(2023, 2023, 2023),
     month = c(9, 10, 11)
   )
-  expect_warning(cpi(cpi_data$dt, cpi_data$dt_basket, cpi_data$country, cpi_data$level))
+  expect_message(cpi(cpi_data$dt, cpi_data$dt_basket, cpi_data$country, cpi_data$level))
 })
 
 test_that("CPI constructor fails with duplicate data", {
