@@ -175,7 +175,7 @@ load_index_weights <- function(country, level = 2,
       year = lubridate::year(period)
     )]
 
-  return(index_weights(dt, country, level))
+  return(index_weights(dt, country, level, base_total = 1000))
 }
 
 #' Downloads HBS (Household Budget Survey) data

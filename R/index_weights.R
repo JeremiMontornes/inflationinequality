@@ -1,5 +1,6 @@
 new_index_weights <- function(dt = data.table::data.table(),
-                    country = character(), level = numeric()) {
+                    country = character(), level = numeric(),
+                    base_total = numeric()) {
   stopifnot(data.table::is.data.table(dt))
   stopifnot(is.character(country))
   stopifnot(is.numeric(level))
@@ -17,6 +18,7 @@ new_index_weights <- function(dt = data.table::data.table(),
     dt = dt,
     country = country,
     level = level,
+    base_total = base_total,
     start_year = start_year,
     end_year = end_year),
     class = "index_weights"
@@ -67,6 +69,9 @@ validate_index_weights <- function(index_weights) {
 #' @param level COICOP level. Possible values are 1-3. For example, "01" is
 #'   level 1 (Division), "012" is level 2 (Group), and "0111" is level 3
 #'   (Class).
+#' @param base_total Nominal sum of index weights per year. For example, if the
+#'   weights are in percentages points, then `base_total` is 100. If they are in
+#'   per mille, then `base_total` is 1000.
 #'
 #' @details The component `dt` has the following columns:
 #'
@@ -91,6 +96,7 @@ validate_index_weights <- function(index_weights) {
 #'
 #' @export
 index_weights <- function(dt = data.table::data.table(),
-                country = character(), level = numeric()) {
-  validate_index_weights(new_index_weights(dt, country, level))
+                country = character(), level = numeric(),
+                base_total = numeric()) {
+  validate_index_weights(new_index_weights(dt, country, level, base_total))
 }

@@ -7,7 +7,8 @@
 index_weights(
   dt = data.table::data.table(),
   country = character(),
-  level = numeric()
+  level = numeric(),
+  base_total = numeric()
 )
 }
 \arguments{

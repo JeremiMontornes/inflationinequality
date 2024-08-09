@@ -196,13 +196,13 @@ INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
 
 INSEE_CPI_w_dt_level2 <- INSEE_CPI_w_dt %>% .[nchar(coicop) == 3]
 INSEE_CPI_index_weights <- 
-  index_weights(dt = INSEE_CPI_w_dt_level2, country = "FR", level = 2)
+  index_weights(dt = INSEE_CPI_w_dt_level2, country = "FR", level = 2, base_total = 10000)
 saveRDS(INSEE_CPI_index_weights, "articles/INSEE_CPI_index_weights_level2.RDS")
 
 
 INSEE_CPI_w_dt_level3 <- INSEE_CPI_w_dt %>% .[nchar(coicop) == 4]
 INSEE_CPI_index_weights_level3 <- 
-  index_weights(dt = INSEE_CPI_w_dt_level3, country = "FR", level = 3)
+  index_weights(dt = INSEE_CPI_w_dt_level3, country = "FR", level = 3, base_total = 10000)
 saveRDS(INSEE_CPI_index_weights_level3, "articles/INSEE_CPI_index_weights_level3.RDS")
 ```
 
