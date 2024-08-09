@@ -5,14 +5,9 @@
 \alias{COICOP_2018}
 \title{COICOP 2018 structure}
 \format{
-\subsection{\code{COICOP_2018}}{
-
-A data.table with 871 rows and 2 columns:
 \describe{
 \item{code}{COICOP code}
 \item{title}{title of product category}
-...
-}
 }
 }
 \source{
