@@ -60,6 +60,8 @@ An object of class \code{"inflation"} is a list containing the following
 components:
 \itemize{
 \item \code{dt}: a \code{data.table} object (see below).
+\item \code{dt_missing_weights}: a \code{data.table} object (see below).
+\item \code{dt_coverage}: a \code{data.table} object (see below).
 \item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
 \item \code{category}: Category for which contributions were calculated: "income",
 "age", or "urban".
@@ -77,6 +79,20 @@ The component \code{dt} has the following columns:
 \item \code{month}: month of the inflation rate.
 \item \code{category}: demographic category (e.g., income group, age group).
 \item \code{contribution}: calculated inflation rate.
+}
+
+The component \code{dt_missing_weights} has the following columns:
+\describe{
+\item{coicop}{COICOP code}
+\item{year}{year}
+\item{category}{demographic category}
+\item{missing_weight}{weight of product category}
+}
+
+The component \code{dt_coverage} has the following columns:
+\describe{
+\item{weight_year}{year}
+\item{weight_sum_avg}{total weight coverage of price index in percentage points}
 }
 }
 \description{
