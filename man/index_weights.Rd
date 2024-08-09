@@ -20,6 +20,10 @@ country at a time is accepted.}
 \item{level}{COICOP level. Possible values are 1-3. For example, "01" is
 level 1 (Division), "012" is level 2 (Group), and "0111" is level 3
 (Class).}
+
+\item{base_total}{Nominal sum of index weights per year. For example, if the
+weights are in percentages points, then \code{base_total} is 100. If they are in
+per mille, then \code{base_total} is 1000.}
 }
 \value{
 An object of class \code{"index_weights"} is a list containing the
