@@ -38,6 +38,8 @@
 #' @returns An object of class `"contributions"` is a list containing the
 #'   following components:
 #' - `dt`: a `data.table` object (see below).
+#' - `dt_missing_weights`: a `data.table` object (see below).
+#' - `dt_coverage`: a `data.table` object (see below).
 #' - `country`: 2-digit country code (see ISO 3166-1 alpha-2).
 #' - `category`: Category for which contributions were calculated: "income",
 #' "age", or "urban".
@@ -55,6 +57,20 @@
 #' - `month`: month of the contribution.
 #' - `category`: demographic category (e.g., income group, age group).
 #' - `contribution`: calculated contribution to inflation.
+#'
+#' The component `dt_missing_weights` has the following columns:
+#' \describe{
+#'   \item{coicop}{COICOP code}
+#'   \item{year}{year}
+#'   \item{category}{demographic category}
+#'   \item{missing_weight}{weight of product category}
+#' }
+#'
+#' The component `dt_coverage` has the following columns:
+#' \describe{
+#'   \item{weight_year}{year}
+#'   \item{weight_sum_avg}{total weight coverage of price index in percentage points}
+#' }
 #'
 #' @examples
 #' # Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
@@ -346,6 +362,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
 
   return(structure(list(dt = contrib2,
                         dt_missing_weight = dt_missing_weights,
+                        dt_coverage = weights$dt_coverage,
                         country = country,
                         category = category,
                         categories = weights$categories,
