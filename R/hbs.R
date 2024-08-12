@@ -251,7 +251,7 @@ interpolate_hbs.hbs <- function(hbs) {
   hbs$dt_total[, consumption := total_consumption]
   dt_total <-
     hbs$dt_total[, interpolate_group(year, total_consumption), by = .(coicop)] %>%
-    .[, .(coicop, year, total_consumption = consumption)]
+    .[, .(series_name = NA_character_, coicop, year, total_consumption = consumption)]
 
   hbs(dt = dt, dt_total = dt_total,
       country = hbs$country,
