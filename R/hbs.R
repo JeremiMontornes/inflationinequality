@@ -79,6 +79,17 @@ validate_hbs <- function(hbs) {
       | nrow(hbs$dt_total[is.na(year) | is.na(coicop), ]) > 0) {
     stop("Data are not coherent, there are some NA values")
   }
+  if (!(is.character(hbs$dt[, series_name]) &
+        is.character(hbs$dt[, coicop]) &
+        is.character(hbs$dt[, category]) &
+        is.numeric(hbs$dt[, year]) &
+        is.numeric(hbs$dt[, consumption]) &
+        is.character(hbs$dt_total[, series_name]) &
+        is.character(hbs$dt_total[, coicop]) &
+        is.numeric(hbs$dt_total[, year]) &
+        is.numeric(hbs$dt_total[, total_consumption]))) {
+    stop("Data are not coherent, data types are not correct")
+  }
   if (nrow(hbs$dt[consumption <= 0, ]) > 0
       | nrow(hbs$dt_total[total_consumption <= 0,]) > 0) {
     stop("Data are not coherent, HBS weights must be strictly positive (>0)")

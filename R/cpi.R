@@ -53,6 +53,17 @@ validate_cpi <- function(cpi) {
       | nrow(cpi$dt_basket[is.na(year) | is.na(month), ]) > 0) {
     stop("Data are not coherent, there are some NA values")
   }
+  if (!(is.character(cpi$dt[, series_name]) &
+        is.character(cpi$dt[, coicop]) &
+        is.numeric(cpi$dt[, value]) &
+        is.numeric(cpi$dt[, year]) &
+        is.numeric(cpi$dt[, month]) &
+        is.character(cpi$dt_basket[, series_name]) &
+        is.numeric(cpi$dt_basket[, value]) &
+        is.numeric(cpi$dt_basket[, year]) &
+        is.numeric(cpi$dt_basket[, month]))) {
+    stop("Data are not coherent, data types are not correct")
+  }
   if (nrow(cpi$dt[value <= 0, ]) > 0
       | nrow(cpi$dt_basket[value <= 0,]) > 0) {
     stop("Data are not coherent, CPI values must be strictly positive (>0)")
