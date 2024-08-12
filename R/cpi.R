@@ -306,7 +306,7 @@ correct_cpi.cpi <- function(cpi) {
   level1_cpi$dt[, yearmonth := as.Date(paste(year, month, "01", sep = "-"))]
 
   # Now calculate the lagged value
-  level1_cpi$dt[, lagging_value := shift(value, n = 12, type = "lag"), by = coicop]
+  level1_cpi$dt[, lagging_value := data.table::shift(value, n = 12, type = "lag"), by = coicop]
 
   # Calculate the growth rate
   # The growth rate g_t follows the equation
