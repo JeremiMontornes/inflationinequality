@@ -88,7 +88,6 @@ dt <- data.table(
 )
 
 dt_total <- data.table(
-  series_name = c("HBS", "HBS", "HBS", "HBS"),
   coicop = c("01", "02", "01", "02"),
   year = c(2022, 2022, 2023, 2023),
   total_consumption = c(300, 400, 350, 450)
