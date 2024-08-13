@@ -93,7 +93,7 @@ validate_hbs <- function(hbs) {
       | nrow(hbs$dt_total[total_consumption <= 0,]) > 0) {
     stop("Data are not coherent, HBS weights must be strictly positive (>0)")
   }
-  if (nrow(hbs$dt[nchar(coicop) != hbs$level + 1, ]) > 0) {
+  if (nrow(hbs$dt[nchar(coicop) > hbs$level + 1, ]) > 0) {
     stop("Data are not coherent, there are COICOP codes with the incorrect level")
   }
   if (nrow(hbs$dt[coicop == "00", ]) > 0) {

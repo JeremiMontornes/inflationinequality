@@ -68,7 +68,7 @@ validate_cpi <- function(cpi) {
       | nrow(cpi$dt_basket[value <= 0,]) > 0) {
     stop("Data are not coherent, CPI values must be strictly positive (>0)")
   }
-  if (nrow(cpi$dt[nchar(coicop) != cpi$level + 1, ]) > 0) {
+  if (nrow(cpi$dt[nchar(coicop) > cpi$level + 1, ]) > 0) {
     stop("Data are not coherent, there are COICOP codes with the incorrect level")
   }
   if (nrow(cpi$dt[coicop == "00", ]) > 0) {

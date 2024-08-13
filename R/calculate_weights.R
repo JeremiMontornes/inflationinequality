@@ -252,11 +252,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
 
 merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
   # Select COICOP codes
-  hbs_coicops <- unique(hbs$dt$coicop)
-  weight_coicops <- unique(index_weights$dt$coicop)
+  hbs_coicops <- hbs$dt[nchar(coicop) == hbs$level + 1, unique(coicop)]
+  weight_coicops <- index_weights$dt[nchar(coicop) == index_weights$level + 1, unique(coicop)]
 
   # We do not use COICOP codes that have HBS data but not CPI data
-  dt_hbs <- hbs$dt[coicop %in% weight_coicops, ]
   rejected_coicops <- setdiff(hbs_coicops, weight_coicops)
   if (length(rejected_coicops) > 0) {
     message(sprintf("The following COICOP codes, found in HBS data, are removed for not being included in CPI data: %s", paste(rejected_coicops, collapse = ", ")))
@@ -272,13 +271,27 @@ merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
   # COICOP codes that have CPI data but not HBS data
   missing_coicops <- setdiff(weight_coicops, hbs_coicops)
 
-  # Create new rows for missing COICOP codes
+  # Extract higher level COICOP codes
+  higher_coicops <- unique(substr(missing_coicops, 1, index_weights$level))
+
+  if (length(higher_coicops) > 0) {
+    pattern <- paste0("^(", paste(higher_coicops, collapse = "|"), ")")
+    merged_coicops <-
+      c(weight_coicops[!grepl(pattern, weight_coicops)], higher_coicops)
+  } else {
+    merged_coicops <- weight_coicops
+  }
+
   if (length(missing_coicops) > 0) {
-    hbs <- add_coicops_hbs(hbs, missing_coicops)
+    warning(sprintf("Missing COICOPs found in CPI data but not in HBS data: %s\nReplacing these codes to higher level (%d)", paste(missing_coicops, collapse = ", "), index_weights$level - 1))
   }
 
   # Include total consumption column
-  dt_hbs <- dt_hbs[hbs$dt_total, on = .(coicop, year)]
+  dt_hbs <- hbs$dt[hbs$dt_total, on = .(coicop, year)]
+
+  # Select merged COICOPS
+  dt_index_weights <- index_weights$dt[coicop %in% merged_coicops]
+  dt_hbs <- dt_hbs[coicop %in% merged_coicops]
 
   # Select specific HBS year if applicable
   if (!is.null(specific_hbs_year)) {
@@ -287,7 +300,7 @@ merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
 
   # Now perform the Cartesian product (left join)
   dt_weighted_consumption <-
-    dt_hbs[index_weights$dt, on = .(coicop), allow.cartesian = TRUE] %>%
+    dt_hbs[dt_index_weights, on = .(coicop), allow.cartesian = TRUE] %>%
     .[!is.na(category)
       & !is.na(weight_year)
       & !is.na(weight)

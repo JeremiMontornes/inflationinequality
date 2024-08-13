@@ -294,7 +294,7 @@ select_coicop_level <- function(.dt, level) {
     # Remove "CP" substring
     .[grepl("^CP", coicop), coicop := sub("^CP", "", coicop)] %>%
     # Select specified COICOP level
-    .[nchar(coicop) == level + 1, ]
+    .[nchar(coicop) <= level + 1, ]
 }
 
 produce_coicop_mask <- function(dataset_code, prefix, suffix, level) {
@@ -302,12 +302,12 @@ produce_coicop_mask <- function(dataset_code, prefix, suffix, level) {
                                           mask = paste0(prefix, "..", suffix)
   )
   coicop_codes <- dimensions[[1]][[1]]$coicop$coicop
-  selected <- coicop_codes[grepl("^CP\\d+", coicop_codes) & nchar(coicop_codes) == level + 3]
-
-  # Ignore CP00 when level is 1
-  if (level == 1) {
-    selected <- selected[selected != "CP00"]
-  }
+  selected <-
+    coicop_codes[
+      grepl("^CP\\d+", coicop_codes)
+      & nchar(coicop_codes) <= level + 3
+      & coicop_codes != "CP00" # Ignore CP00
+    ]
 
   paste(selected, collapse = "+")
 }

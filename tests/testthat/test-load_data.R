@@ -349,7 +349,7 @@ test_that("HBS data.table has correct COICOP level", {
   skip_if_no_internet()
   local_mocked_bindings(load_hbs = mem_load_hbs, .package = "inflationinequality")
   hbs_income_fr <- load_hbs("FR", "income")
-  expect_true(all(nchar(hbs_income_fr$dt$coicop) == 3))
+  expect_true(all(nchar(hbs_income_fr$dt$coicop) <= 3))
 })
 
 test_that("loading French HBS data", {

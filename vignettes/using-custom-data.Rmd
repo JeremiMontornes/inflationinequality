@@ -154,12 +154,12 @@ head(INSEE_CPI_dt_basket, n=10)
 We can then consolidate both the CPI data for individual product categories `INSEE_CPI_dt` and for the entire product basket `INSEE_CPI_dt_basket` into one `"cpi"` object for our package.
 
 ```{r}
-INSEE_CPI_dt_level2 <- INSEE_CPI_dt %>% .[nchar(coicop) == 3]
+INSEE_CPI_dt_level2 <- INSEE_CPI_dt %>% .[nchar(coicop) <= 3]
 INSEE_CPI <- cpi(dt = INSEE_CPI_dt_level2, dt_basket = INSEE_CPI_dt_basket,
                  country = "FR", level = 2)
 saveRDS(INSEE_CPI, "articles/INSEE_CPI_level2.RDS")
 
-INSEE_CPI_dt_level3 <- INSEE_CPI_dt %>% .[nchar(coicop) == 4]
+INSEE_CPI_dt_level3 <- INSEE_CPI_dt %>% .[nchar(coicop) <= 4]
 INSEE_CPI_level3 <- cpi(dt = INSEE_CPI_dt_level3, dt_basket = INSEE_CPI_dt_basket,
                         country = "FR", level = 3)
 saveRDS(INSEE_CPI_level3, "articles/INSEE_CPI_level3.RDS")
@@ -194,13 +194,13 @@ INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
     `Libellé` = NULL
   )]
 
-INSEE_CPI_w_dt_level2 <- INSEE_CPI_w_dt %>% .[nchar(coicop) == 3]
+INSEE_CPI_w_dt_level2 <- INSEE_CPI_w_dt %>% .[nchar(coicop) <= 3]
 INSEE_CPI_index_weights <- 
   index_weights(dt = INSEE_CPI_w_dt_level2, country = "FR", level = 2, base_total = 10000)
 saveRDS(INSEE_CPI_index_weights, "articles/INSEE_CPI_index_weights_level2.RDS")
 
 
-INSEE_CPI_w_dt_level3 <- INSEE_CPI_w_dt %>% .[nchar(coicop) == 4]
+INSEE_CPI_w_dt_level3 <- INSEE_CPI_w_dt %>% .[nchar(coicop) <= 4]
 INSEE_CPI_index_weights_level3 <- 
   index_weights(dt = INSEE_CPI_w_dt_level3, country = "FR", level = 3, base_total = 10000)
 saveRDS(INSEE_CPI_index_weights_level3, "articles/INSEE_CPI_index_weights_level3.RDS")
@@ -247,18 +247,20 @@ INSEE_HBS_2017_all <-
     year = 2017,
     category = quantile,
     consumption
-  )]
+  )] %>%
+  # Remove CP00
+  .[coicop != "00"]
 
 # Select level 3 COICOPs
 INSEE_HBS_2017_dt <- 
   INSEE_HBS_2017_all %>%
-  .[nchar(coicop) == 4 & category != "Ensemble", ]
+  .[nchar(coicop) <= 4 & category != "Ensemble", ]
 
 # Select the total consumption from CP00
 # Don't forget to rename consumption to total_consumption!
 INSEE_HBS_2017_dt_total <- 
   INSEE_HBS_2017_all %>%
-  .[nchar(coicop) == 4 & category == "Ensemble", 
+  .[nchar(coicop) <= 4 & category == "Ensemble", 
     .(series_name, coicop, year,
       total_consumption = consumption)]
 
