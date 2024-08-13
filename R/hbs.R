@@ -84,7 +84,6 @@ validate_hbs <- function(hbs) {
         is.character(hbs$dt[, category]) &
         is.numeric(hbs$dt[, year]) &
         is.numeric(hbs$dt[, consumption]) &
-        is.character(hbs$dt_total[, series_name]) &
         is.character(hbs$dt_total[, coicop]) &
         is.numeric(hbs$dt_total[, year]) &
         is.numeric(hbs$dt_total[, total_consumption]))) {
@@ -182,7 +181,6 @@ validate_hbs <- function(hbs) {
 #' )
 #'
 #' dt_total <- data.table(
-#'   series_name = c("HBS", "HBS", "HBS", "HBS"),
 #'   coicop = c("01", "02", "01", "02"),
 #'   year = c(2022, 2022, 2023, 2023),
 #'   total_consumption = c(300, 400, 350, 450)
@@ -251,7 +249,7 @@ interpolate_hbs.hbs <- function(hbs) {
   hbs$dt_total[, consumption := total_consumption]
   dt_total <-
     hbs$dt_total[, interpolate_group(year, total_consumption), by = .(coicop)] %>%
-    .[, .(series_name = NA_character_, coicop, year, total_consumption = consumption)]
+    .[, .(coicop, year, total_consumption = consumption)]
 
   hbs(dt = dt, dt_total = dt_total,
       country = hbs$country,
@@ -311,13 +309,9 @@ add_coicops_hbs.hbs <- function(hbs, coicops) {
   new_rows_total <- data.table::CJ(
     coicop = coicops_to_be_added,
     year = hbs$start_year:hbs$end_year
-  )
-
+  ) %>%
   # Set default values for new rows
-  new_rows_total[, `:=`(
-    total_consumption = 1e-6,
-    series_name = NA_character_
-  )]
+  .[, .(coicop, year, total_consumption = 1e-6)]
 
   dt_total <- data.table::rbindlist(list(hbs$dt_total, new_rows_total), use.names = TRUE, fill = TRUE)
 

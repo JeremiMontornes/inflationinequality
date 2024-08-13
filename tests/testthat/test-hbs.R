@@ -7,7 +7,6 @@ mock_hbs_data <- function() {
     consumption = runif(4, 90, 110)
   )
   dt_total <- data.table::data.table(
-    series_name = c("HBS", NA_character_),
     coicop = c("01", "02"),
     year = c(2023, 2023),
     total_consumption = c(100, 100)
@@ -45,7 +44,7 @@ test_that("HBS object metadata is correct", {
 
 test_that("HBS constructor fails when missing required columns", {
   hbs_data <- mock_hbs_data()
-  hbs_data$dt[, series_name := NULL]
+  hbs_data$dt[, coicop := NULL]
   expect_error(
     hbs(
       hbs_data$dt, hbs_data$dt_total, hbs_data$country, hbs_data$category,
@@ -257,7 +256,18 @@ test_that("add_coicops_hbs handles empty input", {
   )
   new_coicops <- character(0)
 
-  result <- add_coicops_hbs(mock_hbs, new_coicops)
+  warnings <- capture_warnings(
+    result <- add_coicops_hbs(mock_hbs, new_coicops)
+  )
+
+  expect_length(warnings, 2)
+
+  # Expect 2 warnings for the 2 columns
+  expect_match(
+    warnings,
+    "Item [12] has 0 rows but longest item has 1; filled with NA",
+    all = TRUE
+  )
 
   expect_equal(mock_hbs, result)
 })
