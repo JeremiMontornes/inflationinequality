@@ -139,13 +139,13 @@ INSEE_CPI_dt_basket <- INSEE_CPI_monthly_values %>%
                    variable.name = "date", value.name = "value") %>%
   .[, `:=`(
     date = as.character(date),
+    series_name = `Libellé`,
     value = as.numeric(value),
     year = year(ym(date)),
     month = month(ym(date))
   )] %>%
   .[, `:=`(
-    date = NULL,
-    `Libellé` = NULL
+    date = NULL
   )]
 
 head(INSEE_CPI_dt_basket, n=10)
@@ -245,7 +245,7 @@ INSEE_HBS_2017_all <-
     series_name = Regroupement,
     coicop = IDENT,
     year = 2017,
-    category = quantile,
+    category = as.character(quantile),
     consumption
   )] %>%
   # Remove CP00
