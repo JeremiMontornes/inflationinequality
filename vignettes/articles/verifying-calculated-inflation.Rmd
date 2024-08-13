@@ -342,12 +342,7 @@ Load headline inflation and calculate inflation from level 3 CPI and HBS data fr
 INSEE_inflation_income_dt <-
   readRDS("INSEE_inflation_income_dt.RDS")
 
-inflation_fr_income3 <-
-  calculate_inflation(
-    "FR", "income", level = 3,
-    custom_cpi = INSEE_CPI_level3,
-    custom_index_weights = INSEE_CPI_index_weights_level3,
-    custom_hbs = INSEE_HBS_2017)
+inflation_fr_income3 <- inflation_level3
 
 ```
 
