@@ -62,8 +62,12 @@ category_data <- list(
 load_cpi <- function(country, level = 2,
                      start_year = NULL, start_month = NULL,
                      end_year = NULL, end_month = NULL) {
-  if (level < 1 | 3 < level) {
-    stop("COICOP level must be 1, 2 or 3.")
+  # Input validation
+  if (!is.character(country) || nchar(country) != 2) {
+    stop("Country must be a 2-character ISO code")
+  }
+  if (!is.numeric(level) || !level %in% 1:3) {
+    stop("Level must be an integer between 1 and 3")
   }
 
   # Determine specified time period
@@ -143,8 +147,12 @@ load_cpi <- function(country, level = 2,
 #' @export
 load_index_weights <- function(country, level = 2,
                                start_year = NULL, end_year = NULL) {
-  if (level < 1 | 3 < level) {
-    stop("COICOP level must be 1, 2 or 3.")
+  # Input validation
+  if (!is.character(country) || nchar(country) != 2) {
+    stop("Country must be a 2-character ISO code")
+  }
+  if (!is.numeric(level) || !level %in% 1:3) {
+    stop("Level must be an integer between 1 and 3")
   }
 
   # Determine specified time period
@@ -213,11 +221,15 @@ load_index_weights <- function(country, level = 2,
 #' @export
 load_hbs <- function(country, category, level = 2,
                      start_year = NULL, end_year = NULL) {
-  if (!level %in% 1:2) {
-    stop("COICOP level must be 1 or 2.")
+  # Input validation
+  if (!is.character(country) || nchar(country) != 2) {
+    stop("Country must be a 2-character ISO code")
   }
   if (!category %in% c("income", "age", "urban")) {
-    stop("The category must be either 'income', 'age', or 'urban'.")
+    stop("Category must be one of 'income', 'age', or 'urban'")
+  }
+  if (!is.numeric(level) || !level %in% 1:3) {
+    stop("Level must be an integer between 1 and 3")
   }
 
   # Determine specified time period

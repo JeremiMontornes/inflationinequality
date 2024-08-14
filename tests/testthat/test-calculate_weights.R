@@ -1,3 +1,20 @@
+#' Helper function to check internet connectivity
+has_internet <- function() {
+  tryCatch({
+    readLines("https://cran.r-project.org", n = 1)
+    TRUE
+  }, warning = function(w) FALSE,
+  error = function(e) FALSE)
+}
+
+
+#' Custom skip function
+skip_if_no_internet <- function() {
+  if (!has_internet()) {
+    skip("No internet connection")
+  }
+}
+
 # Mock functions to simulate data loading
 mock_load_index_weights <- function(country, level, start_year, end_year) {
   index_weights_fr <- if (!is.null(start_year) &&
@@ -19,8 +36,7 @@ mock_load_hbs <- function(country, category, level, start_year, end_year) {
 }
 
 test_that("calculate_weights input validation works", {
-  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
-  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
+  skip_if_no_internet()
   expect_error(calculate_weights("FRA", "income"), "Country must be a 2-character ISO code")
   expect_error(calculate_weights("FR", "invalid"), "Category must be one of 'income', 'age', or 'urban'")
   expect_error(calculate_weights("FR", "income", level = 4), "Level must be an integer between 1 and 3")

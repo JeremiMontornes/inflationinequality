@@ -86,17 +86,6 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               custom_hbs = NULL,
                               interpolated_hbs = FALSE,
                               specific_hbs_year = NULL) {
-  # Input validation
-  if (!is.character(country) || nchar(country) != 2) {
-    stop("Country must be a 2-character ISO code")
-  }
-  if (!category %in% c("income", "age", "urban")) {
-    stop("Category must be one of 'income', 'age', or 'urban'")
-  }
-  if (!is.numeric(level) || !level %in% 1:3) {
-    stop("Level must be an integer between 1 and 3")
-  }
-
   # Load index weights
   index_weights <- if (is.null(custom_index_weights)) {
     if (is.null(country)) {

@@ -61,8 +61,7 @@ mock_calculate_weights <- function(country, category, level, start_year, end_yea
 }
 
 test_that("calculate_contributions input validation works", {
-  local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
-  local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
+  skip_if_no_internet()
   expect_error(calculate_contributions("FRA", "income"), "Country must be a 2-character ISO code")
   expect_error(calculate_contributions("FR", "invalid"), "Category must be one of 'income', 'age', or 'urban'")
   expect_error(calculate_contributions("FR", "income", level = 4), "Level must be an integer between 1 and 3")
