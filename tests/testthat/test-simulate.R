@@ -67,10 +67,10 @@ test_that("simulate_cpi handles multiple COICOP codes", {
 
   result <- simulate_cpi(cpi_obj, simulations)
 
-  expect_true(all(result$dt[coicop == "01" & year == 2022 & month >= 6, value] >
-                    cpi_obj$dt[coicop == "01" & year == 2022 & month >= 6, value]))
-  expect_true(all(result$dt[coicop == "03" & year == 2023 & month <= 6, value] <
-                    cpi_obj$dt[coicop == "03" & year == 2023 & month <= 6, value]))
+  expect_true(all(result$dt[coicop == "01" & year == 2022 & 6 <= month & month <= 12, value] >
+                    cpi_obj$dt[coicop == "01" & year == 2022 & month == 6, value]))
+  expect_true(all(result$dt[coicop == "03" & year == 2023 & 1 <= month & month <= 6, value] <
+                    cpi_obj$dt[coicop == "03" & year == 2023 & month == 1, value]))
 })
 
 test_that("simulate_cpi handles edge case of -100% shock", {
