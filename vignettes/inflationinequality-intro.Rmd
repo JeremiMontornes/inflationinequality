@@ -206,13 +206,14 @@ plot_contribution_gap(
 
 ## Loading CPI data or HBS data
 
+Additionally, you can download the CPI and HBS datasets.
+
 Let's say we want to download all CPI data from France.
 
 ```{r}
 cpi <- load_cpi("FR")
 head(cpi$dt)
 ```
-
 
 You can also choose the month since CPI data is released monthly:
 
@@ -228,14 +229,14 @@ cpi <- load_cpi("ES", level = 1)
 head(cpi$dt)
 ```
 
+Note that `load_cpi()` does not include the index weights.
+
 If you want to download the CPI weights, then use `index_weights()`, for example
 
 ```{r}
 index_weights <- load_index_weights("ES")
 head(index_weights$dt)
 ```
-
-Note that CPI weightings are revised annually.
 
 You can also download HBS data by demographic category. Let's download all available French HBS data by income.
 
