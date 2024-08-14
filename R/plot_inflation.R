@@ -79,7 +79,7 @@ plot_time_series <- function(inflation) {
 #' 3. Creates a grouped bar chart using ggplot2 with categories on the x-axis
 #' and average inflation on the y-axis, grouped by country.
 #'
-#' @param year The specific year for which to plot the data.
+#' @param plot_year The specific year for which to plot the data.
 #' @param ... One or more objects of class `"inflation"` containing inflation
 #'   data for different countries.
 #'
@@ -96,14 +96,14 @@ plot_time_series <- function(inflation) {
 #' plot_grouped_bar(2020, inflation_fr, inflation_de)
 #'
 #' @export
-plot_grouped_bar <- function(year, ...) {
+plot_grouped_bar <- function(plot_year, ...) {
   inflation_list <- list(...)
   categories_order <- inflation_list[[1]]$categories
   # Assuming your list of inflation objects is called 'inflation_list'
   dt <- data.table::rbindlist(
     lapply(inflation_list, function(x) {
       # Create a copy of the data.table and add the country column
-      dt_copy <- data.table::copy(x$dt[year == year])
+      dt_copy <- data.table::copy(x$dt[year == plot_year])
       dt_copy[, country := x$country]
       return(dt_copy)
     }),

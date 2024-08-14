@@ -4,10 +4,10 @@
 \alias{plot_grouped_bar}
 \title{Create a grouped bar chart of inflation data}
 \usage{
-plot_grouped_bar(year, ...)
+plot_grouped_bar(plot_year, ...)
 }
 \arguments{
-\item{year}{The specific year for which to plot the data.}
+\item{plot_year}{The specific year for which to plot the data.}
 
 \item{...}{One or more objects of class \code{"inflation"} containing inflation
 data for different countries.}
