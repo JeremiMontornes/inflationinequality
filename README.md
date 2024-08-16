@@ -28,4 +28,4 @@ inflation <- calculate_inflation("IT", "income", start_year = 2019)
 plot_time_series(inflation)
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-1.svg" width="100%" />
