@@ -50,17 +50,13 @@
 #'
 #' @examples
 #' # Calculate inflation rates for France, income category  from 2010 to 2020
-#' france_inflation <- calculate_inflation("FR", "income",
-#' start_year = 2010, end_year = 2020)
+#' france_inflation <- calculate_inflation("FR", "income", start_year = 2010, end_year = 2020)
 #'
 #' # Access the data.table component
 #' dt_inflation <- france_inflation$dt
 #'
 #' # Get inflation rate for a specific year, month, and category
-#' specific_inflation <- dt_inflation[year == 2015 &&
-#' month == 6 &&
-#' category == "First quintile",
-#' inflation]
+#' specific_inflation <- dt_inflation[year == 2015 & month == 6 & category == "First quintile", inflation]
 #'
 #' @seealso [calculate_contributions()]
 #'

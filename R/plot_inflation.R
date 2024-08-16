@@ -194,8 +194,7 @@ generate_coicop_mapping <- function(category_mapping) {
 #'
 #' @examples
 #' # Calculate contribution to inflation in Spain at COICOP level 2 from 2019
-#' contributions <- calculate_contributions("ES", "income", level = 2,
-#' start_year = 2019)
+#' contributions <- calculate_contributions("ES", "income", level = 2, start_year = 2019)
 #'
 #' # Plot the contribution to inflation gap
 #' plot_contribution_gap(contributions)

@@ -64,14 +64,11 @@
 #' }
 #'
 #' @examples
-#' # Calculate weights for France, income category, COICOP level 2, from 2010 to
-#' 2020
-#' france_weights <- calculate_weights("FR", "income", level = 2,
-#' start_year = 2010, end_year = 2020)
+#' # Calculate weights for France, income category, COICOP level 2, from 2010 to 2020
+#' france_weights <- calculate_weights("FR", "income", level = 2, start_year = 2010, end_year = 2020)
 #'
 #' # Check if weights sum to 100 for a specific category and year
-#' france_weights$dt[category == "First quintile" & weight_year == 2015,
-#' sum(weighted_consumption)]
+#' france_weights$dt[category == "First quintile" & weight_year == 2015, sum(weighted_consumption)]
 #'
 #' # Access the data.table component
 #' dt_weights <- france_weights$dt
