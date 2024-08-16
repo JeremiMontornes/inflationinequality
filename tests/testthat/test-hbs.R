@@ -256,18 +256,7 @@ test_that("add_coicops_hbs handles empty input", {
   )
   new_coicops <- character(0)
 
-  warnings <- capture_warnings(
-    result <- add_coicops_hbs(mock_hbs, new_coicops)
-  )
-
-  expect_length(warnings, 2)
-
-  # Expect 2 warnings for the 2 columns
-  expect_match(
-    warnings,
-    "Item [12] has 0 rows but longest item has 1; filled with NA",
-    all = TRUE
-  )
+  result <- add_coicops_hbs(mock_hbs, new_coicops)
 
   expect_equal(mock_hbs, result)
 })

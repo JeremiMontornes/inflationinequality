@@ -309,9 +309,12 @@ add_coicops_hbs.hbs <- function(hbs, coicops) {
   new_rows_total <- data.table::CJ(
     coicop = coicops_to_be_added,
     year = hbs$start_year:hbs$end_year
-  ) %>%
+  )
+
   # Set default values for new rows
-  .[, .(coicop, year, total_consumption = 1e-6)]
+  new_rows_total[, `:=`(
+    total_consumption = 1e-6
+  )]
 
   dt_total <- data.table::rbindlist(list(hbs$dt_total, new_rows_total), use.names = TRUE, fill = TRUE)
 
