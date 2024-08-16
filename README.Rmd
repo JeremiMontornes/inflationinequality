@@ -9,7 +9,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  warning = FALSE,
+  message = FALSE
 )
 ```
 
@@ -33,5 +35,5 @@ Let's visualize inflation inequality across income quintiles in Italy since 2019
 ```{r example}
 library(inflationinequality)
 inflation <- calculate_inflation("IT", "income", start_year = 2019)
-plot_inflation_gap(inflation)
+plot_time_series(inflation)
 ```
