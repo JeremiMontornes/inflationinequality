@@ -1,0 +1,37 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# inflationinequality
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
+`inflationinequality` provides methods to calculate and visualize inflation inequality indicators.
+
+## Features
+
+* Calculate and visualize inflation and contributions to inflation by households categories
+* Simulate counterfactual price indices
+
+## Example
+
+Let's visualize inflation inequality across income quintiles in Italy since 2019.
+
+```{r example}
+library(inflationinequality)
+inflation <- calculate_inflation("IT", "income", start_year = 2019)
+plot_inflation_gap(inflation)
+```
