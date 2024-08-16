@@ -200,12 +200,6 @@ INSEE_CPI_level3 <- cpi(dt = INSEE_CPI_dt_level3, dt_basket = INSEE_CPI_dt_baske
 ```
 
 ```{r, include=FALSE}
-# We need these datasets in another vignette to verify results
-saveRDS(INSEE_CPI, "articles/INSEE_CPI_level2.RDS")
-saveRDS(INSEE_CPI_level3, "articles/INSEE_CPI_level3.RDS")
-```
-
-```{r, include=FALSE}
 # We don't include this because it's redundant
 annual_values_csv_file <- "famille_IPC-2015/valeurs_annuelles.csv"
 INSEE_CPI_annual_values <- as.data.table(read_csv2(annual_values_csv_file))
@@ -236,13 +230,11 @@ INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
 INSEE_CPI_w_dt_level2 <- INSEE_CPI_w_dt %>% .[nchar(coicop) <= 3]
 INSEE_CPI_index_weights <- 
   index_weights(dt = INSEE_CPI_w_dt_level2, country = "FR", level = 2, base_total = 10000)
-saveRDS(INSEE_CPI_index_weights, "articles/INSEE_CPI_index_weights_level2.RDS")
 
 
 INSEE_CPI_w_dt_level3 <- INSEE_CPI_w_dt %>% .[nchar(coicop) <= 4]
 INSEE_CPI_index_weights_level3 <- 
   index_weights(dt = INSEE_CPI_w_dt_level3, country = "FR", level = 3, base_total = 10000)
-saveRDS(INSEE_CPI_index_weights_level3, "articles/INSEE_CPI_index_weights_level3.RDS")
 ```
 
 #### Loading HBS data from a XLSX spreadsheet
@@ -303,9 +295,6 @@ INSEE_HBS_2017 <-
 ```
 
 ```{r, include = FALSE}
-# Again, for the verification article
-saveRDS(INSEE_HBS_2017, "articles/INSEE_HBS_2017_level3.RDS")
-
 INSEE_inflation_income_dt <- INSEE_CPI_annual_values %>%
   .[, `:=`(
     idBank = NULL,
@@ -323,11 +312,6 @@ INSEE_inflation_income_dt <- INSEE_CPI_annual_values %>%
   )] %>%
   .[, headline_inflation := ((cpi / shift(cpi, 1)) - 1) * 100, by = .(category)] %>%
   .[!is.na(headline_inflation), .(series_name, category, year, headline_inflation)]
-
-saveRDS(
-  INSEE_inflation_income_dt, 
-  file = "articles/INSEE_inflation_income_dt.RDS"
-)
 ```
 
 ## Loading custom data in a `inflationinequality` function
