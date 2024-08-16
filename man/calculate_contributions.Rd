@@ -136,10 +136,7 @@ france_contributions <- calculate_contributions("FR", "income", level = 2, start
 dt_contributions <- france_contributions$dt
 
 # Sum contributions for a specific year, month, and category
-total_contribution <- dt_contributions[year == 2015 &&
-month == 6 &&
-category == "First quintile",
-sum(contribution)]
+total_contribution <- dt_contributions[year == 2015 & month == 6 & category == "First quintile", sum(contribution)]
 
 }
 \seealso{
