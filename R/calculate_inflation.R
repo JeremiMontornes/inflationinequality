@@ -123,14 +123,13 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
 #'
 #' @examples
 #' # Calculate inflation rates for France, income category from 2010 to 2020
-#' france_inflation <- calculate_inflation("FR", "income",
-#' start_year = 2010, end_year = 2020)
+#' france_inflation <- calculate_inflation("FR", "income", start_year = 2010, end_year = 2020)
 #'
 #' # Calculate the inflation gap
 #' inflation_gap <- calculate_inflation_gap(france_inflation)
 #'
 #' # Get the inflation gap for a specific year and month
-#' specific_gap <- inflation_gap[year == 2015 && month == 6, inflation_gap]
+#' specific_gap <- inflation_gap[year == 2015 & month == 6, inflation_gap]
 #'
 #' @seealso [calculate_inflation()]
 #'
@@ -168,8 +167,7 @@ calculate_inflation_gap <- function(inflation) {
 #'
 #' @examples
 #' # Calculate inflation rates for France, income category from 2010 to 2020
-#' france_inflation <- calculate_inflation("FR", "income",
-#' start_year = 2010, end_year = 2020)
+#' france_inflation <- calculate_inflation("FR", "income", start_year = 2010, end_year = 2020)
 #'
 #' # Calculate average monthly inflation
 #' dt_monthly_inflation_fr <- calculate_total_inflation(france_inflation)
