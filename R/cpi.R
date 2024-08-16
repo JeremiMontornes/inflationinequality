@@ -159,7 +159,7 @@ validate_cpi <- function(cpi) {
 #'
 #' @examples
 #' # Create a sample CPI dataset
-#' dt <- data.table(
+#' dt <- data.table::data.table(
 #'   series_name = c("CPI", "CPI", "CPI", "CPI"),
 #'   coicop = c("01", "02", "01", "02"),
 #'   value = c(100, 102, 103, 105),
@@ -167,7 +167,7 @@ validate_cpi <- function(cpi) {
 #'   month = c(12, 12, 1, 1)
 #' )
 #'
-#' dt_basket <- data.table(
+#' dt_basket <- data.table::data.table(
 #'   series_name = c("CPI", "CPI"),
 #'   value = c(100, 101),
 #'   year = c(2022, 2023),

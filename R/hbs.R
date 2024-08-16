@@ -172,7 +172,7 @@ validate_hbs <- function(hbs) {
 #'
 #' @examples
 #' # Create a sample HBS dataset
-#' dt <- data.table(
+#' dt <- data.table::data.table(
 #'   series_name = c("HBS", "HBS", "HBS", "HBS"),
 #'   coicop = c("01", "02", "01", "02"),
 #'   year = c(2022, 2022, 2023, 2023),
@@ -180,7 +180,7 @@ validate_hbs <- function(hbs) {
 #'   consumption = c(100, 200, 150, 250)
 #' )
 #'
-#' dt_total <- data.table(
+#' dt_total <- data.table::data.table(
 #'   coicop = c("01", "02", "01", "02"),
 #'   year = c(2022, 2022, 2023, 2023),
 #'   total_consumption = c(300, 400, 350, 450)
