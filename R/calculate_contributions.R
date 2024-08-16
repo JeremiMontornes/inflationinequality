@@ -80,10 +80,7 @@
 #' dt_contributions <- france_contributions$dt
 #'
 #' # Sum contributions for a specific year, month, and category
-#' total_contribution <- dt_contributions[year == 2015 &&
-#' month == 6 &&
-#' category == "First quintile",
-#' sum(contribution)]
+#' total_contribution <- dt_contributions[year == 2015 & month == 6 & category == "First quintile", sum(contribution)]
 #'
 #' @seealso [load_cpi()], [calculate_weights()], [correct_cpi()] for CPI data
 #'   synthesization, [cpi()]
