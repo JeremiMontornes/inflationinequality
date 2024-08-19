@@ -132,25 +132,9 @@ test_that("correct_cpi fails at level 1 COICOP", {
 
 test_that("correct_cpi works", {
   skip_if_no_internet()
-  dt <- data.table::data.table(
-    series_name = rep(NA_character_, 2 * 12 + 1),
-    coicop = c(rep("011", 12), rep("012", 12), "011"),
-    value = runif(2 * 12 + 1, 90, 110),
-    year = c(rep(2023, 2 * 12), 2022),
-    month = c(rep(1:12, 2), 12)
-  )
-  dt_basket <- data.table::data.table(
-    series_name = rep(NA_character_, 12 + 1),
-    value = runif(12 + 1, 90, 110),
-    year = c(rep(2023, 12), 2022),
-    month = c(1:12, 12)
-  )
-  country <- "FR"
-  level <- 2
-  cpi <- cpi(dt, dt_basket, country, level)
-
+  cpi <- load_cpi("FR", level = 3)
   missing_coicops <- get_missing_cpi_tuples(cpi)
-  expect_equal(nrow(missing_coicops), 1)
+  expect_gt(nrow(missing_coicops), 0)
 
   corrected_cpi <- correct_cpi(cpi)
   corrected_coicops <- get_missing_cpi_tuples(corrected_cpi)
@@ -159,21 +143,8 @@ test_that("correct_cpi works", {
 
 test_that("correct_cpi throws warning for not having enough data", {
   skip_if_no_internet()
-  dt <- data.table::data.table(
-    series_name = rep(NA_character_, 3),
-    coicop = c("011", "011", "012"),
-    value = runif(3, 90, 110),
-    year = rep(2023, 3),
-    month = c(9, 10, 10)
-  )
-  dt_basket <- data.table::data.table(
-    series_name = rep(NA_character_, 2),
-    value = c(100, 100),
-    year = c(2023, 2023),
-    month = c(9, 10)
-  )
-  country <- "FR"
-  level <- 2
-  cpi <- cpi(dt, dt_basket, country, level)
-  expect_warning(correct_cpi(cpi), regexp = "We need at least 1 year of data for 012")
+  cpi <- load_cpi("FR", level = 3, start_year = 1996, end_year = 2000)
+  missing_coicops <- get_missing_cpi_tuples(cpi)
+  expect_gt(nrow(missing_coicops), 0)
+  expect_warning(correct_cpi(cpi))
 })
