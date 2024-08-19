@@ -298,52 +298,49 @@ correct_cpi.cpi <- function(cpi) {
   missing_cpi_tuples <- get_missing_cpi_tuples(cpi)
   missing_coicops <- missing_cpi_tuples[, unique(coicop)]
 
-  # Remove last character and get unique strings
-  higher_coicops <- unique(substr(missing_coicops, 1, nchar(missing_coicops) - 1))
+  # Function to get the immediate parent COICOP
+  get_parent_coicop <- function(coicop) {
+    substr(coicop, 1, nchar(coicop) - 1)
+  }
 
   ### Calculate annual growth rates --------------------------------------------
   # Ensure the data is sorted correctly first
   data.table::setorder(cpi$dt, coicop, year, month)
 
-  # Copy higher COICOP codes
-  dt_higher_cpi <- cpi$dt[coicop %in% higher_coicops]
-
   # Create a year-month column for easier shifting
-  dt_higher_cpi[, yearmonth := as.Date(paste(year, month, "01", sep = "-"))]
+  cpi$dt[, yearmonth := as.Date(paste(year, month, "01", sep = "-"))]
 
   # Now calculate the lagged value
-  dt_higher_cpi[, lagging_value := data.table::shift(value, n = 12, type = "lag"), by = coicop]
+  cpi$dt[, lagging_value := data.table::shift(value, n = 12, type = "lag"), by = coicop]
 
   # Calculate the growth rate
-  dt_higher_cpi[, growth_rate := (value / lagging_value - 1) * 100]
+  cpi$dt[, growth_rate := (value / lagging_value - 1) * 100]
   ### --------------------------------------------------------------------------
 
   # Ensure data is sorted
   data.table::setorder(cpi$dt, coicop, year, month)
-  data.table::setorder(dt_higher_cpi, coicop, year, month)
 
-  # Create date columns
+  # Create date column
   cpi$dt[, date := as.Date(paste(year, month, "01", sep = "-"))]
-  dt_higher_cpi[, date := as.Date(paste(year, month, "01", sep = "-"))]
 
   # Function to fill for a single COICOP
   fill_single_coicop <- function(missing_coicop) {
-    higher_coicop <- substr(missing_coicop, 1, nchar(missing_coicop) - 1)
+    parent_coicop <- get_parent_coicop(missing_coicop)
 
-    # Get the data for this COICOP and its level 1 counterpart
+    # Get the data for this COICOP and its parent
     coicop_data <- cpi$dt[coicop == missing_coicop, ]
-    higher_cpi_data <- dt_higher_cpi[coicop == higher_coicop, ]
+    parent_data <- cpi$dt[coicop == parent_coicop, ]
 
     # Ensure data is sorted
     data.table::setorder(coicop_data, date)
-    data.table::setorder(higher_cpi_data, date)
+    data.table::setorder(parent_data, date)
 
     # Find the earliest and latest dates in coicop_data
-    earliest_coicop_date <- min(coicop_data$date)
-    latest_coicop_date <- max(coicop_data$date)
+    earliest_coicop_date <- min(coicop_data$date, na.rm = TRUE)
+    latest_coicop_date <- max(coicop_data$date, na.rm = TRUE)
 
-    # Get level1 data for dates before earliest_coicop_date and after latest_coicop_date
-    fill_data <- higher_cpi_data[date < earliest_coicop_date + lubridate::years(1) | date > latest_coicop_date]
+    # Get parent data for dates before earliest_coicop_date and after latest_coicop_date
+    fill_data <- parent_data[date < earliest_coicop_date + lubridate::years(1) | date > latest_coicop_date, ]
 
     result <- data.table::data.table(
       series_name = character(),
@@ -361,8 +358,8 @@ correct_cpi.cpi <- function(cpi) {
     }
 
     # Backfill
-    next_date <- coicop_data[, min(date) - months(1)]
-    while (next_date %in% higher_cpi_data[, date]) {
+    next_date <- earliest_coicop_date - months(1)
+    while (next_date %in% parent_data[, date]) {
       previous_date <- next_date + lubridate::years(1)
       growth_rate <- fill_data[date == previous_date, growth_rate]
 
@@ -387,9 +384,9 @@ correct_cpi.cpi <- function(cpi) {
     }
 
     # Frontfill
-    next_date <- coicop_data[, max(date) + months(1)]
+    next_date <- latest_coicop_date + months(1)
     current_year <- lubridate::year(Sys.Date())
-    while (lubridate::year(next_date) <= current_year && next_date %in% higher_cpi_data[, date]) {
+    while (lubridate::year(next_date) <= current_year && next_date %in% parent_data[, date]) {
       previous_date <- next_date - lubridate::years(1)
       growth_rate <- fill_data[date == next_date, growth_rate]
 
@@ -417,16 +414,15 @@ correct_cpi.cpi <- function(cpi) {
   }
 
   # Apply filling to all missing COICOPs
-  filled_list <- lapply(missing_coicops, fill_single_coicop)
+  for (coicop in missing_coicops) {
+    filled_data <- fill_single_coicop(coicop)
+    if (nrow(filled_data) > 0) {
+      cpi$dt <- data.table::rbindlist(list(cpi$dt, filled_data), use.names = TRUE, fill = TRUE)
+    }
+  }
 
-  # Combine all filled data
-  all_filled <- data.table::rbindlist(filled_list)
+  # Remove temporary columns
+  cpi$dt[, c("yearmonth", "lagging_value", "growth_rate", "date") := NULL]
 
-  # Combine with original data
-  result <- data.table::rbindlist(list(
-    cpi$dt[, .(series_name, coicop, year, month, value)],
-    all_filled[, .(series_name, coicop, year, month, value)]
-  ), use.names = TRUE, fill = TRUE)
-
-  return(cpi(result, cpi$dt_basket, cpi$country, cpi$level))
+  return(cpi)
 }
