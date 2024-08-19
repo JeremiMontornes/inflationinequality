@@ -315,9 +315,6 @@ correct_cpi.cpi <- function(cpi) {
   dt_higher_cpi[, lagging_value := data.table::shift(value, n = 12, type = "lag"), by = coicop]
 
   # Calculate the growth rate
-  # The growth rate g_t follows the equation
-  # x_(t+12) = x_t * (1 + (g_t / 100))
-  # Also, growth_rate is expressed in percentages
   dt_higher_cpi[, growth_rate := (value / lagging_value - 1) * 100]
   ### --------------------------------------------------------------------------
 
@@ -329,8 +326,8 @@ correct_cpi.cpi <- function(cpi) {
   cpi$dt[, date := as.Date(paste(year, month, "01", sep = "-"))]
   dt_higher_cpi[, date := as.Date(paste(year, month, "01", sep = "-"))]
 
-  # Function to backfill for a single COICOP
-  backfill_single_coicop <- function(missing_coicop) {
+  # Function to fill for a single COICOP
+  fill_single_coicop <- function(missing_coicop) {
     higher_coicop <- substr(missing_coicop, 1, nchar(missing_coicop) - 1)
 
     # Get the data for this COICOP and its level 1 counterpart
@@ -341,11 +338,12 @@ correct_cpi.cpi <- function(cpi) {
     data.table::setorder(coicop_data, date)
     data.table::setorder(higher_cpi_data, date)
 
-    # Find the earliest date in coicop_data
+    # Find the earliest and latest dates in coicop_data
     earliest_coicop_date <- min(coicop_data$date)
+    latest_coicop_date <- max(coicop_data$date)
 
-    # Get level1 data for dates before earliest_coicop_date
-    backfill_data <- higher_cpi_data[date < (earliest_coicop_date + lubridate::years(1)), ]
+    # Get level1 data for dates before earliest_coicop_date and after latest_coicop_date
+    fill_data <- higher_cpi_data[date < earliest_coicop_date + lubridate::years(1) | date > latest_coicop_date]
 
     result <- data.table::data.table(
       series_name = character(),
@@ -362,14 +360,12 @@ correct_cpi.cpi <- function(cpi) {
       return(result)
     }
 
-    # We iterate for each next_date, which is a date that is missing CPI data
+    # Backfill
     next_date <- coicop_data[, min(date) - months(1)]
     while (next_date %in% higher_cpi_data[, date]) {
       previous_date <- next_date + lubridate::years(1)
-      growth_rate <- backfill_data[date == previous_date, growth_rate]
+      growth_rate <- fill_data[date == previous_date, growth_rate]
 
-      # We take the previous value from level 2 COICOP data first,
-      # then we take it from the synthesized data
       previous_value <- if (previous_date %in% coicop_data[, date]) {
         coicop_data[date == previous_date, value]
       } else {
@@ -390,19 +386,46 @@ correct_cpi.cpi <- function(cpi) {
       next_date <- next_date - months(1)
     }
 
+    # Frontfill
+    next_date <- coicop_data[, max(date) + months(1)]
+    current_year <- lubridate::year(Sys.Date())
+    while (lubridate::year(next_date) <= current_year && next_date %in% higher_cpi_data[, date]) {
+      previous_date <- next_date - lubridate::years(1)
+      growth_rate <- fill_data[date == next_date, growth_rate]
+
+      previous_value <- if (previous_date %in% coicop_data[, date]) {
+        coicop_data[date == previous_date, value]
+      } else {
+        result[date == previous_date, value]
+      }
+
+      next_row <- data.table::data.table(
+        series_name = NA_character_,
+        coicop = missing_coicop,
+        year = lubridate::year(next_date),
+        month = lubridate::month(next_date),
+        date = next_date,
+        value = previous_value * (1 + growth_rate / 100)
+      )
+
+      result <- data.table::rbindlist(list(result, next_row))
+
+      next_date <- next_date + months(1)
+    }
+
     return(result)
   }
 
-  # Apply backfilling to all missing COICOPs
-  backfilled_list <- lapply(missing_coicops, backfill_single_coicop)
+  # Apply filling to all missing COICOPs
+  filled_list <- lapply(missing_coicops, fill_single_coicop)
 
-  # Combine all backfilled data
-  all_backfilled <- data.table::rbindlist(backfilled_list)
+  # Combine all filled data
+  all_filled <- data.table::rbindlist(filled_list)
 
   # Combine with original data
   result <- data.table::rbindlist(list(
-    cpi$dt[, .(series_name, coicop, year, month, value)],  # Add growth_rate column to original data
-    all_backfilled[, .(series_name, coicop, year, month, value)]
+    cpi$dt[, .(series_name, coicop, year, month, value)],
+    all_filled[, .(series_name, coicop, year, month, value)]
   ), use.names = TRUE, fill = TRUE)
 
   return(cpi(result, cpi$dt_basket, cpi$country, cpi$level))
