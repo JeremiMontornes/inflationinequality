@@ -1,0 +1,116 @@
+---
+title: "Advanced options"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Advanced options}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dev = "svg",
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r setup}
+library(inflationinequality)
+options(rdbnomics.use_readLines = TRUE)
+```
+
+This vignette demonstrates the more advanced features in `inflationinequality`.
+
+***
+
+## Ensure complete CPI
+
+It's possible that in some CPI datasets, price data of certain product categories are unavailable in certain time periods. For example, medical consultation services or "062" are usually missing price data in early years.
+
+In order to fill these gaps, we can synthesize the price data using the price movements of its parent product category. In the case of the "062", its parent is health services or "06", so we synthesize the missing price data of "062" using the price movements of "06".
+
+Let's first load all CPI price data in France.
+
+```{r}
+cpi_fr <- load_cpi("FR", level = 3)
+```
+
+We can see that there are some products missing price data in 1996:
+
+```{r}
+setdiff(cpi_fr$dt[, unique(coicop)], cpi_fr$dt[year == 1996, unique(coicop)])
+```
+
+We can also use the `get_missing_cpi_tuples()` function to retrieve all the missing data points.
+
+```{r}
+get_missing_cpi_tuples(cpi_fr)
+```
+
+To correct the CPI object, we simply use the `correct_cpi()` method.
+
+```{r}
+corrected_cpi_fr <- correct_cpi(cpi_fr)
+```
+
+As a result, there are no missing data points:
+
+```{r}
+get_missing_cpi_tuples(corrected_cpi_fr)
+```
+
+As a matter of convenience, this functionality has been added as an option in `calculate_contributions()` and `calculate_inflation()`.
+
+```{r, eval = FALSE}
+inflation <- calculate_inflation("FR", "income", level = 3, ensure_complete_cpi = FALSE)
+```
+
+### Using sparse data
+
+When the data is limited, there may be errors when synthesizing the price data:
+
+```{r}
+cpi_limited <- load_cpi("FR", level = 3, start_year = 1996, end_year = 2000)
+corrected_cpi_limited <- correct_cpi(cpi_limited)
+```
+
+## Linear interpolation in HBS
+
+Household Budget Surveys (HBS) are typically published in waves every five years.
+The change in weights between one HBS and the next can be drastic, which can unrealistically impact the measured inflation rate.
+To address this, we propose linearly interpolating the HBS weights to smooth out the changes in weights over time.
+
+Here is an example of a HBS dataset:
+
+```{r, eval = FALSE}
+hbs <- load_hbs("FR", "income", start_year = 2005)
+```
+
+We can apply linear interpolation by using `interpolate_hbs()` on the `"hbs"` object.
+
+```{r, eval = FALSE}
+interpolated_hbs <- interpolate_hbs(hbs)
+```
+
+For convenience, we can use the option `interpolated_hbs` in `calculate_contributions()` or `calculate_inflation()`.
+
+```{r, eval = FALSE}
+interpolated_inflation <- calculate_inflation("FR", "income", interpolated_hbs = TRUE)
+```
+
+## Specific HBS years
+
+We can choose to apply a specific year's HBS weights for all months when calculating inflation rates (or contributions to inflation).
+
+```{r, eval = FALSE}
+calculate_inflation("FR", "income", specific_hbs_year = 2005)
+```
+
+Alternatively, we can linearly interpolate the HBS weights so we can choose any year's HBS weights.
+
+```{r, eval = FALSE}
+calculate_inflation("FR", "income", interpolated_hbs = TRUE, specific_hbs_year = 2019)
+```
