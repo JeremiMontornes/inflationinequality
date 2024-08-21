@@ -30,7 +30,8 @@ Suggests:
     zip,
     readr,
     readxl,
-    memoise
+    memoise,
+    kableExtra
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

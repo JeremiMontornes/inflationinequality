@@ -11,37 +11,34 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  dev = "svg",
+  warning = FALSE,
   message = FALSE
 )
 ```
 
 ```{r setup, include = FALSE}
 library(inflationinequality)
+
+# Vignette specific
+library(rdbnomics)
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(kableExtra)
 ```
 
 This vignette calculates the gap between the package's calculated inflation rate and the headline inflation rate published by Eurostat and other national statistical institutes.
 
 ***
 
-Let's load some libraries.
+## Comparing inflation rates in France, Germany and Italy from Eurostat
 
-```{r}
-suppressWarnings({
-  library(rdbnomics)
-  library(data.table)
-  library(dplyr)
-  library(lubridate)
-  library(ggplot2)
-  library(readr)
-})
-```
+Our headline inflation will be Eurostat's `prc_hicp_manr` which tracks the monthly annual rate of change of the HICP, and more specifically the "CP00" time series which tracks the entire product basket of a country.
 
-
-## Comparing inflation rates in France, Germany and Italy
-
-First, let's write a function that downloads the headline inflation rate of a country from Eurostat.
-
-```{r}
+```{r include=FALSE}
 load_headline_inflation <- function(country) {
   rdb("Eurostat", "prc_hicp_manr",
                  mask = paste0("M.RCH_A.CP00.", country)
@@ -55,9 +52,11 @@ load_headline_inflation <- function(country) {
 }
 ```
 
-Now let's write a function that calculates the gap between the headline inflation and the calculated inflation.
+The calculated inflation rate will be the mean of the inflation rates across all categories, used by `calculate_total_inflation()`.
+We will calculate the offset between the calculated inflation and the headline inflation on a month-by-month basis.
+The offset is the calculated inflation minus the headline inflation: so if the offset is strictly positive, the calculated inflation is higher than the headline inflation, and vice versa.
 
-```{r}
+```{r include=FALSE}
 calculate_inflation_offset <- function(country, category) {
   inflation <- calculate_inflation(country, category)
   dt_total_inflation <- calculate_total_inflation(inflation)
@@ -70,9 +69,9 @@ calculate_inflation_offset <- function(country, category) {
 }
 ```
 
-We should also write a plotting function.
+We'll also plot the calculated and headline inflation rates, along side their offset.
 
-```{r}
+```{r, include = FALSE}
 plot_inflation_comparison <- function(dt_compared_inflation) {
   scale_factor <- max(dt_compared_inflation$total_inflation, dt_compared_inflation$headline_inflation, na.rm = TRUE) / max(dt_compared_inflation$offset, na.rm = TRUE)
   
@@ -95,17 +94,16 @@ plot_inflation_comparison <- function(dt_compared_inflation) {
 }
 ```
 
-Let's test for French inflation rate by income.
+Let's compare the package's calculated French inflation rate by income with the headline inflation.  
 
 ```{r}
 dt_compared_inflation_fr_income <- calculate_inflation_offset("FR", "income")
 plot_inflation_comparison(dt_compared_inflation_fr_income)
 ```
 
+By calculating summary statistics of the offset of this inflation data, we can concisely judge how well this inflation data is calculated. 
 
-We should also get some summary statistics of these offsets.
-
-```{r}
+```{r, include = FALSE}
 summarize_inflation_offet_stats <- function(dt_compared_inflation) {
   dt_compared_inflation[, .(
     mean_offset = mean(offset),
@@ -118,9 +116,7 @@ summarize_inflation_offet_stats <- function(dt_compared_inflation) {
 }
 ```
 
-And we should compute these statistics for each country and each category.
-
-```{r}
+```{r, include = FALSE}
 compute_country_diagnostics <- function(country) {
   categories <- c("income", "age", "urban")
 
@@ -150,37 +146,17 @@ Let's calculate the summary statistics for France, Germany and Italy.
 
 ```{r}
 inflaton_diagnostics <- compute_diagnostics(c("FR", "DE", "IT"))
+knitr::kable(inflaton_diagnostics) %>% kableExtra::kable_styling()
 ```
 
-## Comparing inflation rates to those from INSEE
+## Comparing inflation rates from INSEE
 
-Let's download CPI data from INSEE.
+Since INSEE provides more granular inflation and price data, we can use their datasets to more accurately determine the precision of the package's calculated inflation rates.
 
-```{r}
-INSEE_CPI <- readRDS("INSEE_CPI_level2.RDS")
-INSEE_CPI_index_weights <- readRDS("INSEE_CPI_index_weights_level2.RDS")
-```
-
-Now we can compute the inflation rate.
-
-```{r}
-contributions_insee <-
-  calculate_contributions(
-    "FR", "income",
-    custom_cpi = INSEE_CPI,
-    custom_index_weights = INSEE_CPI_index_weights)
-
-inflation_insee <-
-    calculate_inflation(
-      "FR", "income",
-      custom_cpi = INSEE_CPI,
-      custom_index_weights = INSEE_CPI_index_weights)
-```
-
-Let's write a function that compares headline inflation to calculated inflation from INSEE.
-
-```{r}
-dt_monthly_inflation_insee <- calculate_total_inflation(inflation_insee)
+```{r, include = FALSE}
+INSEE_CPI_level3 <- readRDS("INSEE_CPI_level3.RDS")
+INSEE_CPI_index_weights_level3 <- readRDS("INSEE_CPI_index_weights_level3.RDS")
+INSEE_HBS_2017_level3 <- readRDS("INSEE_HBS_2017_level3.RDS")
 
 insee_inflation_filepath <- "serie_001768594/valeurs_mensuelles.csv"
 dt_headline_inflation_insee <- data.table(read_csv2(insee_inflation_filepath)) %>%
@@ -188,22 +164,125 @@ dt_headline_inflation_insee <- data.table(read_csv2(insee_inflation_filepath)) %
         month = month(ym(`Libellé`)),
         headline_inflation = as.numeric(`Indice des prix à la consommation - Base 2015 - Glissement annuel - Ensemble des ménages - France métropolitaine - Ensemble`))] %>%
   .[complete.cases(.), ]
+```
 
-dt_compared_inflation <-
-  dt_headline_inflation_insee[
-    dt_monthly_inflation_insee,
-    on = .(year, month)] %>%
+Let's compute the French inflation rates using INSEE's datasets.
+
+```{r}
+inflation_insee_level3 <- calculate_inflation("FR", "income", level = 3, custom_cpi = INSEE_CPI_level3, custom_index_weights = INSEE_CPI_index_weights_level3, custom_hbs = INSEE_HBS_2017_level3)
+dt_monthly_inflation_insee <- calculate_total_inflation(inflation_insee_level3)
+```
+
+Now let's plot the calculated inflation rates and headline rates together with their offset.
+
+```{r, include = FALSE}
+dt_compared_inflation <- 
+  dt_headline_inflation_insee[dt_monthly_inflation_insee, on = .(year, month)] %>%
   .[, offset := total_inflation - headline_inflation]
+```
 
+```{r}
 plot_inflation_comparison(dt_compared_inflation)
+```
+
+### Comparing annual INSEE inflation by income decile
+
+To provide a more precise comparison, we can examine the annual inflation rate reported by INSEE across different income deciles.
+
+```{r, include = FALSE}
+INSEE_inflation_income_dt <- readRDS("INSEE_inflation_income_dt.RDS")
+```
+
+We simply calculate the annual inflation rate as the mean of all monthly inflation rates reported in a year.
+
+```{r}
+dt_annual_inflation_decile <- inflation_insee_level3$dt[, .(calculated_inflation = mean(inflation)), by = .(year, category)]
+```
+
+```{r, include = FALSE}
+dt_compared_inflation <-
+  INSEE_inflation_income_dt[
+    dt_annual_inflation_decile,
+    on = .(year, category),
+    nomatch = NULL] %>%
+  .[, offset := calculated_inflation - headline_inflation]
+
+dt_insee_inflation_stats <- 
+  dt_compared_inflation[, .(
+    mean_offset = mean(offset),
+    mean_abs_offset = mean(abs(offset)),
+    sd_offset = sd(offset),
+    sd_abs_offset = sd(abs(offset)),
+    min_offset = min(offset),
+    max_offset = max(offset)
+  ), by = .(category)]
+```
+
+We obtain the following summary statistics.
+
+```{r}
+knitr::kable(dt_insee_inflation_stats) %>% kableExtra::kable_styling()
+```
+
+### Comparing level 2 to level 3 aggregation
+
+The more granular the price data, the more accurate the calculated inflation rates are, and that is what we're going to compare below.
+
+```{r, include = FALSE}
+INSEE_CPI_level2 <- readRDS("INSEE_CPI_level2.RDS")
+INSEE_CPI_index_weights_level2 <- readRDS("INSEE_CPI_index_weights_level2.RDS")
+```
+
+We calculate the inflation rates using data from INSEE but at level 2 COICOP.
+
+```{r}
+inflation_insee_level2 <- calculate_inflation(country = "FR", category = "income", level = 2, custom_cpi = INSEE_CPI_level2, custom_index_weights = INSEE_CPI_index_weights_level2)
+```
+
+```{r, include = FALSE}
+dt_inflation_level3 <- 
+  calculate_total_inflation(inflation_insee_level3) %>% 
+  .[, .(year, month, inflation3 = total_inflation)]
+dt_inflation_level2 <- 
+  calculate_total_inflation(inflation_insee_level2) %>% 
+  .[, .(year, month, inflation2 = total_inflation)]
+dt_compared_inflation <- 
+  dt_inflation_level3[
+    dt_inflation_level2,
+    on = .(year, month)
+    ] %>%
+  .[, offset := inflation3 - inflation2]
+```
+
+We obtain the following results.
+
+```{r, echo = FALSE}
+# First, calculate the scaling factor
+scale_factor <- max(dt_compared_inflation$inflation3, dt_compared_inflation$inflation2, na.rm = TRUE) / max(dt_compared_inflation$offset, na.rm = TRUE)
+
+ggplot(dt_compared_inflation) +
+  # Time series lines
+  geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = inflation3, color = "Level 3 Inflation")) +
+  geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = inflation2, color = "Level 2 Inflation")) +
+  # Histogram bars (scaled)
+  geom_col(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = offset * scale_factor), fill = "gray", alpha = 0.6) +
+  # Scales and labels
+  scale_y_continuous(name = "Inflation Rate",
+                     sec.axis = sec_axis(~./scale_factor, name = "Offset")) +
+  scale_color_manual(values = c("Level 3 Inflation" = "blue", "Level 2 Inflation" = "red")) +
+  labs(title = "Comparison of Aggregated Inflation with Offset",
+       x = "Date",
+       color = "Inflation Type",
+       fill = "Offset") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 
 ## Eurozone aggregation
 
-We can also compare with the Eurozone aggregate.
-Beware this code chunk takes more than 30 minutes to compute.
+Eurostat also aggregates inflation data across the Eurozone (EA-19).
 
-```{r, eval = FALSE}
+```{r, include = FALSE}
 calculate_weighted_country_inflation <- function(country, category) {
   dt_cow <- rdbnomics::rdb("Eurostat", "prc_hicp_cow",
                  mask = paste0("A.COWEA19.", country)) %>%
@@ -266,111 +345,8 @@ dt_eurozone_offset_stats <- data.table::rbindlist(list(dt_compared_income,
                                                        dt_compared_urban))
 ```
 
-## Comparing aggregation at COICOP level 2 and level 3
-
-Level 3 CPI value data
+Here we compare the package's calculated Eurozone inflation rates with the headline Eurozone inflation rates.
 
 ```{r}
-INSEE_CPI_level3 <- readRDS("INSEE_CPI_level3.RDS")
+knitr::kable(dt_eurozone_offset_stats) %>% kableExtra::kable_styling()
 ```
-
-Level 3 CPI weights
-
-```{r}
-INSEE_CPI_index_weights_level3 <- 
-  readRDS("INSEE_CPI_index_weights_level3.RDS")
-```
-
-Level 3 HBS
-
-```{r}
-INSEE_HBS_2017 <-
-  readRDS("INSEE_HBS_2017_level3.RDS")
-```
-
-Calculate inflation at level 3 COICOP
-
-```{r}
-inflation_level3 <- calculate_inflation(country = "FR", category = "income", level = 3,
-                                     custom_cpi = INSEE_CPI_level3,
-                                     custom_index_weights = INSEE_CPI_index_weights_level3,
-                                     custom_hbs = INSEE_HBS_2017)
-```
-
-```{r}
-dt_inflation_level3 <- 
-  calculate_total_inflation(inflation_level3) %>% 
-  .[, .(year, month, inflation3 = total_inflation)]
-dt_inflation_level2 <- 
-  calculate_total_inflation(inflation_insee) %>% 
-  .[, .(year, month, inflation2 = total_inflation)]
-dt_compared_inflation <- 
-  dt_inflation_level3[
-    dt_inflation_level2,
-    on = .(year, month)
-    ] %>%
-  .[, offset := inflation3 - inflation2]
-
-# First, calculate the scaling factor
-scale_factor <- max(dt_compared_inflation$inflation3, dt_compared_inflation$inflation2, na.rm = TRUE) / max(dt_compared_inflation$offset, na.rm = TRUE)
-
-ggplot(dt_compared_inflation) +
-  # Time series lines
-  geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = inflation3, color = "Level 3 Inflation")) +
-  geom_line(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = inflation2, color = "Level 2 Inflation")) +
-  # Histogram bars (scaled)
-  geom_col(aes(x = as.Date(paste(year, month, "01", sep = "-")), y = offset * scale_factor), fill = "gray", alpha = 0.6) +
-  # Scales and labels
-  scale_y_continuous(name = "Inflation Rate",
-                     sec.axis = sec_axis(~./scale_factor, name = "Offset")) +
-  scale_color_manual(values = c("Level 3 Inflation" = "blue", "Level 2 Inflation" = "red")) +
-  labs(title = "Comparison of Aggregated Inflation with Offset",
-       x = "Date",
-       color = "Inflation Type",
-       fill = "Offset") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-```
-
-## Comparing INSEE inflation by income quintile
-
-
-We also want to load the CPI from INSEE from certain demographic categories.
-
-Load headline inflation and calculate inflation from level 3 CPI and HBS data from INSEE.
-
-```{r}
-INSEE_inflation_income_dt <-
-  readRDS("INSEE_inflation_income_dt.RDS")
-
-inflation_fr_income3 <- inflation_level3
-
-```
-
-We compare each income decile's annualized inflation rate and compute summary statistics.
-
-```{r}
-dt_annual_inflation_decile <-
-  inflation_fr_income3$dt[, .(calculated_inflation = mean(inflation)), by = .(year, category)]
-
-dt_compared_inflation <-
-  INSEE_inflation_income_dt[
-    dt_annual_inflation_decile,
-    on = .(year, category),
-    nomatch = NULL] %>%
-  .[, offset := calculated_inflation - headline_inflation]
-
-dt_insee_inflation_stats <- 
-  dt_compared_inflation[, .(
-    mean_offset = mean(offset),
-    mean_abs_offset = mean(abs(offset)),
-    sd_offset = sd(offset),
-    sd_abs_offset = sd(abs(offset)),
-    min_offset = min(offset),
-    max_offset = max(offset)
-  ), by = .(category)]
-
-dt_insee_inflation_stats
-```
-
-
