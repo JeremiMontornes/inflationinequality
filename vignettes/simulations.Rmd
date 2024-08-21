@@ -1,0 +1,70 @@
+---
+title: "Simulating counterfactual indices"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulating counterfactual indices}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dev = "svg",
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r setup}
+library(inflationinequality)
+options(rdbnomics.use_readLines = TRUE)
+```
+
+The package also provides a method to simulate counterfactual indices by synthesizing CPI price data according to specific parameters.
+
+***
+
+In 2022, European countries experienced high inflation rates, especially from electricity and natural gas prices.
+Almost all European governments implemented measures to reduce the inflationary forces with price caps or subsidies.
+In this example, we will simulate a counterfactual index for fuel between April 2022 and February 2023, with the hypothesis that without government intervention, the price index for petrol would have increased by 40% on April 2022 and remained the same throughout the inflation period.
+
+Let's first download the CPI dataset. Below is the actual inflation rate.
+
+```{r}
+INSEE_HBS_2017 <- readRDS("articles/INSEE_HBS_2017_level3.RDS")
+cpi <- load_cpi("FR", level = 3)
+inflation <- calculate_inflation("FR", "income", level = 3, start_year = 2019, custom_cpi = cpi, custom_hbs = INSEE_HBS_2017)
+plot_time_series(inflation)
+```
+
+We can measure the contribution of fuel price to the inflation rate better with `plot_contribution_gap()`.
+
+```{r}
+contributions <- calculate_contributions("FR", "income", level = 3, start_year = 2019, custom_cpi = cpi, custom_hbs = INSEE_HBS_2017)
+plot_contribution_gap(contributions, category_mapping = list("Fuel" = "0722"))
+```
+
+Now, we can simulate the shock with the associated shock parameters in this data frame.
+
+```{r}
+simulations <- data.frame(
+  coicop = "0722",
+  shock = 40,
+  start_year = 2022,
+  start_month = 4,
+  end_year = 2023,
+  end_month = 2
+)
+sim_cpi <- simulate_cpi(cpi, simulations)
+sim_inflation <- calculate_inflation("FR", "income", level = 3, start_year = 2019, custom_cpi = sim_cpi, custom_hbs = INSEE_HBS_2017)
+plot_time_series(sim_inflation)
+```
+
+And using the contribution gap plot:
+
+```{r}
+sim_contributions <- calculate_contributions("FR", "income", level = 3, start_year = 2019, custom_cpi = sim_cpi, custom_hbs = INSEE_HBS_2017)
+plot_contribution_gap(sim_contributions, category_mapping = list("Fuel" = "0722"))
+```
