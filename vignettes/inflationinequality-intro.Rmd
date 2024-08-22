@@ -112,7 +112,7 @@ In `inflationinequality`, the function `calculate_inflation()` computes the infl
 
 ```{r}
 inflation_fr <- calculate_inflation("FR", "income", start_year = 2019)
-inflation_fr
+inflation_fr$dt
 ```
 
 Notice that `inflation_fr` is an object of class `"inflation"` which is composed of the actual inflation data in the component `dt` but is also composed of useful metadata: `categories` (an ordered list of demographic classifications), the `start_year` and `start_month`, and the `end_year` and `end_month`.
