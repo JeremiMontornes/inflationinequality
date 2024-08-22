@@ -180,15 +180,13 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
   dt_avg <- dt_sums[, .(weight_sum_avg = mean(weight_sum) * 100 / index_weights$base_total), by = .(weight_year)]
 
   ### Equation (1)
-  # Calculate the weighted consumption by multiplying 'weight' and 'consumption' column-wise
-  dt_weighted_consumption[, preweighted_consumption := weight * consumption]
+  dt_weighted_consumption[, hbs_multiplier := data.table::fifelse(
+    consumption == 1e-6 & total_consumption == 1e-6,
+    1e-6,
+    consumption / total_consumption
+  )]
 
-  # Calculate the total consumption for the current group ('coicop', 'weight_year')
-  # by summing the 'consumption' column and summing over all 'category' values
-  # dt_weighted_consumption[, total_consumption := sum(consumption), by = .(coicop, weight_year)]
-
-  # Divide the 'weighted_consumption' column by the total consumption
-  dt_weighted_consumption[, unnormalized_weighted_consumption := preweighted_consumption / total_consumption]
+  dt_weighted_consumption[, unnormalized_weighted_consumption := weight * hbs_multiplier]
   ###
 
   # Normalised weights
@@ -198,18 +196,18 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
   dt_weighted_consumption[, `:=`(
     weight = NULL,
     consumption = NULL,
-    preweighted_consumption = NULL,
+    hbs_multiplier = NULL,
     total_consumption = NULL,
     unnormalized_weighted_consumption = NULL
   )]
 
   # Stop if there are abnormally large weights
   abnormal_weighted_consumption <-
-    dt_weighted_consumption[weighted_consumption >= 50, ]
+    dt_weighted_consumption[weighted_consumption >= 90, ]
 
   if (nrow(abnormal_weighted_consumption) > 0) {
     stop(
-      "There are weights that are anormally large (>=50%):\n",
+      "There are weights that are anormally large (>=90%):\n",
       paste(capture.output(head(abnormal_weighted_consumption[, .(coicop, category, weight_year, year, weighted_consumption)], n = 10)),
             collapse = "\n"))
   }
