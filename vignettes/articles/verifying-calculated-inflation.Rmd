@@ -297,7 +297,28 @@ calculate_weighted_country_inflation <- function(country, category) {
 }
 
 aggregate_european_inflation <- function() {
-  eurozone_countries <- c("AT", "BE", "CY", "DE", "EE", "EL", "ES", "FI", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PT", "SI", "SK")
+  # https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Euro_area_enlargements
+  eurozone_countries <- 
+    c("AT", # Austria
+      "BE", # Belgium
+      "FI", # Finland
+      "FR", # France
+      "DE", # Germany
+      "IE", # Ireland
+      "IT", # Italy
+      "LU", # Luxembourg
+      "NL", # Netherlands
+      "PT", # Portugal
+      "ES", # Spain
+      "EL", # Greece
+      "SI", # Slovenia
+      "CY", # Cyprus
+      "MT", # Malta
+      "SK", # Slovakia
+      "EE", # Estonia
+      "LV", # Latvia
+      "LT"  # Lithuania
+    )
   categories <- c("income", "age", "urban")
   result_list <- list()
   dt_all_result <- data.table::data.table()
