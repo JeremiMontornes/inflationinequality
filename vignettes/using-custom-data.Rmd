@@ -1,6 +1,6 @@
 ---
 title: "Using national CPI-HBS data"
-output: rmarkdown::html_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Using national CPI-HBS data}
   %\VignetteEngine{knitr::rmarkdown}
