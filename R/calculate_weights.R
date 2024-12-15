@@ -130,6 +130,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
       }
     }
 
+    if (custom_hbs$category != category) {
+      stop("Category of custom_hbs object does not match the category parameter.")
+    }
+
     custom_hbs
   }
 
