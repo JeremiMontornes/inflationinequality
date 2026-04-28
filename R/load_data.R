@@ -10,7 +10,7 @@ hbs_dataset_data <- list(
 # Map for Eurostat categories
 category_data <- list(
   income = list(
-    old_names = c("QUINTILE1", "QUINTILE2", "QUINTILE3", "QUINTILE4", "QUINTILE5"),
+    old_names = c("QU1", "QU2", "QU3", "QU4", "QU5"),
     categories = c("First quintile", "Second quintile", "Third quintile", "Fourth quintile", "Fifth quintile")
   ),
   age = list(
@@ -76,40 +76,80 @@ load_cpi <- function(country, level = 2,
     end_year, end_month
   )
 
-  dataset_code <- "prc_hicp_midx"
+  dataset_code <- resolve_hicp_cpi_dataset()
 
-  # Change basis year
-  mask_prefix <- "M.I15"
+  # hicp::data expects YYYY-MM date ranges for monthly datasets
+  date_range <- c(
+    format(as.Date(dates$start_date), "%Y-%m"),
+    format(as.Date(dates$end_date), "%Y-%m")
+  )
 
-  filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix, country, level)
+  # Download dataset from Eurostat via hicp package
+  dt_raw <- hicp::data(
+    id = dataset_code,
+    filters = list(freq = "M", geo = country, unit = "I15"),
+    date.range = date_range
+  )
 
-  # Download dataset
-  dt <- rdbnomics::rdb("Eurostat", dataset_code,
-    mask = filtered_mask
-  ) %>%
-    # Select data in specified time period
-    .[dates$start_date <= period & period <= dates$end_date] %>%
-    # Filter to specified COICOP level
+  # Keep COICOP item codes only; the all-items aggregate is handled separately in dt_basket.
+  dt <- dt_raw[
+    grepl("^CP\\d+$", coicop18),
+    .(
+      series_name = paste0(dataset_code, ".", unit, ".", coicop18, ".", geo),
+      coicop = coicop18,
+      value = values,
+      period = as.Date(paste0(time, "-01"))
+    )
+  ] %>%
     select_coicop_level(level) %>%
-    # Rearrange columns
-    .[, .(series_name, coicop, value,
+    .[, .(
+      series_name,
+      coicop,
+      value,
       year = lubridate::year(period),
       month = lubridate::month(period)
     )]
 
-  # Download price basket dataset
-  dt_basket <- rdbnomics::rdb("Eurostat", dataset_code,
-    mask = paste0(mask_prefix, ".CP00.", country)
-  ) %>%
-    # Select data in specified time period
-    .[dates$start_date <= period & period <= dates$end_date] %>%
-    # Rearrange columns
-    .[, .(series_name, value,
-      year = lubridate::year(period),
-      month = lubridate::month(period)
-    )]
+  # Download price basket (all-items aggregate)
+  # New ECOICOPv2 datasets may expose the all-items aggregate as "TOTAL"
+  # instead of legacy "AP". Try TOTAL first, then fallback to AP.
+  dt_basket_raw <- tryCatch(
+    hicp::data(
+      id = dataset_code,
+      filters = list(freq = "M", geo = country, unit = "I15", coicop18 = "TOTAL"),
+      date.range = date_range
+    ),
+    error = function(e) {
+      hicp::data(
+        id = dataset_code,
+        filters = list(freq = "M", geo = country, unit = "I15", coicop18 = "AP"),
+        date.range = date_range
+      )
+    }
+  )
+
+  dt_basket <- dt_basket_raw[, .(
+    series_name = paste0(dataset_code, ".", unit, ".", coicop18, ".", geo),
+    value = values,
+    year = as.integer(substr(time, 1, 4)),
+    month = as.integer(substr(time, 6, 7))
+  )]
 
   return(cpi(dt, dt_basket, country, level))
+}
+
+resolve_hicp_cpi_dataset <- function() {
+  # Prefer the current ecoicopv2 monthly index dataset, with fallback for compatibility.
+  candidates <- c("prc_hicp_minr", "prc_hicp_midx")
+  available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
+
+  for (code in candidates) {
+    if ("code" %in% names(available) && any(available[["code"]] %chin% code)) {
+      return(code)
+    }
+  }
+
+  stop("No available HICP CPI dataset found (tried: prc_hicp_minr, prc_hicp_midx).")
 }
 
 #' Downloads annual index weights data
@@ -162,28 +202,71 @@ load_index_weights <- function(country, level = 2,
     end_year, end_month = 12
   )
 
-  dataset_code <- "prc_hicp_inw"
-  mask_prefix <- "A"
-  filtered_mask <- produce_filtered_mask(dataset_code, mask_prefix,
-                                         country, level)
+  dataset_code <- resolve_hicp_weights_dataset()
 
-  # Download dataset
-  dt <- rdbnomics::rdb("Eurostat", dataset_code,
-    mask = filtered_mask
-  ) %>%
-    # Select data in specified time period
-    .[dates$start_date <= period & period <= dates$end_date] %>%
-    # Filter to specified COICOP level
+  date_start_year <- as.integer(substr(dates$start_date, 1, 4))
+  date_end_year <- as.integer(substr(dates$end_date, 1, 4))
+
+  # Download annual weights directly from Eurostat via hicp package.
+  dt_raw <- hicp::data(
+    id = dataset_code,
+    filters = list(geo = country)
+  )
+
+  coicop_col <- if ("coicop18" %in% names(dt_raw)) "coicop18" else "coicop"
+  if (!(coicop_col %in% names(dt_raw))) {
+    stop(sprintf("No COICOP column found in dataset '%s'.", dataset_code))
+  }
+
+  dt <- dt_raw[
+    # Keep only item COICOP codes
+    grepl("^CP\\d+$", get(coicop_col))
+      # If statinfo exists (new dataset), retain index weights rows
+      & (!("statinfo" %in% names(dt_raw)) | statinfo == "IW"),
+    .(
+      coicop = get(coicop_col),
+      weight = values,
+      year = as.integer(substr(time, 1, 4))
+    )
+  ] %>%
+    .[data.table::between(year, date_start_year, date_end_year)] %>%
     select_coicop_level(level) %>%
-    # Rearrange columns
-    # We don't pick series_name since it's annual (redundant) and has no COICOP
-    # code
-    .[, .(coicop,
-      weight = value,
-      year = lubridate::year(period)
-    )]
+    .[, .(coicop, weight, year)]
+
+  if (!is.null(end_year)) {
+    if (nrow(dt) == 0) {
+      warning(
+        sprintf(
+          "No index weights found in '%s' for requested period (start_year=%s, end_year=%s).",
+          dataset_code,
+          if (is.null(start_year)) "NULL" else start_year,
+          end_year
+        )
+      )
+    } else if (max(dt$year, na.rm = TRUE) < end_year) {
+      warning(
+        sprintf(
+          "Requested end_year=%s but latest available year in '%s' is %s.",
+          end_year, dataset_code, max(dt$year, na.rm = TRUE)
+        )
+      )
+    }
+  }
 
   return(index_weights(dt, country, level, base_total = 1000))
+}
+
+resolve_hicp_weights_dataset <- function() {
+  # Prefer the new ecoicopv2 dataset when available; fallback keeps backward compatibility.
+  candidates <- c("prc_hicp_iw", "prc_hicp_inw")
+  available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
+  for (code in candidates) {
+    if ("code" %in% names(available) && any(available[["code"]] %chin% code)) {
+      return(code)
+    }
+  }
+
+  stop("No available HICP weights dataset found (tried: prc_hicp_iw, prc_hicp_inw).")
 }
 
 #' Downloads HBS (Household Budget Survey) data
@@ -238,23 +321,16 @@ load_hbs <- function(country, category, level = 2,
     start_month = 1,
     end_year, end_month = 12
   )
+  category_input <- category
 
     # Determine Eurostat dataset code
     dataset_code <- hbs_dataset_data[[category]]
     old_names <- category_data[[category]]$old_names
     categories <- category_data[[category]]$categories
 
-    mask_prefix <- "A."
-    filtered_mask <- produce_filtered_mask(
-      dataset_code,
-      mask_prefix,
-      paste0("PM.", country),
-      level
-    )
-
     # Download dataset
     dt <- rdbnomics::rdb("Eurostat", dataset_code,
-      mask = filtered_mask
+      dimensions = list(freq = "A", geo = country, unit = "PM")
     ) %>%
       # Select data in specified time period
       .[data.table::between(period, dates$start_date, dates$end_date)] %>%
@@ -263,15 +339,27 @@ load_hbs <- function(country, category, level = 2,
       # Rearrange columns
       # We don't pick series_name since it's annual (redundant) and has no
       # COICOP code
-      .[, .(series_name, coicop,
-        year = lubridate::year(period),
-        category = switch(category,
-          "income" = quantile,
-          "age" = age,
-          "urban" = deg_urb
-        ),
-        consumption = value
-      )] %>%
+      .[, {
+        if (category_input == "income") {
+          category_raw <- if ("quant_inc" %in% names(.SD)) quant_inc else if ("quantile" %in% names(.SD)) quantile else if ("incgrp" %in% names(.SD)) incgrp else rep(NA_character_, .N)
+        } else if (category_input == "age") {
+          category_raw <- if ("age" %in% names(.SD)) age else if ("age_cl" %in% names(.SD)) age_cl else rep(NA_character_, .N)
+        } else {
+          category_raw <- if ("deg_urb" %in% names(.SD)) deg_urb else if ("degree_urb" %in% names(.SD)) degree_urb else rep(NA_character_, .N)
+        }
+        .(series_name, coicop,
+          year = lubridate::year(period),
+          category = category_raw,
+          consumption = value)
+      }] %>%
+      .[, if (all(is.na(category))) {
+        stop(
+          sprintf(
+            "Could not identify the DBnomics category column for category '%s'.",
+            category_input
+          )
+        )
+      } else .SD] %>%
       .[category %in% old_names,
         category := categories[match(category, old_names)]] %>%
       .[category %in% categories]
@@ -280,7 +368,7 @@ load_hbs <- function(country, category, level = 2,
     dt_total <-
       rdbnomics::rdb(
         "Eurostat", "hbs_str_t211",
-        mask = produce_filtered_mask("hbs_str_t211", "A", paste0("PM.", country), level)
+        dimensions = list(freq = "A", geo = country, unit = "PM")
     ) %>%
       # Select data in specified time period
       .[dates$start_date <= period & period <= dates$end_date] %>%
