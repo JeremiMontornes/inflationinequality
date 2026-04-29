@@ -1,4 +1,4 @@
-
+﻿
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # inflationinequality
@@ -19,8 +19,7 @@ inflation inequality indicators.
 
 ## Example
 
-Let’s visualize inflation inequality across income quintiles in Italy
-since 2019.
+Let us visualize inflation inequality across income quintiles in Italy since 2019.
 
 ``` r
 library(inflationinequality)
@@ -29,3 +28,5 @@ plot_time_series(inflation)
 ```
 
 <img src="man/figures/README-example-1.svg" width="100%" />
+
+
