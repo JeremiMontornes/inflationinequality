@@ -4,18 +4,15 @@
 # inflationinequality
 
 <!-- badges: start -->
-
 [![R-CMD-check](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`inflationinequality` provides methods to calculate and visualize
-inflation inequality indicators.
+`inflationinequality` provides methods to calculate and visualize inflation inequality indicators.
 
 ## Features
 
--   Calculate and visualize inflation and contributions to inflation by
-    households categories
--   Simulate counterfactual price indices
+- Calculate and visualize inflation and contributions to inflation by households categories
+- Simulate counterfactual price indices
 
 ## Example
 

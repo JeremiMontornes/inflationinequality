@@ -1,5 +1,7 @@
 ---
-output: github_document
+output:
+  github_document:
+    pandoc_args: ["--wrap=none"]
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -26,8 +28,8 @@ knitr::opts_chunk$set(
 
 ## Features
 
-* Calculate and visualize inflation and contributions to inflation by households categories
-* Simulate counterfactual price indices
+- Calculate and visualize inflation and contributions to inflation by households categories
+- Simulate counterfactual price indices
 
 ## Example
 
