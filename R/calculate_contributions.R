@@ -73,6 +73,7 @@
 #' }
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate inflation contributions for France, income category, COICOP level 2, from 2010 to 2020
 #' france_contributions <- calculate_contributions("FR", "income", level = 2, start_year = 2010, end_year = 2020)
 #'
@@ -81,6 +82,7 @@
 #'
 #' # Sum contributions for a specific year, month, and category
 #' total_contribution <- dt_contributions[year == 2015 & month == 6 & category == "First quintile", sum(contribution)]
+#' }
 #'
 #' @seealso [load_cpi()], [calculate_weights()], [correct_cpi()] for CPI data
 #'   synthesization, [cpi()]

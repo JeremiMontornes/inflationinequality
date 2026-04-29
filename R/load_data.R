@@ -90,6 +90,9 @@ load_cpi <- function(country, level = 2,
     filters = list(freq = "M", geo = country, unit = "I15"),
     date.range = date_range
   )
+  start_period <- as.Date(paste0(date_range[1], "-01"))
+  end_period <- as.Date(paste0(date_range[2], "-01"))
+  dt_raw <- dt_raw[as.Date(paste0(time, "-01")) >= start_period & as.Date(paste0(time, "-01")) <= end_period]
 
   # Keep COICOP item codes only; the all-items aggregate is handled separately in dt_basket.
   dt <- dt_raw[
@@ -127,6 +130,7 @@ load_cpi <- function(country, level = 2,
       )
     }
   )
+  dt_basket_raw <- dt_basket_raw[as.Date(paste0(time, "-01")) >= start_period & as.Date(paste0(time, "-01")) <= end_period]
 
   dt_basket <- dt_basket_raw[, .(
     series_name = paste0(dataset_code, ".", unit, ".", coicop18, ".", geo),
@@ -144,7 +148,7 @@ resolve_hicp_cpi_dataset <- function() {
   available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
 
   for (code in candidates) {
-    if ("code" %in% names(available) && any(available[["code"]] %chin% code)) {
+    if ("code" %in% names(available) && any(available[["code"]] %in% code)) {
       return(code)
     }
   }
@@ -261,7 +265,7 @@ resolve_hicp_weights_dataset <- function() {
   candidates <- c("prc_hicp_iw", "prc_hicp_inw")
   available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
   for (code in candidates) {
-    if ("code" %in% names(available) && any(available[["code"]] %chin% code)) {
+    if ("code" %in% names(available) && any(available[["code"]] %in% code)) {
       return(code)
     }
   }
