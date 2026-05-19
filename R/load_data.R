@@ -143,8 +143,9 @@ load_cpi <- function(country, level = 2,
 }
 
 resolve_hicp_cpi_dataset <- function() {
-  # Prefer the current ecoicopv2 monthly index dataset, with fallback for compatibility.
-  candidates <- c("prc_hicp_minr", "prc_hicp_midx")
+  # Prefer the current ECOICOP v2 monthly index dataset, with fallbacks for
+  # backend naming differences and legacy compatibility.
+  candidates <- c("prc_hicp_mir", "prc_hicp_minr", "prc_hicp_midx")
   available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
 
   for (code in candidates) {
@@ -153,7 +154,7 @@ resolve_hicp_cpi_dataset <- function() {
     }
   }
 
-  stop("No available HICP CPI dataset found (tried: prc_hicp_minr, prc_hicp_midx).")
+  stop("No available HICP CPI dataset found (tried: prc_hicp_mir, prc_hicp_minr, prc_hicp_midx).")
 }
 
 #' Downloads annual index weights data
@@ -261,7 +262,7 @@ load_index_weights <- function(country, level = 2,
 }
 
 resolve_hicp_weights_dataset <- function() {
-  # Prefer the new ecoicopv2 dataset when available; fallback keeps backward compatibility.
+  # Prefer the ECOICOP v2 item weights dataset; fallback keeps legacy compatibility.
   candidates <- c("prc_hicp_iw", "prc_hicp_inw")
   available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
   for (code in candidates) {

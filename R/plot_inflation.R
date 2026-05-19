@@ -86,6 +86,7 @@ plot_time_series <- function(inflation) {
 #' @return A ggplot object representing the grouped bar chart of inflation rates.
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate inflation in France from 2020
 #' inflation_fr <- calculate_inflation("FR", "income", start_year = 2020)
 #'
@@ -94,6 +95,7 @@ plot_time_series <- function(inflation) {
 #'
 #' # Plot a grouped bar chart comparing 2020 inflation between France and Germany by income
 #' plot_grouped_bar(2020, inflation_fr, inflation_de)
+#' }
 #'
 #' @export
 plot_grouped_bar <- function(plot_year, ...) {
