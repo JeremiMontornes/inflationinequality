@@ -18,7 +18,7 @@
 
 The introduction vignette walks through the package methodology, core functions, and plotting helpers:
 
-- [Introduction to inflationinequality](docs/index.html)
+- [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
 
 After installing the package with vignettes, open it in R with:
 
