@@ -11,12 +11,13 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  eval = FALSE,
   warning = FALSE,
   message = FALSE
 )
 ```
 
-```{r setup}
+```{r setup, eval = TRUE}
 library(inflationinequality)
 options(rdbnomics.use_readLines = TRUE)
 ```

@@ -1,6 +1,6 @@
 ---
 title: "Introduction to inflationinequality"
-output: rmarkdown::html_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to inflationinequality}
   %\VignetteEngine{knitr::rmarkdown}
@@ -11,12 +11,13 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  eval = FALSE,
   warning = FALSE,
   message = FALSE
 )
 ```
 
-```{r setup, include = FALSE}
+```{r setup, include = FALSE, eval = TRUE}
 library(inflationinequality)
 options(rdbnomics.use_readLines = TRUE)
 ```

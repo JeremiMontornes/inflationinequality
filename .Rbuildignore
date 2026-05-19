@@ -4,3 +4,6 @@
 ^README\.Rmd$
 ^vignettes/articles$
 ^\.github$
+^presentation$
+^doc$
+^Meta$
