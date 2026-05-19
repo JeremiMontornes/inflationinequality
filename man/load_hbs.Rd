@@ -30,6 +30,7 @@ specified country.
 Eurostat only provides HBS data at level 1 and level 2 COICOP.
 }
 \examples{
+\dontrun{
 # Download French HBS data by income
 hbs <- load_hbs("FR", "income")
 
@@ -44,5 +45,6 @@ hbs <- load_hbs("ES", "income", level = 1, end_year = 2023)
 
 # Access the data.table component
 dt_hbs <- hbs$dt
+}
 
 }

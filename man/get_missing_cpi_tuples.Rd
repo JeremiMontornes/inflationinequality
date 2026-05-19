@@ -22,6 +22,7 @@ a \code{data.table} object with the following columns:
 does not have CPI data.
 }
 \examples{
+\dontrun{
 # Download CPI data from Eurostat
 cpi <- load_cpi("FR")
 
@@ -32,6 +33,7 @@ if (length(missing_data) > 0) {
   message("There is data missing in French CPI data!")
 } else {
   message("There is no data missing in French CPI data.")
+}
 }
 
 }

@@ -40,6 +40,7 @@ It's possible that some datasets do not contain all available COICOP codes on
 particular years.
 }
 \examples{
+\dontrun{
 # Download all available French CPI data
 cpi <- load_cpi("FR")
 
@@ -54,6 +55,7 @@ cpi <- load_cpi("ES", level = 1, end_year = 2023, end_month = 9)
 
 # Access the data.table component
 dt_cpi <- cpi$dt
+}
 
 }
 \seealso{

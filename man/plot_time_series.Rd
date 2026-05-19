@@ -28,10 +28,12 @@ rate on the y-axis.
 }
 }
 \examples{
+\dontrun{
 # Calculate inflation in France from 2020
 inflation <- calculate_inflation("FR", "income", start_year = 2020)
 
 # Plot the time series
 plot_time_series(inflation)
+}
 
 }

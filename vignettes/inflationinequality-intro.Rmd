@@ -28,7 +28,7 @@ This vignette introduces the fundamental features of the `inflationinequality` p
 
 ## What is the purpose of this package?
 
-Inflation is the general and prolonged increase of prices. Different demographic categories have different spending habits and as a result, some are more affected than inflation by others. This package provides methods that calculates and visualizes inflation and contribution to inflation by demographic category, using public data. Currently, the package only officially supports Euro area (EA-19) countries.
+Inflation is the general and prolonged increase in prices. Different demographic groups have different spending patterns and, as a result, some are more affected by inflation than others. This package provides methods to calculate and visualize inflation and contributions to inflation by demographic group, using public data. Currently, the package officially supports euro area countries.
 
 ## How is inflation calculated?
 
@@ -73,7 +73,7 @@ These operations are implemented in `calculate_weights()` and data is downloaded
 
 ### Contributions to inflation formula
 
-The CPI is chained index whose weightings change each year. We calculate the contributions using the following formula:
+The CPI is a chained index whose weights change each year. We calculate contributions using the following formula:
 
 $$
 \text{Contrib}^{y,m}_{j,\text{quintile}} = \frac{p^{y-1,12}}{p^{y-1,m}}\times w^{y-1}_{j,\text{quintile}} \times \bigg(\frac{p^{y,m}_j - p^{y-1,12}_j}{p^{y-1,12}_j} \bigg) + \frac{p^{y-2,12}}{p^{y-1,m}} \times w^{y-2}_{j,\text{quintile}} \times \bigg(\frac{p^{y-1,12}_j - p^{y-1,m}_j}{p^{y-2,12}_j} \bigg)
@@ -99,7 +99,7 @@ $$
 
 This formula is implemented in `calculate_inflation()`.
 
-By calculating the inflation by income quintile, we can calculate the inflation gap to measure inflation equalities:
+By calculating inflation by income quintile, we can calculate the inflation gap to measure inflation inequalities:
 
 $$
 InflationGap^{y,m} = Inflation^{y,m}_{quintile1} - Inflation^{y,m}_{quintile5}
@@ -225,7 +225,7 @@ cpi <- load_cpi("IT", start_year = 2019, start_month = 5, end_year = 2020, end_m
 head(cpi$dt)
 ```
 
-By default, the package will download the dataset the highest granularity of COICOP levels, which in this case is level 2. We can also choose to download only COICOP level 1.
+By default, the package downloads COICOP level 2 data. You can also choose to download only COICOP level 1.
 
 ```{r}
 cpi <- load_cpi("ES", level = 1)
@@ -234,7 +234,7 @@ head(cpi$dt)
 
 Note that `load_cpi()` does not include the index weights.
 
-If you want to download the CPI weights, then use `index_weights()`, for example
+If you want to download CPI weights, use `load_index_weights()`, for example:
 
 ```{r}
 index_weights <- load_index_weights("ES")

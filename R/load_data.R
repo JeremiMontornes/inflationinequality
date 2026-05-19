@@ -40,6 +40,7 @@ category_data <- list(
 #' @returns An object of class `"cpi"` (see [cpi()]).
 #'
 #' @examples
+#' \dontrun{
 #' # Download all available French CPI data
 #' cpi <- load_cpi("FR")
 #'
@@ -54,6 +55,7 @@ category_data <- list(
 #'
 #' # Access the data.table component
 #' dt_cpi <- cpi$dt
+#' }
 #'
 #' @seealso [cpi()]
 #'
@@ -174,6 +176,7 @@ resolve_hicp_cpi_dataset <- function() {
 #' @returns An object of class `"index_weights"`.
 #'
 #' @examples
+#' \dontrun{
 #' # Download all available French index weights data
 #' weights <- load_index_weights("FR")
 #'
@@ -185,6 +188,7 @@ resolve_hicp_cpi_dataset <- function() {
 #'
 #' # Download Spanish index weights data at COICOP level 1 up to 2023
 #' weights <- load_index_weights("ES", level = 1, end_year = 2023)
+#' }
 #'
 #' @seealso [index_weights()]
 #'
@@ -289,6 +293,7 @@ resolve_hicp_weights_dataset <- function() {
 #' @returns An object of class `"hbs"`.
 #'
 #' @examples
+#' \dontrun{
 #' # Download French HBS data by income
 #' hbs <- load_hbs("FR", "income")
 #'
@@ -303,6 +308,7 @@ resolve_hicp_weights_dataset <- function() {
 #'
 #' # Access the data.table component
 #' dt_hbs <- hbs$dt
+#' }
 #'
 #' @importFrom data.table :=
 #' @importFrom dplyr %>%

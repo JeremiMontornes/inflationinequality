@@ -202,6 +202,7 @@ cpi <- function(dt = data.table::data.table(),
 #' - `month`: month.
 #'
 #' @examples
+#' \dontrun{
 #' # Download CPI data from Eurostat
 #' cpi <- load_cpi("FR")
 #'
@@ -212,6 +213,7 @@ cpi <- function(dt = data.table::data.table(),
 #'   message("There is data missing in French CPI data!")
 #' } else {
 #'   message("There is no data missing in French CPI data.")
+#' }
 #' }
 #'
 #' @export

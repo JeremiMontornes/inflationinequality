@@ -31,6 +31,18 @@ knitr::opts_chunk$set(
 - Calculate and visualize inflation and contributions to inflation by households categories
 - Simulate counterfactual price indices
 
+## Vignettes
+
+The introduction vignette walks through the package methodology, core functions, and plotting helpers:
+
+- [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
+
+After installing the package with vignettes, open it in R with:
+
+```{r, eval = FALSE}
+vignette("inflationinequality-intro", package = "inflationinequality")
+```
+
 ## Example
 
 Let us visualize inflation inequality across income quintiles in Italy since 2019.

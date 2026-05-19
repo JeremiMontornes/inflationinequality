@@ -18,11 +18,13 @@
 #' @returns A ggplot object representing the time series of inflation rates.
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate inflation in France from 2020
 #' inflation <- calculate_inflation("FR", "income", start_year = 2020)
 #'
 #' # Plot the time series
 #' plot_time_series(inflation)
+#' }
 #'
 #' @export
 plot_time_series <- function(inflation) {
@@ -195,11 +197,13 @@ generate_coicop_mapping <- function(category_mapping) {
 #'   gaps.
 #'
 #' @examples
+#' \dontrun{
 #' # Calculate contribution to inflation in Spain at COICOP level 2 from 2019
 #' contributions <- calculate_contributions("ES", "income", level = 2, start_year = 2019)
 #'
 #' # Plot the contribution to inflation gap
 #' plot_contribution_gap(contributions)
+#' }
 #'
 #' @export
 plot_contribution_gap <- function(contributions, category_mapping = NULL) {
@@ -292,12 +296,14 @@ plot_contribution_gap <- function(contributions, category_mapping = NULL) {
 #'   multiple countries.
 #'
 #' @examples
+#' \dontrun{
 #' # Assuming you have inflation data for Spain (ES) and France (FR)
 #' es_inflation <- calculate_inflation("ES", "income", level = 2, start_year = 2019)
 #' fr_inflation <- calculate_inflation("FR", "income", level = 2, start_year = 2019)
 #'
 #' # Plot the inflation gap for both countries
 #' plot_inflation_gap(es_inflation, fr_inflation)
+#' }
 #'
 #' @export
 plot_inflation_gap <- function(...) {

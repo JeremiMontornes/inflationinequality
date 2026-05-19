@@ -31,7 +31,9 @@ years in the original data, for each group (coicop or coicop+category).
 }
 }
 \examples{
+\dontrun{
 my_hbs <- load_hbs("FR", "income", start_year = 2005)
 interpolated_hbs <- interpolate_hbs(my_hbs)
+}
 
 }

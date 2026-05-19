@@ -26,6 +26,7 @@ HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a
 specified country.
 }
 \examples{
+\dontrun{
 # Download all available French index weights data
 weights <- load_index_weights("FR")
 
@@ -37,6 +38,7 @@ weights <- load_index_weights("IT", level = 1, start_year = 2020, end_year = 202
 
 # Download Spanish index weights data at COICOP level 1 up to 2023
 weights <- load_index_weights("ES", level = 1, end_year = 2023)
+}
 
 }
 \seealso{

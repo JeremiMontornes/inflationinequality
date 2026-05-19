@@ -1,10 +1,11 @@
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # inflationinequality
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml)
-<!-- badges: end -->
+
+[![R-CMD-check](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml) <!-- badges: end -->
 
 `inflationinequality` provides methods to calculate and visualize inflation inequality indicators.
 
@@ -12,6 +13,18 @@
 
 - Calculate and visualize inflation and contributions to inflation by households categories
 - Simulate counterfactual price indices
+
+## Vignettes
+
+The introduction vignette walks through the package methodology, core functions, and plotting helpers:
+
+- [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
+
+After installing the package with vignettes, open it in R with:
+
+``` r
+vignette("inflationinequality-intro", package = "inflationinequality")
+```
 
 ## Example
 

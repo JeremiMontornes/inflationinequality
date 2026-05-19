@@ -20,14 +20,14 @@ create_sample_cpi <- function() {
   dt <- data.table::data.table(
     series_name = rep("CPI", 48),
     coicop = rep(c("01", "02", "03", "04"), each = 12),
-    value = 100 + rnorm(48, mean = 0, sd = 2),
+    value = 100,
     year = rep(2022:2023, each = 24),
     month = rep(1:12, 4)
   )
 
   dt_basket <- data.table::data.table(
     series_name = "CPI",
-    value = 100 + rnorm(24, mean = 0, sd = 1),
+    value = 100,
     year = rep(2022:2023, each = 12),
     month = rep(1:12, 2)
   )

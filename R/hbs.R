@@ -225,8 +225,10 @@ hbs <- function(dt = data.table::data.table(), dt_total = data.table::data.table
 #' - In `dt_total`, the 'consumption' column is renamed to 'total_consumption' for clarity.
 #'
 #' @examples
+#' \dontrun{
 #' my_hbs <- load_hbs("FR", "income", start_year = 2005)
 #' interpolated_hbs <- interpolate_hbs(my_hbs)
+#' }
 #'
 #' @export
 interpolate_hbs <- function(hbs) {

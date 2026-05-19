@@ -32,11 +32,13 @@ y-axis, with different colors for each country.
 }
 }
 \examples{
+\dontrun{
 # Assuming you have inflation data for Spain (ES) and France (FR)
 es_inflation <- calculate_inflation("ES", "income", level = 2, start_year = 2019)
 fr_inflation <- calculate_inflation("FR", "income", level = 2, start_year = 2019)
 
 # Plot the inflation gap for both countries
 plot_inflation_gap(es_inflation, fr_inflation)
+}
 
 }

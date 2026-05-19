@@ -28,7 +28,7 @@ This vignette introduces methods to include your own data.
 
 ## Downloading data from Eurostat
 
-Using DBnomics, we download CPI and HBS data from any country in the Eurozone and compare with those of another, due to having standardized definitions of categories, etc.
+Using DBnomics, we can download CPI and HBS data from euro area countries and compare countries because the categories are standardized.
 
 However, Eurostat  only provides 2-digit COICOP HBS data. For some countries (France, Italy, etc.), instead of using the data published by Eurostat, data published directly by national statistical institutes can be used like France's INSEE or Italy's Istat.
 
@@ -85,7 +85,7 @@ In addition, the COICOP codes are written in the series name (identifier) or "Li
 The dataset is structured in a *wide* format, rather than the *long* format preferred by our package.
 In wide format, each date is assigned its own column, excluding other identifiers such as the COICOP code.
 This structure is less conducive to efficient data analysis compared to the long format.
-We will write the code will clean the dataset into a format that is readable for our package.
+We will write code to clean the dataset into a format that is readable by the package.
 
 We'll also filter for level 2 COICOP codes, that is 3-digit COICOP.
 
@@ -164,7 +164,7 @@ We can select the CPI of the product basket from a label.
 ```{r}
 INSEE_CPI_dt_basket <- INSEE_CPI_monthly_values %>%
   .[`Libellé` == "Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Ensemble", ] %>%
-  # For some stupid reason, INSEE's CSV file has two data series for the same thing.
+  # INSEE's CSV file has two data series for the same aggregate.
   .[1]
 ```
 
@@ -240,7 +240,7 @@ INSEE_CPI_index_weights_level3 <-
 
 #### Loading HBS data from a XLSX spreadsheet
 
-We can also similarily format HBS data from a XLSX spreadsheet.
+We can also format HBS data from an XLSX spreadsheet.
 
 ```{r}
 # Select the file path of the spreadsheet

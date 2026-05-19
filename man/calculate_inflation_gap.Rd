@@ -32,6 +32,7 @@ The function performs the following key operations:
 }
 }
 \examples{
+\dontrun{
 # Calculate inflation rates for France, income category from 2010 to 2020
 france_inflation <- calculate_inflation("FR", "income", start_year = 2010, end_year = 2020)
 
@@ -40,6 +41,7 @@ inflation_gap <- calculate_inflation_gap(france_inflation)
 
 # Get the inflation gap for a specific year and month
 specific_gap <- inflation_gap[year == 2015 & month == 6, inflation_gap]
+}
 
 }
 \seealso{
