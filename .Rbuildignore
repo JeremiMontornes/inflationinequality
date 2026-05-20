@@ -6,4 +6,6 @@
 ^\.github$
 ^presentation$
 ^doc$
+^docs$
 ^Meta$
+^scripts$
