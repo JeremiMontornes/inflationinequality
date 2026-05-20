@@ -1,7 +1,7 @@
 ---
 output:
   github_document:
-    pandoc_args: ["--wrap=none"]
+    pandoc_args: ["--wrap=none", "--from=markdown-smart"]
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -51,4 +51,15 @@ Let us visualize inflation inequality across income quintiles in Italy since 201
 library(inflationinequality)
 inflation <- calculate_inflation("IT", "income", start_year = 2019)
 plot_time_series(inflation)
+```
+
+## Methodological metadata
+
+The table below summarises the main methodological choices currently made by the package and identifies which choices users can override. It is intended as a living reference for handling country-specific cases.
+
+```{r methodology-metadata, echo = FALSE}
+load("data/methodology_metadata.rda")
+methodology_metadata |>
+  dplyr::select(topic, package_default, user_parameter, user_can_change, notes) |>
+  knitr::kable(row.names = FALSE)
 ```
