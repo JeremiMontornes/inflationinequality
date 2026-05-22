@@ -5,7 +5,8 @@ bridge <- build_coicop_bridge(
   category = "income",
   level = 2,
   start_year = 2010,
-  end_year = 2026
+  end_year = 2026,
+  recode_ecoicop2_to_ecoicop1 = TRUE
 )
 
 out <- "docs/france_coicop_hicp_hbs_bridge_income_level2_2010_2026.html"

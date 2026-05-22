@@ -13,7 +13,8 @@ build_coicop_bridge(
   custom_index_weights = NULL,
   custom_hbs = NULL,
   interpolated_hbs = FALSE,
-  specific_hbs_year = NULL
+  specific_hbs_year = NULL,
+  recode_ecoicop2_to_ecoicop1 = FALSE
 )
 }
 \arguments{
@@ -41,6 +42,10 @@ level 1 and "012" is level 2. Default value is 2.}
 
 \item{specific_hbs_year}{year of selected HBS wave. It's recommended to
 download HBS data first to see what HBS years are available.}
+
+\item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
+weight codes back to ECOICOP v1-style codes before matching them to HBS
+codes, using the same retro-passage as \code{\link[=calculate_price_indices]{calculate_price_indices()}}.}
 }
 \value{
 A \code{data.table} with one row per HICP COICOP, category, and HICP

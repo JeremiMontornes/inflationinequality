@@ -186,6 +186,10 @@ compare_to_official_hicp <- function(inflation, country = NULL, custom_cpi = NUL
       legend.text = ggplot2::element_text(size = 12)
     )
 
+  if (measure == "level") {
+    p <- p + ggplot2::coord_cartesian(ylim = c(95, NA))
+  }
+
   structure(
     list(
       dt = comparison_dt,

@@ -6,6 +6,9 @@
 #' category weights.
 #'
 #' @inheritParams calculate_weights
+#' @param recode_ecoicop2_to_ecoicop1 whether to map ECOICOP v2 HICP item
+#'   weight codes back to ECOICOP v1-style codes before matching them to HBS
+#'   codes, using the same retro-passage as [calculate_price_indices()].
 #'
 #' @returns A `data.table` with one row per HICP COICOP, category, and HICP
 #' weight year. It includes the HICP code, the HBS code used by
@@ -23,15 +26,17 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
                                 custom_index_weights = NULL,
                                 custom_hbs = NULL,
                                 interpolated_hbs = FALSE,
-                                specific_hbs_year = NULL) {
+                                specific_hbs_year = NULL,
+                                recode_ecoicop2_to_ecoicop1 = FALSE) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
+  hicp_level <- if (recode_ecoicop2_to_ecoicop1) min(level + 1, 3) else level
 
   inputs <- load_coicop_bridge_inputs(
     country = country,
     category = category,
-    level = level,
+    level = hicp_level,
     start_year = start_year,
     end_year = end_year,
     custom_index_weights = custom_index_weights,
@@ -43,6 +48,9 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
   index_weights <- inputs$index_weights
   hbs <- inputs$hbs
   specific_hbs_year <- inputs$specific_hbs_year
+  if (recode_ecoicop2_to_ecoicop1) {
+    index_weights <- recode_index_weights_ecoicop2_to_ecoicop1(index_weights, target_level = level)
+  }
   country_value <- country %||local% index_weights$country %||local% hbs$country
   category_type_value <- category %||local% hbs$category
 
