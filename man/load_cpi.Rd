@@ -33,7 +33,7 @@ An object of class \code{"cpi"} (see \code{\link[=cpi]{cpi()}}).
 }
 \description{
 \code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised
-Indices of Consumer Prices) database via DBnomics from a specified country.
+Indices of Consumer Prices) database from a specified country.
 }
 \details{
 It's possible that some datasets do not contain all available COICOP codes on

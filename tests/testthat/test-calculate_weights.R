@@ -77,6 +77,15 @@ test_that("calculate_weights normalizes weights correctly", {
   expect_true(all(abs(weight_sums$total_weight - 100) < 1e-6))
 })
 
+test_that("calculate_weights uses Italy 2010 Eurostat income HBS when available", {
+  local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
+  local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
+
+  result <- calculate_weights("IT", "income")
+
+  expect_equal(unique(result$dt$year), 2010)
+})
+
 # test_that("calculate_weights handles zero values correctly", {
 #   local_mocked_bindings(load_index_weights = function(...) {
 #     index_weights <- mock_load_index_weights(...)

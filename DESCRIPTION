@@ -15,12 +15,14 @@ Description: An R package that can calculate inflation inequality indicators in
 License: MIT + file LICENSE
 Imports:
     data.table,
+    hicp,
     rdbnomics,
     dplyr,
     stringr,
     lubridate,
     progress,
-    ggplot2
+    ggplot2,
+    jsonlite
 Encoding: UTF-8
 Suggests: 
     knitr,

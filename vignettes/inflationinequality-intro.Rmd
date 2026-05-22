@@ -225,7 +225,7 @@ cpi <- load_cpi("IT", start_year = 2019, start_month = 5, end_year = 2020, end_m
 head(cpi$dt)
 ```
 
-By default, the package downloads COICOP level 2 data. You can also choose to download only COICOP level 1.
+By default, the package downloads COICOP level 2 data, corresponding to 3-digit COICOP codes. You can also choose to download only COICOP level 1.
 
 ```{r}
 cpi <- load_cpi("ES", level = 1)

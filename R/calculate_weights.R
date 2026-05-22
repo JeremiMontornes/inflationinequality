@@ -13,6 +13,7 @@
 #' * For each CPI weight year, the function selects HBS data from the most recent prior wave.
 #' * Example: CPI weights from 2015-2019 are merged with the 2015 HBS wave; 2020 CPI weights with the 2020 HBS wave.
 #' * For countries with limited HBS data (e.g., France's earliest wave is 2005), all earlier CPI data points use the earliest available HBS wave.
+#' * For Italy income groups, if the Eurostat 2010 HBS wave is available, it is used for all CPI weight years by default.
 #'
 #' Data handling:
 #' * COICOP codes present in CPI data but absent in HBS data are included with minimal consumption values (1e-6) to avoid data loss.
@@ -41,6 +42,8 @@
 #'   components:
 #' - `dt`: a `data.table` object (see below).
 #' - `dt_coverage`: a `data.table` object (see below).
+#' - `dt_coicop_bridge`: a `data.table` showing the HICP-to-HBS COICOP mapping
+#' used in the calculation.
 #' - `country`: 2-digit country code (see ISO 3166-1 alpha-2).
 #' - `category`: HBS category: `"income"`, `"age"`, or `"urban"`.
 #' - `categories`: (Ordered) vector of category types, from lowest to highest.
@@ -85,6 +88,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               custom_hbs = NULL,
                               interpolated_hbs = FALSE,
                               specific_hbs_year = NULL) {
+  if (!is.null(country)) {
+    country <- toupper(country)
+  }
+
   # Load index weights
   index_weights <- if (is.null(custom_index_weights)) {
     if (is.null(country)) {
@@ -102,7 +109,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     }
 
     if (!is.null(end_year)) {
-      if (end_year > custom_index_weights$start_year) {
+      if (end_year > custom_index_weights$end_year) {
         stop(paste0("Not enough CPI weight data. Earliest possible end year: ", end_year))
       }
     }
@@ -127,7 +134,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     }
 
     if (!is.null(end_year)) {
-      if (end_year > custom_hbs$start_year) {
+      if (end_year > custom_hbs$end_year) {
         stop(paste0("Not enough HBS weight data. Earliest possible end year: ", end_year))
       }
     }
@@ -139,9 +146,26 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     custom_hbs
   }
 
+  if (is.null(custom_hbs) &&
+      is.null(specific_hbs_year) &&
+      identical(country, "IT") &&
+      identical(category, "income") &&
+      2010 %in% hbs$dt[, unique(year)]) {
+    specific_hbs_year <- 2010
+  }
+
   if (interpolated_hbs) {
     hbs <- interpolate_hbs(hbs)
   }
+
+  dt_coicop_bridge <- build_coicop_bridge(
+    country = country,
+    category = category,
+    level = level,
+    custom_index_weights = index_weights,
+    custom_hbs = hbs,
+    specific_hbs_year = specific_hbs_year
+  )
 
   dt_weighted_consumption <-
     merge_index_and_hbs(index_weights, hbs, specific_hbs_year)
@@ -231,6 +255,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
 
   return(structure(list(dt = dt_weighted_consumption,
                         dt_coverage = dt_avg,
+                        dt_coicop_bridge = dt_coicop_bridge,
                         country = country,
                         category = category,
                         categories = hbs$categories,

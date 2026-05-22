@@ -48,6 +48,8 @@ components:
 \itemize{
 \item \code{dt}: a \code{data.table} object (see below).
 \item \code{dt_coverage}: a \code{data.table} object (see below).
+\item \code{dt_coicop_bridge}: a \code{data.table} showing the HICP-to-HBS COICOP mapping
+used in the calculation.
 \item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
 \item \code{category}: HBS category: \code{"income"}, \code{"age"}, or \code{"urban"}.
 \item \code{categories}: (Ordered) vector of category types, from lowest to highest.
@@ -89,6 +91,7 @@ Merging logic:
 \item For each CPI weight year, the function selects HBS data from the most recent prior wave.
 \item Example: CPI weights from 2015-2019 are merged with the 2015 HBS wave; 2020 CPI weights with the 2020 HBS wave.
 \item For countries with limited HBS data (e.g., France's earliest wave is 2005), all earlier CPI data points use the earliest available HBS wave.
+\item For Italy income groups, if the Eurostat 2010 HBS wave is available, it is used for all CPI weight years by default.
 }
 
 Data handling:

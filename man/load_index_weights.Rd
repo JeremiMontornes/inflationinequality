@@ -22,7 +22,7 @@ An object of class \code{"index_weights"}.
 }
 \description{
 \code{load_index_weights()} downloads annual index weights data from Eurostat's
-HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a
+HICP (Harmonised Indices of Consumer Prices) database from a
 specified country.
 }
 \examples{

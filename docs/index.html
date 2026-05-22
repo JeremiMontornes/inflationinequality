@@ -2976,8 +2976,9 @@ head(cpi$dt)</code></pre>
 <p>You can also choose the month since CPI data is released monthly:</p>
 <pre class="r"><code>cpi &lt;- load_cpi(&quot;IT&quot;, start_year = 2019, start_month = 5, end_year = 2020, end_month = 3)
 head(cpi$dt)</code></pre>
-<p>By default, the package downloads COICOP level 2 data. You can also
-choose to download only COICOP level 1.</p>
+<p>By default, the package downloads COICOP level 2 data, corresponding
+to 3-digit COICOP codes. You can also choose to download only COICOP
+level 1.</p>
 <pre class="r"><code>cpi &lt;- load_cpi(&quot;ES&quot;, level = 1)
 head(cpi$dt)</code></pre>
 <p>Note that <code>load_cpi()</code> does not include the index

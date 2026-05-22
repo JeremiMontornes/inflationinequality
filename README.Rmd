@@ -54,13 +54,18 @@ inflation <- calculate_inflation("IT", "income", start_year = 2019)
 plot_time_series(inflation)
 ```
 
+Source: Eurostat and national statistical institutes, HICP-HBS. Note: year-on-year change
+
 ## Methodological metadata
 
 The table below summarises the main methodological choices currently made by the package and identifies which choices users can override. It is intended as a living reference for handling country-specific cases.
 
-```{r methodology-metadata, echo = FALSE}
+```{r methodology-metadata, echo = FALSE, results = "asis"}
 load("data/methodology_metadata.rda")
+cat("<small>\n")
 methodology_metadata |>
   dplyr::select(topic, package_default, user_parameter, user_can_change, notes) |>
-  knitr::kable(row.names = FALSE)
+  knitr::kable(format = "html", row.names = FALSE) |>
+  print()
+cat("\n</small>\n")
 ```

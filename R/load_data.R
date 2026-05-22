@@ -27,7 +27,7 @@ category_data <- list(
 #'
 #' @description
 #' `load_cpi()` downloads monthly CPI data from Eurostat's HICP (Harmonised
-#' Indices of Consumer Prices) database via DBnomics from a specified country.
+#' Indices of Consumer Prices) database from a specified country.
 #'
 #' @inheritParams load_index_weights
 #' @param start_month month of start date.
@@ -86,8 +86,9 @@ load_cpi <- function(country, level = 2,
     format(as.Date(dates$end_date), "%Y-%m")
   )
 
-  # Download dataset from Eurostat via hicp package
-  dt_raw <- hicp::data(
+  # Download dataset from Eurostat via hicp package, falling back to the
+  # official JSON API when the package cannot resolve the latest dataset.
+  dt_raw <- download_hicp_dataset(
     id = dataset_code,
     filters = list(freq = "M", geo = country, unit = "I15"),
     date.range = date_range
@@ -96,12 +97,17 @@ load_cpi <- function(country, level = 2,
   end_period <- as.Date(paste0(date_range[2], "-01"))
   dt_raw <- dt_raw[as.Date(paste0(time, "-01")) >= start_period & as.Date(paste0(time, "-01")) <= end_period]
 
+  coicop_col <- if ("coicop18" %in% names(dt_raw)) "coicop18" else "coicop"
+  if (!(coicop_col %in% names(dt_raw))) {
+    stop(sprintf("No COICOP column found in dataset '%s'.", dataset_code))
+  }
+
   # Keep COICOP item codes only; the all-items aggregate is handled separately in dt_basket.
   dt <- dt_raw[
-    grepl("^CP\\d+$", coicop18),
+    grepl("^CP\\d+$", get(coicop_col)),
     .(
-      series_name = paste0(dataset_code, ".", unit, ".", coicop18, ".", geo),
-      coicop = coicop18,
+      series_name = paste0(dataset_code, ".", unit, ".", get(coicop_col), ".", geo),
+      coicop = get(coicop_col),
       value = values,
       period = as.Date(paste0(time, "-01"))
     )
@@ -118,24 +124,27 @@ load_cpi <- function(country, level = 2,
   # Download price basket (all-items aggregate)
   # New ECOICOPv2 datasets may expose the all-items aggregate as "TOTAL"
   # instead of legacy "AP". Try TOTAL first, then fallback to AP.
-  dt_basket_raw <- tryCatch(
-    hicp::data(
-      id = dataset_code,
-      filters = list(freq = "M", geo = country, unit = "I15", coicop18 = "TOTAL"),
-      date.range = date_range
-    ),
-    error = function(e) {
-      hicp::data(
-        id = dataset_code,
-        filters = list(freq = "M", geo = country, unit = "I15", coicop18 = "AP"),
-        date.range = date_range
-      )
-    }
+  dt_basket_raw <- download_hicp_dataset(
+    id = dataset_code,
+    filters = list(freq = "M", geo = country, unit = "I15", coicop18 = "TOTAL"),
+    date.range = date_range
   )
+  if (nrow(dt_basket_raw) == 0) {
+    dt_basket_raw <- download_hicp_dataset(
+      id = dataset_code,
+      filters = list(freq = "M", geo = country, unit = "I15", coicop18 = "AP"),
+      date.range = date_range
+    )
+  }
   dt_basket_raw <- dt_basket_raw[as.Date(paste0(time, "-01")) >= start_period & as.Date(paste0(time, "-01")) <= end_period]
 
+  coicop_col_basket <- if ("coicop18" %in% names(dt_basket_raw)) "coicop18" else "coicop"
+  if (!(coicop_col_basket %in% names(dt_basket_raw))) {
+    stop(sprintf("No COICOP column found in basket dataset '%s'.", dataset_code))
+  }
+
   dt_basket <- dt_basket_raw[, .(
-    series_name = paste0(dataset_code, ".", unit, ".", coicop18, ".", geo),
+    series_name = paste0(dataset_code, ".", unit, ".", get(coicop_col_basket), ".", geo),
     value = values,
     year = as.integer(substr(time, 1, 4)),
     month = as.integer(substr(time, 6, 7))
@@ -147,7 +156,7 @@ load_cpi <- function(country, level = 2,
 resolve_hicp_cpi_dataset <- function() {
   # Prefer the current ECOICOP v2 monthly index dataset, with fallbacks for
   # backend naming differences and legacy compatibility.
-  candidates <- c("prc_hicp_mir", "prc_hicp_minr", "prc_hicp_midx")
+  candidates <- c("prc_hicp_minr", "prc_hicp_mir", "prc_hicp_midx")
   available <- tryCatch(hicp::datasets(), error = function(e) data.table::data.table())
 
   for (code in candidates) {
@@ -156,14 +165,129 @@ resolve_hicp_cpi_dataset <- function() {
     }
   }
 
-  stop("No available HICP CPI dataset found (tried: prc_hicp_mir, prc_hicp_minr, prc_hicp_midx).")
+  "prc_hicp_minr"
+}
+
+download_hicp_dataset <- function(id, filters = list(), date.range = NULL) {
+  dt_raw <- tryCatch(
+    hicp::data(id = id, filters = filters, date.range = date.range),
+    error = function(e) NULL
+  )
+
+  dt_raw <- if (is.null(dt_raw)) {
+    data.table::data.table()
+  } else {
+    data.table::as.data.table(dt_raw)
+  }
+  if (nrow(dt_raw) == 0 || !all(c("time", "values") %in% names(dt_raw))) {
+    dt_raw <- eurostat_json_data(id, filters = filters, date.range = date.range)
+  }
+
+  data.table::as.data.table(dt_raw)
+}
+
+eurostat_json_data <- function(id, filters = list(), date.range = NULL) {
+  base_url <- sprintf(
+    "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/%s",
+    id
+  )
+  query <- eurostat_query(filters, date.range)
+  url <- paste0(base_url, "?", query)
+  payload <- jsonlite::fromJSON(url, simplifyVector = FALSE)
+  eurostat_json_to_dt(payload)
+}
+
+eurostat_query <- function(filters = list(), date.range = NULL) {
+  query_parts <- c("lang=en")
+
+  for (filter_name in names(filters)) {
+    filter_values <- filters[[filter_name]]
+    for (filter_value in filter_values) {
+      query_parts <- c(
+        query_parts,
+        paste0(
+          utils::URLencode(filter_name, reserved = TRUE),
+          "=",
+          utils::URLencode(as.character(filter_value), reserved = TRUE)
+        )
+      )
+    }
+  }
+
+  if (!is.null(date.range)) {
+    if (!is.na(date.range[1]) && date.range[1] != "0001-01") {
+      query_parts <- c(
+        query_parts,
+        paste0("sinceTimePeriod=", utils::URLencode(date.range[1], reserved = TRUE))
+      )
+    }
+    if (!is.na(date.range[2])) {
+      query_parts <- c(
+        query_parts,
+        paste0("untilTimePeriod=", utils::URLencode(date.range[2], reserved = TRUE))
+      )
+    }
+  }
+
+  paste(query_parts, collapse = "&")
+}
+
+eurostat_json_to_dt <- function(payload) {
+  dim_ids <- unlist(payload$id, use.names = FALSE)
+  dim_sizes <- as.integer(unlist(payload$size, use.names = FALSE))
+  empty <- function() {
+    dt <- data.table::data.table(values = numeric())
+    for (dim_id in rev(dim_ids)) {
+      dt[, (dim_id) := character()]
+      data.table::setcolorder(dt, c(dim_id, setdiff(names(dt), dim_id)))
+    }
+    dt
+  }
+
+  if (length(dim_ids) == 0 || length(payload$value) == 0) {
+    return(empty())
+  }
+
+  dim_values <- lapply(dim_ids, function(dim_id) {
+    index <- unlist(payload$dimension[[dim_id]]$category$index)
+    names(index)[order(as.integer(index))]
+  })
+
+  flat_indexes <- names(payload$value)
+  if (is.null(flat_indexes)) {
+    flat_indexes <- as.character(seq_along(payload$value) - 1L)
+  }
+  flat_indexes <- as.integer(flat_indexes)
+  value_vector <- as.numeric(unlist(payload$value, use.names = FALSE))
+
+  rows <- vector("list", length(dim_ids))
+  names(rows) <- dim_ids
+  for (i in seq_along(rows)) {
+    rows[[i]] <- character(length(flat_indexes))
+  }
+
+  for (row_index in seq_along(flat_indexes)) {
+    remainder <- flat_indexes[row_index]
+    coordinates <- integer(length(dim_sizes))
+    for (dim_index in rev(seq_along(dim_sizes))) {
+      coordinates[dim_index] <- remainder %% dim_sizes[dim_index]
+      remainder <- remainder %/% dim_sizes[dim_index]
+    }
+    for (dim_index in seq_along(dim_ids)) {
+      rows[[dim_index]][row_index] <- dim_values[[dim_index]][coordinates[dim_index] + 1L]
+    }
+  }
+
+  dt <- data.table::as.data.table(rows)
+  dt[, values := value_vector]
+  dt
 }
 
 #' Downloads annual index weights data
 #'
 #' @description
 #' `load_index_weights()` downloads annual index weights data from Eurostat's
-#' HICP (Harmonised Indices of Consumer Prices) database via DBnomics from a
+#' HICP (Harmonised Indices of Consumer Prices) database from a
 #' specified country.
 #'
 #' @param country 2-digit country code (see ISO 3166-1 alpha-2), only one
@@ -217,7 +341,7 @@ load_index_weights <- function(country, level = 2,
   date_end_year <- as.integer(substr(dates$end_date, 1, 4))
 
   # Download annual weights directly from Eurostat via hicp package.
-  dt_raw <- hicp::data(
+  dt_raw <- download_hicp_dataset(
     id = dataset_code,
     filters = list(geo = country)
   )
@@ -275,7 +399,7 @@ resolve_hicp_weights_dataset <- function() {
     }
   }
 
-  stop("No available HICP weights dataset found (tried: prc_hicp_iw, prc_hicp_inw).")
+  "prc_hicp_iw"
 }
 
 #' Downloads HBS (Household Budget Survey) data
