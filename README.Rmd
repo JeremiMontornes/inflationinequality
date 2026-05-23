@@ -37,6 +37,7 @@ The introduction vignette walks through the package methodology, core functions,
 
 - [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
 - [Online introduction page](https://jeremimontornes.github.io/inflationinequality/)
+- [Versioning and release rules](VERSIONING.md)
 
 After installing the package with vignettes, open it in R with:
 
