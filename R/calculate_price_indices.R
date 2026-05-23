@@ -14,6 +14,12 @@
 #' @param recode_ecoicop2_to_ecoicop1 whether to map ECOICOP v2 HICP item
 #'   codes back to ECOICOP v1-style codes before matching them to HBS weights.
 #'
+#' @section France level 3:
+#' For France income groups, `level = 3` automatically uses the bundled INSEE
+#' 2017 HBS level-3 data when `custom_hbs` is not supplied. Eurostat public HBS
+#' data are generally not available at this granularity, so the national HBS
+#' source is required for a genuine 4-digit COICOP calculation.
+#'
 #' @returns An object of class `"price_indices"` containing:
 #' - `dt`: a `data.table` with columns `year`, `month`, `date`, `category`,
 #'   `laspeyres`, `chain_laspeyres`, `price_index`, and `annual_rate`.
@@ -54,6 +60,14 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
   }
   if (is.null(category) && is.null(custom_hbs)) {
     stop("Either 'category' or 'custom_hbs' must be provided.")
+  }
+
+  if (!is.null(country)) {
+    country <- toupper(country)
+  }
+
+  if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
+    custom_hbs <- load_france_insee_hbs_level3()
   }
 
   data_start_year <- if (!is.null(start_year)) start_year - 1 else NULL
@@ -214,6 +228,34 @@ rebase_or_first_available <- function(x, t, t.ref) {
     rebased <- x / first_value * 100
   }
   rebased
+}
+
+use_france_insee_level3_hbs <- function(country, category, level, custom_hbs) {
+  is.null(custom_hbs) &&
+    identical(country, "FR") &&
+    identical(category, "income") &&
+    identical(as.numeric(level), 3)
+}
+
+load_france_insee_hbs_level3 <- function() {
+  file_name <- "INSEE_HBS_2017_level3.RDS"
+  path <- system.file("extdata", file_name, package = "inflationinequality", mustWork = FALSE)
+
+  if (!nzchar(path)) {
+    source_path <- file.path("inst", "extdata", file_name)
+    vignette_path <- file.path("vignettes", "articles", file_name)
+    path <- if (file.exists(source_path)) source_path else vignette_path
+  }
+
+  if (!file.exists(path)) {
+    stop(
+      "France level 3 income indices require the bundled INSEE HBS file '",
+      file_name,
+      "', but it could not be found. Provide 'custom_hbs' explicitly."
+    )
+  }
+
+  readRDS(path)
 }
 
 recode_cpi_ecoicop2_to_ecoicop1 <- function(cpi_obj, target_level) {

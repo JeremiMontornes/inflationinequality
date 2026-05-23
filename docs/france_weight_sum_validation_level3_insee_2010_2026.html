@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Validation des poids France niveau 3</title>
+<style>:root{color-scheme:light;--ink:#202124;--muted:#5f6368;--line:#dfe3e8;--ok-bg:#e8f5eb;--ok:#146c2e;--ko-bg:#ffe5e5;--ko:#9b1c1c;--soft:#f6f7f9}body{font-family:Arial,sans-serif;margin:0;color:var(--ink);background:#fff}main{max-width:1180px;margin:0 auto;padding:28px 32px 40px}h1{font-size:28px;line-height:1.15;margin:0 0 8px}h2{font-size:18px;margin:28px 0 10px}.meta{color:var(--muted);font-size:14px;line-height:1.45;max-width:900px;margin:0 0 20px}.cards{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;margin:18px 0 22px}.card{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:#fff}.card.ok{background:var(--ok-bg);border-color:#b8dfc1}.card.ko{background:var(--ko-bg);border-color:#ffc2c2}.card-label{font-size:12px;text-transform:uppercase;color:var(--muted);letter-spacing:.03em;margin-bottom:7px}.card-value{font-size:24px;font-weight:700}.card-detail{font-size:12px;color:var(--muted);margin-top:5px}.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700;line-height:1}.badge.ok{background:#d7f0de;color:var(--ok)}.badge.ko{background:#ffd6d6;color:var(--ko)}.note{background:var(--soft);border-left:4px solid #adb5bd;padding:11px 14px;font-size:13px;color:#3c4043;margin:12px 0 20px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;margin:10px 0 26px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f1f3f4;font-weight:700}tbody tr:last-child td{border-bottom:0}tr:nth-child(even){background:#fbfbfc}tr.ok td:last-child{color:var(--ok);font-weight:700}tr.ko td:last-child{color:var(--ko);font-weight:700}@media(max-width:760px){main{padding:22px 16px}.cards{grid-template-columns:1fr 1fr}th,td{white-space:normal}}</style>
+</head>
+<body>
+<main>
+<h1>Validation de la somme des poids</h1>
+<p class="meta">Controle des poids produits par <code>calculate_weights()</code> pour la France, groupes de revenu, niveau 3, 2010-2026. Les poids sont stockes en points de pourcentage dans le package; le rapport les divise par 100 et verifie que leur somme vaut 1.</p>
+<div class="cards"><div class="card ok"><div class="card-label">Resultat global</div><div class="card-value"><span class="badge ok">OK</span></div></div><div class="card "><div class="card-label">Tests</div><div class="card-value">170</div><div class="card-detail">170 ok / 0 ko</div></div><div class="card "><div class="card-label">Ecart max a 1</div><div class="card-value">2.22045e-16</div><div class="card-detail">Tolerance: 1e-08</div></div><div class="card "><div class="card-label">Periode</div><div class="card-value">2010-2026</div><div class="card-detail">3 = niveau COICOP utilise</div></div></div>
+<div class="note">Lecture: un resultat <strong>OK</strong> signifie que, pour un groupe de menages et une annee de poids donnes, la somme des poids normalises vaut 1 a la tolerance numerique pres.</div>
+<h2>Synthese par groupe</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Groupe</th><th>Tests</th><th>OK</th><th>KO</th><th>Premiere annee</th><th>Derniere annee</th><th>Ecart max a 1</th><th>Resultat</th></tr></thead>
+<tbody>
+<tr class="ok"><td>Décile1</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>17</td><td>17</td><td>0</td><td>2010</td><td>2026</td><td>2.22045e-16</td><td>ok</td></tr>
+</tbody>
+</table></div>
+<h2>Detail par groupe et annee</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Groupe</th><th>Annee poids</th><th>Nb COICOP</th><th>Annee HBS</th><th>Somme poids</th><th>Ecart a 1</th><th>Resultat</th></tr></thead>
+<tbody>
+<tr class="ok"><td>Décile1</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile1</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile10</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile2</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile3</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile4</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile5</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile6</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile7</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile8</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2010</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2011</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2012</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2013</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2014</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2015</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2016</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2017</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2018</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2019</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2020</td><td>67</td><td>2017</td><td>1</td><td> 2.22045e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2021</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2022</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2023</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2024</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2025</td><td>67</td><td>2017</td><td>1</td><td>-1.11022e-16</td><td>ok</td></tr>
+<tr class="ok"><td>Décile9</td><td>2026</td><td>67</td><td>2017</td><td>1</td><td> 0.00000e+00</td><td>ok</td></tr>
+</tbody>
+</table></div>
+</main>
+</body>
+</html>
+

@@ -48,6 +48,7 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
   index_weights <- inputs$index_weights
   hbs <- inputs$hbs
   specific_hbs_year <- inputs$specific_hbs_year
+  hicp_coicopv2_map <- build_hicp_coicopv2_map(index_weights, level, recode_ecoicop2_to_ecoicop1)
   if (recode_ecoicop2_to_ecoicop1) {
     index_weights <- recode_index_weights_ecoicop2_to_ecoicop1(index_weights, target_level = level)
   }
@@ -60,6 +61,10 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
   } else if (!"weight_year" %in% names(weight_dt)) {
     stop("Index weights must contain either 'year' or 'weight_year'.")
   }
+  weight_dt <- hicp_coicopv2_map[
+    weight_dt,
+    on = .(coicop, weight_year)
+  ]
 
   hbs_dt <- data.table::copy(hbs$dt)
   hbs_total <- data.table::copy(hbs$dt_total)
@@ -135,6 +140,7 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
       weight_year,
       hbs_year,
       hicp_coicop,
+      hicp_coicopv2,
       hbs_coicop,
       mapping_status,
       hicp_weight = weight,
@@ -179,15 +185,12 @@ write_coicop_bridge_html <- function(bridge, file, title = "COICOP HICP-HBS brid
       ,
       .(
         country = paste(sort(unique(country)), collapse = ", "),
-        hicp_coicop,
-        hbs_coicop,
-        mapping_status,
         first_weight_year = min(weight_year, na.rm = TRUE),
         last_weight_year = max(weight_year, na.rm = TRUE),
         hbs_years = paste(sort(unique(hbs_year)), collapse = ", "),
         hbs_code_available = all(hbs_code_available)
       ),
-      by = .(hicp_coicop, hbs_coicop, mapping_status)
+      by = .(hicp_coicop, hicp_coicopv2, hbs_coicop, mapping_status)
     ][order(hicp_coicop)]
   } else {
     if (!include_category) {
@@ -261,6 +264,27 @@ load_coicop_bridge_inputs <- function(country, category, level, start_year, end_
   }
 
   list(index_weights = index_weights, hbs = hbs, specific_hbs_year = specific_hbs_year)
+}
+
+build_hicp_coicopv2_map <- function(index_weights, target_level, recode_ecoicop2_to_ecoicop1) {
+  map <- data.table::copy(index_weights$dt)
+  if ("year" %in% names(map)) {
+    data.table::setnames(map, "year", "weight_year")
+  } else if (!"weight_year" %in% names(map)) {
+    stop("Index weights must contain either 'year' or 'weight_year'.")
+  }
+
+  map[, hicp_coicopv2 := coicop]
+  if (recode_ecoicop2_to_ecoicop1) {
+    map[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+    map[, coicop := coicop_to_level(coicop, target_level)]
+  }
+
+  map[
+    ,
+    .(hicp_coicopv2 = paste(sort(unique(hicp_coicopv2)), collapse = ", ")),
+    by = .(coicop, weight_year)
+  ]
 }
 
 data_table_to_html <- function(dt) {

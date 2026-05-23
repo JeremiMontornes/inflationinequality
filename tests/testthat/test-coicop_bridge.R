@@ -46,10 +46,11 @@ test_that("build_coicop_bridge exposes exact and rolled-up mappings", {
     bridge,
     c(
       "country", "category_type", "category", "weight_year", "hbs_year",
-      "hicp_coicop", "hbs_coicop", "mapping_status", "hicp_weight",
+      "hicp_coicop", "hicp_coicopv2", "hbs_coicop", "mapping_status", "hicp_weight",
       "hbs_consumption", "hbs_total_consumption", "hbs_code_available"
     )
   )
+  expect_equal(bridge$hicp_coicopv2, bridge$hicp_coicop)
   expect_true(all(bridge[hicp_coicop %in% c("011", "012", "013"), hbs_coicop] == "01"))
   expect_true(all(bridge[hicp_coicop %in% c("011", "012", "013"), mapping_status] == "rolled_up_to_higher_level"))
 })
@@ -62,6 +63,7 @@ test_that("write_coicop_bridge_html writes an html table", {
     weight_year = 2022,
     hbs_year = 2020,
     hicp_coicop = "011",
+    hicp_coicopv2 = "011",
     hbs_coicop = "01",
     mapping_status = "rolled_up_to_higher_level",
     hicp_weight = 300,

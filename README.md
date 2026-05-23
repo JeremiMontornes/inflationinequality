@@ -22,6 +22,52 @@ The introduction vignette walks through the package methodology, core functions,
 - [Online introduction page](https://jeremimontornes.github.io/inflationinequality/)
 - [Versioning and release rules](VERSIONING.md)
 
+## R workflow structure
+
+``` text
+R/load_data.R                         # Download HICP prices, HICP weights, and Eurostat HBS data
+├── load_cpi()                        # Monthly HICP price indices
+├── load_index_weights()              # Annual HICP item weights
+└── load_hbs()                        # HBS expenditure shares by household category
+
+R/calculate_weights.R                 # Match HICP weights with HBS shares
+└── calculate_weights()               # Category-specific COICOP weights
+
+R/calculate_contributions.R           # Compute COICOP contributions to inflation
+└── calculate_contributions()
+
+R/calculate_inflation.R               # Aggregate contributions into inflation indicators
+├── calculate_inflation()
+├── calculate_total_inflation()
+└── calculate_inflation_gap()
+
+R/calculate_price_indices.R           # Build chained HICP price indices in level
+└── calculate_price_indices()         # Uses INSEE HBS level 3 automatically for France income level 3
+
+R/compare_to_official_hicp.R          # Validation against published all-items HICP
+└── compare_to_official_hicp()
+
+R/plot_inflation.R                    # Standard plots
+├── plot_time_series()
+├── plot_grouped_bar()
+├── plot_contribution_gap()
+└── plot_inflation_gap()
+
+R/simulate.R                          # Counterfactual CPI scenarios
+└── simulate_cpi()
+
+R/coicop_bridge.R                     # COICOP matching and bridge tables
+├── build_coicop_bridge()
+└── write_coicop_bridge_html()
+
+scripts/plot_fr_hicp_validation.R     # France validation plots: calculated vs published HICP
+scripts/plot_fr_q1_q5_base2010_to_2026_03.R
+                                      # France Q1/Q5 index-level plot
+scripts/build_fr_coicop_bridge_html.R # France HICP-HBS bridge HTML tables
+scripts/build_fr_ecoicopv2_to_coicopv1_level3_audit_html.R
+                                      # France ECOICOP v2 -> COICOP v1 level 3 audit HTML
+```
+
 ## Example
 
 Let us visualize inflation inequality across income quintiles in Italy since 2019.

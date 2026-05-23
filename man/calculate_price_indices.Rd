@@ -92,6 +92,13 @@ official HICP item weights through \code{\link[=calculate_weights]{calculate_wei
 category and month, it aggregates unchained HICP item movements with a
 Laspeyres formula and then chains the monthly aggregates annually.
 }
+\section{France level 3}{
+
+For France income groups, \code{level = 3} automatically uses the bundled INSEE
+2017 HBS level-3 data when \code{custom_hbs} is not supplied. Eurostat public HBS
+data are generally not available at this granularity, so the national HBS
+source is required for a genuine 4-digit COICOP calculation.
+}
 \examples{
 \dontrun{
 indices <- calculate_price_indices("FR", "income", start_year = 2019)
