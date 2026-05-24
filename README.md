@@ -9,6 +9,8 @@
 
 `inflationinequality` provides methods to calculate and visualize inflation inequality indicators.
 
+Package version: `0.0.2`
+
 ## Features
 
 - Calculate and visualize inflation and contributions to inflation by households categories
@@ -20,7 +22,12 @@ The introduction vignette walks through the package methodology, core functions,
 
 - [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
 - [Online introduction page](https://jeremimontornes.github.io/inflationinequality/)
-- [Versioning and release rules](VERSIONING.md)
+
+After installing the package with vignettes, open it in R with:
+
+``` r
+vignette("inflationinequality-intro", package = "inflationinequality")
+```
 
 ## R workflow structure
 
@@ -59,22 +66,23 @@ R/simulate.R                          # Counterfactual CPI scenarios
 R/coicop_bridge.R                     # COICOP matching and bridge tables
 ├── build_coicop_bridge()
 └── write_coicop_bridge_html()
-
-scripts/plot_fr_hicp_validation.R     # France validation plots: calculated vs published HICP
-scripts/plot_fr_q1_q5_base2010_to_2026_03.R
-                                      # France Q1/Q5 index-level plot
-scripts/build_fr_coicop_bridge_html.R # France HICP-HBS bridge HTML tables
-scripts/build_fr_ecoicopv2_to_coicopv1_level3_audit_html.R
-                                      # France ECOICOP v2 -> COICOP v1 level 3 audit HTML
 ```
+
+COICOP bridge HTML tables:
+
+- [France HICP-HBS bridge, income level 2](docs/france_coicop_hicp_hbs_bridge_income_level2_2010_2026.html)
+- [France HICP-HBS bridge audit, income level 2](docs/france_coicop_hicp_hbs_bridge_income_level2_2010_2026_audit.html)
+- [France HICP-HBS bridge, INSEE income level 3](docs/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026.html)
+- [France HICP-HBS bridge audit, INSEE income level 3](docs/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026_audit.html)
+- [France ECOICOP v2 to COICOP v1 level 3 audit](docs/france_hicp_ecoicopv2_to_coicopv1_level3_audit.html)
 
 ## Example
 
-Let us visualize inflation inequality across income quintiles in Italy since 2019.
+Let us visualize inflation inequality across income quintiles in France since 2019.
 
 ``` r
 library(inflationinequality)
-inflation <- calculate_inflation("IT", "income", start_year = 2019)
+inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 2)
 plot_time_series(inflation)
 ```
 
