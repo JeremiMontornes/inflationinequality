@@ -23,12 +23,6 @@ The main workflow is:
 
 `load_*()` -\> `calculate_weights()` -\> `calculate_price_indices()` / `calculate_inflation()` -\> `calculate_contributions()` -\> plots / validation.
 
-For aggregation-bias checks, the package uses:
-
-`aggregation_bias = inflation_gap_coicop_upperdigit - inflation_gap_coicop_lowerdigit`
-
-where `upperdigit` is the more aggregated COICOP calculation and `lowerdigit` is the more detailed COICOP calculation.
-
 ## R workflow structure
 
 ``` text
