@@ -1,16 +1,18 @@
-#' Calculate BLS-style upper-level substitution bias
+#' Calculate upper-level substitution bias
 #'
 #' @description
 #' `calculate_substitution_bias()` compares annualized price-index growth from
-#' the package's Lowe-style aggregation with a chained Törnqvist aggregation.
-#' The difference is an upper-level substitution-bias measure inspired by the
-#' BLS R-CPI-I / R-C-CPI-I comparison.
+#' the package's Eurostat-style chained Laspeyres aggregation with a chained
+#' Toernqvist aggregation. The difference is an upper-level substitution-bias
+#' measure inspired by the BLS R-CPI-I / R-C-CPI-I comparison, adapted to keep
+#' the HICP chained-Laspeyres convention on the reference side.
 #'
 #' @inheritParams calculate_price_indices
 #'
 #' @return A `data.table` with one row per group and columns:
-#'   `category`, `lowe_growth`, `toernqvist_growth`, and
-#'   `substitution_bias`.
+#'   `category`, `chained_laspeyres_growth`, `chained_toernqvist_growth`, and
+#'   `substitution_bias`. `substitution_bias` is
+#'   `chained_laspeyres_growth - chained_toernqvist_growth`.
 #'
 #' @examples
 #' \dontrun{
@@ -33,7 +35,7 @@ calculate_substitution_bias <- function(country = NULL, category = NULL, level =
                                         recode_ecoicop2_to_ecoicop1 = TRUE) {
   france_insee_income_groups <- match.arg(france_insee_income_groups)
 
-  lowe <- calculate_price_indices(
+  chained_laspeyres <- calculate_price_indices(
     country = country,
     category = category,
     level = level,
@@ -53,7 +55,7 @@ calculate_substitution_bias <- function(country = NULL, category = NULL, level =
     formula = "laspeyres",
     recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
   )
-  tornqvist <- calculate_price_indices(
+  chained_toernqvist <- calculate_price_indices(
     country = country,
     category = category,
     level = level,
@@ -74,15 +76,27 @@ calculate_substitution_bias <- function(country = NULL, category = NULL, level =
     recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
   )
 
-  lowe_growth <- annualized_price_index_growth(lowe$dt)
-  data.table::setnames(lowe_growth, "growth", "lowe_growth")
-  tornqvist_growth <- annualized_price_index_growth(tornqvist$dt)
-  data.table::setnames(tornqvist_growth, "growth", "toernqvist_growth")
+  chained_laspeyres_growth <- annualized_price_index_growth(chained_laspeyres$dt)
+  data.table::setnames(
+    chained_laspeyres_growth,
+    "growth",
+    "chained_laspeyres_growth"
+  )
+  chained_toernqvist_growth <- annualized_price_index_growth(chained_toernqvist$dt)
+  data.table::setnames(
+    chained_toernqvist_growth,
+    "growth",
+    "chained_toernqvist_growth"
+  )
 
-  out <- merge(lowe_growth, tornqvist_growth, by = "category")
-  out[, substitution_bias := lowe_growth - toernqvist_growth]
+  out <- merge(chained_laspeyres_growth, chained_toernqvist_growth, by = "category")
+  out[, substitution_bias := chained_laspeyres_growth - chained_toernqvist_growth]
 
-  category_levels <- if (include_total) c("Total", lowe$categories) else lowe$categories
+  category_levels <- if (include_total) {
+    c("Total", chained_laspeyres$categories)
+  } else {
+    chained_laspeyres$categories
+  }
   out[, category := factor(category, levels = unique(category_levels))]
   data.table::setorder(out, category)
   out[]

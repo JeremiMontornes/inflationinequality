@@ -22,7 +22,9 @@ calculate_price_indices(
   base_year = NULL,
   include_total = TRUE,
   formula = c("laspeyres", "toernqvist"),
-  recode_ecoicop2_to_ecoicop1 = TRUE
+  recode_ecoicop2_to_ecoicop1 = TRUE,
+  aggregate_geo = "EA20",
+  custom_country_weights = NULL
 )
 }
 \arguments{
@@ -73,12 +75,20 @@ the first returned year is used.}
 a \code{"Total"} category.}
 
 \item{formula}{upper-level index formula. \code{"laspeyres"} uses the package's
-current Lowe-style fixed-quantity aggregation with annual weights.
+Eurostat-style chained Laspeyres aggregation with annual weights.
 \code{"toernqvist"} uses \code{\link[hicp:index.aggregation]{hicp::toernqvist()}} with previous-year and current-year
 category weights as an approximation to a chained Törnqvist index.}
 
 \item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
 codes back to ECOICOP v1-style codes before matching them to HBS weights.}
+
+\item{aggregate_geo}{country-group aggregate used when \code{country} contains
+several countries. The default \code{"EA20"} loads Eurostat HICP country weights
+(\code{prc_hicp_cow}, \code{statinfo = "COWEA20"}).}
+
+\item{custom_country_weights}{optional data frame with columns \code{country},
+\code{year}, and \code{weight} (or \code{country_weight}) used to aggregate national
+indices when \code{country} contains several countries.}
 }
 \value{
 An object of class \code{"price_indices"} containing:
@@ -104,6 +114,13 @@ are obtained by combining public semi-aggregated HBS expenditure shares with
 official HICP item weights through \code{\link[=calculate_weights]{calculate_weights()}}. For each household
 category and month, it aggregates unchained HICP item movements with a
 Laspeyres formula and then chains the monthly aggregates annually.
+
+When \code{country} contains several country codes, or when \code{country} is a
+country-group code such as \code{"EA20"}, the function first calculates national
+household-group indices and then aggregates them by date and group with
+Eurostat HICP country weights. This is the recommended workflow for euro-area
+household-group indices because HBS income quintiles are defined within each
+country.
 }
 \section{France level 3}{
 

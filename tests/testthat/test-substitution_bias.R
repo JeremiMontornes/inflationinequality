@@ -1,4 +1,4 @@
-test_that("calculate_substitution_bias returns BLS-style comparison table", {
+test_that("calculate_substitution_bias returns chained Laspeyres comparison table", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 12),
     coicop = rep(c("01", "02"), each = 6),
@@ -48,7 +48,7 @@ test_that("calculate_substitution_bias returns BLS-style comparison table", {
     level = 1
   )
 
-  result <- calculate_substitution_bias(
+  result <- suppressWarnings(calculate_substitution_bias(
     "FR", "income",
     level = 1,
     start_year = 2021,
@@ -59,13 +59,20 @@ test_that("calculate_substitution_bias returns BLS-style comparison table", {
     custom_hbs = custom_hbs,
     include_total = TRUE,
     recode_ecoicop2_to_ecoicop1 = FALSE
-  )
+  ))
 
   expect_named(
     result,
-    c("category", "lowe_growth", "toernqvist_growth", "substitution_bias")
+    c(
+      "category", "chained_laspeyres_growth",
+      "chained_toernqvist_growth", "substitution_bias"
+    )
   )
   expect_true(all(c("Low", "High", "Total") %in% as.character(result$category)))
-  expect_true(all(is.finite(result$lowe_growth)))
-  expect_true(all(is.finite(result$toernqvist_growth)))
+  expect_true(all(is.finite(result$chained_laspeyres_growth)))
+  expect_true(all(is.finite(result$chained_toernqvist_growth)))
+  expect_equal(
+    result$substitution_bias,
+    result$chained_laspeyres_growth - result$chained_toernqvist_growth
+  )
 })

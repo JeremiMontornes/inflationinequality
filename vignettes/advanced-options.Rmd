@@ -114,3 +114,112 @@ Alternatively, we can linearly interpolate the HBS weights so we can choose any 
 ```{r, eval = FALSE}
 calculate_inflation("FR", "income", interpolated_hbs = TRUE, specific_hbs_year = 2019)
 ```
+
+## Aggregation-bias table
+
+Aggregation bias can be checked by comparing the annualized inflation gap
+between the bottom and top income groups at two COICOP levels. Here, "upper"
+means the more aggregated COICOP level, with fewer digits, and "lower" means the
+more detailed COICOP level, with more digits. Let $g_{Q1}^{(U)}$ and
+$g_{Q5}^{(U)}$ denote the annualized growth rates of the chained Laspeyres price
+indices for the first and fifth quintiles computed at the upper COICOP level
+$U$. Let $g_{Q1}^{(L)}$ and $g_{Q5}^{(L)}$ denote the same growth rates computed
+at the lower COICOP level $L$. The reported gaps are:
+
+$$
+inflation\_gap\_coicop\_upperdigit = g_{Q1}^{(U)} - g_{Q5}^{(U)}
+$$
+
+$$
+inflation\_gap\_coicop\_lowerdigit = g_{Q1}^{(L)} - g_{Q5}^{(L)}
+$$
+
+The output keeps the shorter column names `coarse_gap` for
+`inflation_gap_coicop_upperdigit` and `fine_gap` for
+`inflation_gap_coicop_lowerdigit`. The aggregation-bias measure is:
+
+$$
+aggregation\_bias = inflation\_gap\_coicop\_upperdigit - inflation\_gap\_coicop\_lowerdigit
+$$
+
+The package's default `formula = "laspeyres"` preserves the Eurostat-style
+chained Laspeyres convention: it aggregates monthly unchained price relatives
+with the available annual category weights and then chains those monthly
+aggregates over time. This is why the substitution-bias table uses
+`chained_laspeyres_growth` as the reference side.
+
+The comparison below applies this calculation to six countries between
+`level = 1` and `level = 2`, using the same time convention as the
+substitution-bias example, starting in 2019:
+
+```{r}
+data.table::rbindlist(
+  lapply(
+    c("DE", "FR", "IT", "ES", "NL", "BE"),
+    function(country) {
+      calculate_aggregation_bias(
+        country,
+        "income",
+        coarse_level = 1,
+        fine_level = 2,
+        start_year = 2019
+      )
+    }
+  )
+)
+```
+
+Example output:
+
+| country | category_type | coarse_level | fine_level | coarse_gap | fine_gap | aggregation_bias |
+|:---|:---|---:|---:|---:|---:|---:|
+| DE | income | 1 | 2 | 0.112 | -0.503 | 0.615 |
+| FR | income | 1 | 2 | -0.083 | -0.158 | 0.075 |
+| IT | income | 1 | 2 | 0.000 | -0.074 | 0.074 |
+| ES | income | 1 | 2 | 0.169 | -0.285 | 0.454 |
+| NL | income | 1 | 2 | 0.084 | -0.011 | 0.095 |
+| BE | income | 1 | 2 | 0.016 | 0.056 | -0.040 |
+
+If a country has an integrated source at `level = 3`, `calculate_aggregation_bias()`
+uses that finer level by default and compares it with the previous level. France
+income calculations are currently the implemented case: by default, the function
+compares `level = 2` with the bundled INSEE `level = 3` workflow.
+
+## Substitution-bias table
+
+The BLS compares a fixed-basket research CPI (`R-CPI-I`) with a chained Tornqvist-formula research CPI (`R-C-CPI-I`). For the HICP setting, the package keeps the Eurostat-style chained Laspeyres convention on the reference side. The substitution-bias measure is therefore:
+
+$$
+substitution\_bias = chained\_laspeyres\_growth - chained\_toernqvist\_growth
+$$
+
+The same idea can be applied to France with Eurostat HICP and HBS data:
+
+```{r}
+calculate_substitution_bias(
+  "FR",
+  "income",
+  level = 2,
+  start_year = 2019
+)
+```
+
+Example output:
+
+| category | chained_laspeyres_growth | chained_toernqvist_growth | substitution_bias |
+|:---|---:|---:|---:|
+| Total | 2.96 | 2.90 | 0.06 |
+| First quintile | 2.83 | 2.74 | 0.10 |
+| Second quintile | 2.94 | 2.85 | 0.10 |
+| Third quintile | 2.98 | 2.90 | 0.09 |
+| Fourth quintile | 3.01 | 2.93 | 0.08 |
+| Fifth quintile | 2.99 | 2.92 | 0.07 |
+
+The returned columns are:
+
+- `chained_laspeyres_growth`: annualized growth rate of the package's Eurostat-style chained Laspeyres aggregation.
+- `chained_toernqvist_growth`: annualized growth rate of a chained Tornqvist aggregation computed with `hicp::toernqvist()`.
+- `substitution_bias`: `chained_laspeyres_growth - chained_toernqvist_growth`, in percentage points.
+
+This is not a perfect replication of the BLS table, because Eurostat HBS income-quintile expenditure shares are not available at the same monthly frequency as the U.S. Consumer Expenditure Survey inputs used by BLS. The package therefore uses annual category-specific weights and approximates the Tornqvist comparison with previous-year and current-year weights, while retaining the HICP chained-Laspeyres convention for the reference index.
+

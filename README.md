@@ -23,6 +23,12 @@ The main workflow is:
 
 `load_*()` -\> `calculate_weights()` -\> `calculate_price_indices()` / `calculate_inflation()` -\> `calculate_contributions()` -\> plots / validation.
 
+For aggregation-bias checks, the package uses:
+
+`aggregation_bias = inflation_gap_coicop_upperdigit - inflation_gap_coicop_lowerdigit`
+
+where `upperdigit` is the more aggregated COICOP calculation and `lowerdigit` is the more detailed COICOP calculation.
+
 ## R workflow structure
 
 ``` text
@@ -80,11 +86,11 @@ COICOP bridge HTML tables:
 
 ## Example
 
-Let us visualize inflation inequality across income quintiles in France since 2019.
+Let us visualize inflation inequality across income quintiles in France since 2019, using the France level 3 COICOP workflow.
 
 ``` r
 library(inflationinequality)
-inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 2)
+inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 3)
 plot_time_series(inflation)
 ```
 
@@ -120,5 +126,6 @@ The introduction vignette walks through the package methodology, core functions,
 
 - [Introduction to inflationinequality](https://jeremimontornes.github.io/inflationinequality/articles/inflationinequality-intro.html)
 - [Advanced options](https://jeremimontornes.github.io/inflationinequality/articles/advanced-options.html)
+- [Using national data](https://jeremimontornes.github.io/inflationinequality/articles/using-custom-data.html)
 - [Calculating inflation burden](https://jeremimontornes.github.io/inflationinequality/articles/inflation-burden.html)
 - [Verifying calculated inflation](https://jeremimontornes.github.io/inflationinequality/articles/verifying-calculated-inflation.html)

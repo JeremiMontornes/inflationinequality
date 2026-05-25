@@ -407,6 +407,233 @@ when calculating inflation rates (or contributions to inflation).</p>
 choose any year’s HBS weights.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">calculate_inflation</span>(<span class="st">&quot;FR&quot;</span>, <span class="st">&quot;income&quot;</span>, <span class="at">interpolated_hbs =</span> <span class="cn">TRUE</span>, <span class="at">specific_hbs_year =</span> <span class="dv">2019</span>)</span></code></pre></div>
 </div>
+<div id="aggregation-bias-table" class="section level2">
+<h2>Aggregation-bias table</h2>
+<p>Aggregation bias can be checked by comparing the annualized inflation
+gap between the bottom and top income groups at two COICOP levels. Here,
+“upper” means the more aggregated COICOP level, with fewer digits, and
+“lower” means the more detailed COICOP level, with more digits. Let
+<span class="math inline">\(g_{Q1}^{(U)}\)</span> and <span class="math inline">\(g_{Q5}^{(U)}\)</span> denote the annualized growth
+rates of the chained Laspeyres price indices for the first and fifth
+quintiles computed at the upper COICOP level <span class="math inline">\(U\)</span>. Let <span class="math inline">\(g_{Q1}^{(L)}\)</span> and <span class="math inline">\(g_{Q5}^{(L)}\)</span> denote the same growth rates
+computed at the lower COICOP level <span class="math inline">\(L\)</span>. The reported gaps are:</p>
+<p><span class="math display">\[
+inflation\_gap\_coicop\_upperdigit = g_{Q1}^{(U)} - g_{Q5}^{(U)}
+\]</span></p>
+<p><span class="math display">\[
+inflation\_gap\_coicop\_lowerdigit = g_{Q1}^{(L)} - g_{Q5}^{(L)}
+\]</span></p>
+<p>The output keeps the shorter column names <code>coarse_gap</code> for
+<code>inflation_gap_coicop_upperdigit</code> and <code>fine_gap</code>
+for <code>inflation_gap_coicop_lowerdigit</code>. The aggregation-bias
+measure is:</p>
+<p><span class="math display">\[
+aggregation\_bias = inflation\_gap\_coicop\_upperdigit -
+inflation\_gap\_coicop\_lowerdigit
+\]</span></p>
+<p>The package’s default <code>formula = &quot;laspeyres&quot;</code> preserves
+the Eurostat-style chained Laspeyres convention: it aggregates monthly
+unchained price relatives with the available annual category weights and
+then chains those monthly aggregates over time. This is why the
+substitution-bias table uses <code>chained_laspeyres_growth</code> as
+the reference side.</p>
+<p>The comparison below applies this calculation to six countries
+between <code>level = 1</code> and <code>level = 2</code>, using the
+same time convention as the substitution-bias example, starting in
+2019:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">rbindlist</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">lapply</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">&quot;DE&quot;</span>, <span class="st">&quot;FR&quot;</span>, <span class="st">&quot;IT&quot;</span>, <span class="st">&quot;ES&quot;</span>, <span class="st">&quot;NL&quot;</span>, <span class="st">&quot;BE&quot;</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>    <span class="cf">function</span>(country) {</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>      <span class="fu">calculate_aggregation_bias</span>(</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>        country,</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>        <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>        <span class="at">coarse_level =</span> <span class="dv">1</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>        <span class="at">fine_level =</span> <span class="dv">2</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>        <span class="at">start_year =</span> <span class="dv">2019</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>      )</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>    }</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>  )</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>)</span></code></pre></div>
+<p>Example output:</p>
+<table style="width:100%;">
+<colgroup>
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">country</th>
+<th align="left">category_type</th>
+<th align="right">coarse_level</th>
+<th align="right">fine_level</th>
+<th align="right">coarse_gap</th>
+<th align="right">fine_gap</th>
+<th align="right">aggregation_bias</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">DE</td>
+<td align="left">income</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">0.112</td>
+<td align="right">-0.503</td>
+<td align="right">0.615</td>
+</tr>
+<tr class="even">
+<td align="left">FR</td>
+<td align="left">income</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">-0.083</td>
+<td align="right">-0.158</td>
+<td align="right">0.075</td>
+</tr>
+<tr class="odd">
+<td align="left">IT</td>
+<td align="left">income</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">0.000</td>
+<td align="right">-0.074</td>
+<td align="right">0.074</td>
+</tr>
+<tr class="even">
+<td align="left">ES</td>
+<td align="left">income</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">0.169</td>
+<td align="right">-0.285</td>
+<td align="right">0.454</td>
+</tr>
+<tr class="odd">
+<td align="left">NL</td>
+<td align="left">income</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">0.084</td>
+<td align="right">-0.011</td>
+<td align="right">0.095</td>
+</tr>
+<tr class="even">
+<td align="left">BE</td>
+<td align="left">income</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">0.016</td>
+<td align="right">0.056</td>
+<td align="right">-0.040</td>
+</tr>
+</tbody>
+</table>
+<p>If a country has an integrated source at <code>level = 3</code>,
+<code>calculate_aggregation_bias()</code> uses that finer level by
+default and compares it with the previous level. France income
+calculations are currently the implemented case: by default, the
+function compares <code>level = 2</code> with the bundled INSEE
+<code>level = 3</code> workflow.</p>
+</div>
+<div id="substitution-bias-table" class="section level2">
+<h2>Substitution-bias table</h2>
+<p>The BLS compares a fixed-basket research CPI (<code>R-CPI-I</code>)
+with a chained Tornqvist-formula research CPI (<code>R-C-CPI-I</code>).
+For the HICP setting, the package keeps the Eurostat-style chained
+Laspeyres convention on the reference side. The substitution-bias
+measure is therefore:</p>
+<p><span class="math display">\[
+substitution\_bias = chained\_laspeyres\_growth -
+chained\_toernqvist\_growth
+\]</span></p>
+<p>The same idea can be applied to France with Eurostat HICP and HBS
+data:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">calculate_substitution_bias</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="st">&quot;FR&quot;</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">level =</span> <span class="dv">2</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>Example output:</p>
+<table>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">category</th>
+<th align="right">chained_laspeyres_growth</th>
+<th align="right">chained_toernqvist_growth</th>
+<th align="right">substitution_bias</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Total</td>
+<td align="right">2.96</td>
+<td align="right">2.90</td>
+<td align="right">0.06</td>
+</tr>
+<tr class="even">
+<td align="left">First quintile</td>
+<td align="right">2.83</td>
+<td align="right">2.74</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="odd">
+<td align="left">Second quintile</td>
+<td align="right">2.94</td>
+<td align="right">2.85</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="even">
+<td align="left">Third quintile</td>
+<td align="right">2.98</td>
+<td align="right">2.90</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="odd">
+<td align="left">Fourth quintile</td>
+<td align="right">3.01</td>
+<td align="right">2.93</td>
+<td align="right">0.08</td>
+</tr>
+<tr class="even">
+<td align="left">Fifth quintile</td>
+<td align="right">2.99</td>
+<td align="right">2.92</td>
+<td align="right">0.07</td>
+</tr>
+</tbody>
+</table>
+<p>The returned columns are:</p>
+<ul>
+<li><code>chained_laspeyres_growth</code>: annualized growth rate of the
+package’s Eurostat-style chained Laspeyres aggregation.</li>
+<li><code>chained_toernqvist_growth</code>: annualized growth rate of a
+chained Tornqvist aggregation computed with
+<code>hicp::toernqvist()</code>.</li>
+<li><code>substitution_bias</code>:
+<code>chained_laspeyres_growth - chained_toernqvist_growth</code>, in
+percentage points.</li>
+</ul>
+<p>This is not a perfect replication of the BLS table, because Eurostat
+HBS income-quintile expenditure shares are not available at the same
+monthly frequency as the U.S. Consumer Expenditure Survey inputs used by
+BLS. The package therefore uses annual category-specific weights and
+approximates the Tornqvist comparison with previous-year and
+current-year weights, while retaining the HICP chained-Laspeyres
+convention for the reference index.</p>
+</div>
 
 
 

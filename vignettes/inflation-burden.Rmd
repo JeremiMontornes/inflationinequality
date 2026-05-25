@@ -1,4 +1,4 @@
----
+﻿---
 title: "Calculating inflation burden"
 output: rmarkdown::html_vignette
 vignette: >
@@ -54,7 +54,7 @@ The Eurostat references are:
 - [Eurostat `icw_sr_10`](https://db.nomics.world/Eurostat/icw_sr_10): aggregate propensity to consume by income quintile, expressed as a percentage of disposable income.
 - [Eurostat `hbs_exp_t133`](https://db.nomics.world/Eurostat/hbs_exp_t133): mean consumption expenditure by income quintile, available in PPS per household or PPS per adult equivalent.
 
-For the Lowe/Törnqvist comparison and the notion of upper-level substitution bias, see the BLS article [Examining U.S. inflation across households grouped by equivalized income](https://www.bls.gov/opub/mlr/2024/article/examining-us-inflation-across-households-grouped-by-equivalized-income.htm).
+For the Lowe/TÃ¶rnqvist comparison and the notion of upper-level substitution bias, see the BLS article [Examining U.S. inflation across households grouped by equivalized income](https://www.bls.gov/opub/mlr/2024/article/examining-us-inflation-across-households-grouped-by-equivalized-income.htm).
 
 ## Formula
 
@@ -132,34 +132,19 @@ The default plot shows the burden in percentage points of disposable income:
 plot_inflation_burden(burden_fr)
 ```
 
+```{r burden-income-share-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
+knitr::include_graphics("../man/figures/france-inflation-burden-income-share-2019.png")
+```
+
 If expenditure was included, the same object can be plotted as an inflation cost:
 
 ```{r}
 plot_inflation_burden(burden_fr, measure = "cost")
 ```
 
-## BLS-style substitution-bias table
-
-The BLS compares a Lowe-formula research CPI (`R-CPI-I`) with a chained Törnqvist-formula research CPI (`R-C-CPI-I`). The difference between their annualized growth rates is interpreted as an upper-level substitution-bias measure.
-
-The same idea can be applied to France with Eurostat HICP and HBS data:
-
-```{r}
-calculate_substitution_bias(
-  "FR",
-  "income",
-  level = 2,
-  start_year = 2019
-)
+```{r burden-cost-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
+knitr::include_graphics("../man/figures/france-inflation-burden-cost-2019.png")
 ```
-
-The returned columns are:
-
-- `lowe_growth`: annualized growth rate of the package's Lowe-style fixed-weight aggregation.
-- `toernqvist_growth`: annualized growth rate of a chained Törnqvist aggregation computed with `hicp::toernqvist()`.
-- `substitution_bias`: `lowe_growth - toernqvist_growth`, in percentage points.
-
-This is not a perfect replication of the BLS table, because Eurostat HBS income-quintile expenditure shares are not available at the same monthly frequency as the U.S. Consumer Expenditure Survey inputs used by BLS. The package therefore uses annual category-specific weights and approximates the Törnqvist comparison with previous-year and current-year weights.
 
 ## Custom data
 

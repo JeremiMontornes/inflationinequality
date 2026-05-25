@@ -389,6 +389,84 @@ load_index_weights <- function(country, level = 2,
   return(index_weights(dt, country, level, base_total = 1000))
 }
 
+#' Load HICP country weights
+#'
+#' @description
+#' `load_country_weights()` downloads Eurostat HICP country weights used to
+#' aggregate national HICP indices into a country-group aggregate such as the
+#' euro area. The default `aggregate_geo = "EA20"` reads `statinfo = "COWEA20"`
+#' from Eurostat dataset `prc_hicp_cow`.
+#'
+#' @param aggregate_geo country-group aggregate code, for example `"EA20"`.
+#' @param countries optional character vector of country codes to keep.
+#' @param start_year first annual weight year.
+#' @param end_year last annual weight year.
+#'
+#' @returns A `data.table` with columns `country`, `year`, and
+#'   `country_weight`.
+#'
+#' @examples
+#' \dontrun{
+#' weights <- load_country_weights("EA20", countries = c("DE", "FR", "IT"))
+#' }
+#'
+#' @export
+load_country_weights <- function(aggregate_geo = "EA20", countries = NULL,
+                                 start_year = NULL, end_year = NULL) {
+  aggregate_geo <- toupper(aggregate_geo)
+  if (!is.null(countries)) {
+    countries <- toupper(countries)
+  }
+
+  dates <- get_start_end_dates(
+    start_year,
+    start_month = 1,
+    end_year,
+    end_month = 12
+  )
+  date_range <- c(
+    substr(dates$start_date, 1, 4),
+    substr(dates$end_date, 1, 4)
+  )
+
+  statinfo <- paste0("COW", aggregate_geo)
+  dt_raw <- download_hicp_dataset(
+    id = "prc_hicp_cow",
+    filters = list(statinfo = statinfo),
+    date.range = date_range
+  )
+
+  if (nrow(dt_raw) == 0) {
+    stop(sprintf("No HICP country weights found for '%s'.", aggregate_geo))
+  }
+
+  dt <- dt_raw[
+    !is.na(geo) & geo != aggregate_geo,
+    .(
+      country = toupper(geo),
+      year = as.integer(substr(time, 1, 4)),
+      country_weight = as.numeric(values)
+    )
+  ]
+  dt <- dt[!is.na(country) & !is.na(year) & !is.na(country_weight)]
+  if (!is.null(countries)) {
+    dt <- dt[country %in% countries]
+    missing_countries <- setdiff(countries, unique(dt$country))
+    if (length(missing_countries) > 0) {
+      stop(
+        sprintf(
+          "No '%s' country weights found for: %s.",
+          aggregate_geo,
+          paste(missing_countries, collapse = ", ")
+        )
+      )
+    }
+  }
+
+  data.table::setorder(dt, country, year)
+  dt
+}
+
 resolve_hicp_weights_dataset <- function() {
   # Prefer the ECOICOP v2 item weights dataset; fallback keeps legacy compatibility.
   candidates <- c("prc_hicp_iw", "prc_hicp_inw")

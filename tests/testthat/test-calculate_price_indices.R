@@ -115,6 +115,57 @@ test_that("calculate_price_indices uses INSEE HBS for France income level 3", {
   expect_true(any(grepl("cile1", result$categories, fixed = TRUE)))
 })
 
+test_that("calculate_price_indices uses fast euro-area total when no EA HBS is supplied", {
+  cpi_dt <- data.table::data.table(
+    series_name = rep("CPI", 8),
+    coicop = rep(c("011", "012"), each = 4),
+    value = c(100, 102, 104, 106, 100, 101, 103, 105),
+    year = rep(c(2021, 2022, 2022, 2022), 2),
+    month = rep(c(12, 1, 2, 3), 2)
+  )
+  cpi_basket <- data.table::data.table(
+    series_name = rep("CPI", 4),
+    value = c(100, 101.5, 103.5, 105.5),
+    year = c(2021, 2022, 2022, 2022),
+    month = c(12, 1, 2, 3)
+  )
+  mock_cpi <- cpi(cpi_dt, cpi_basket, country = "EA", level = 3)
+
+  index_weights_dt <- data.table::data.table(
+    coicop = c("011", "012"),
+    weight = c(500, 500),
+    year = c(2022, 2022)
+  )
+  mock_index_weights <- index_weights(
+    index_weights_dt,
+    country = "EA",
+    level = 3,
+    base_total = 1000
+  )
+
+  local_mocked_bindings(
+    load_cpi = function(...) mock_cpi,
+    load_index_weights = function(...) mock_index_weights,
+    calculate_weights = function(...) stop("EA fast total should not load HBS weights"),
+    .package = "inflationinequality"
+  )
+
+  result <- calculate_price_indices(
+    "EA", "income",
+    level = 2,
+    start_year = 2022,
+    end_year = 2022,
+    end_month = 3,
+    base_year = 2022
+  )
+
+  expect_s3_class(result, "price_indices")
+  expect_equal(result$country, "EA")
+  expect_equal(result$categories, "Total")
+  expect_equal(unique(result$dt$category), "Total")
+  expect_true(all(result$dt$month %in% 1:3))
+})
+
 test_that("France INSEE level 3 HBS can be aggregated from deciles to quintiles", {
   hbs_decile <- inflationinequality:::load_france_insee_hbs_level3("decile")
   hbs_quintile <- inflationinequality:::load_france_insee_hbs_level3("quintile")
