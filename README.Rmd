@@ -40,15 +40,6 @@ The main workflow is:
 
 `load_*()` -> `calculate_weights()` -> `calculate_price_indices()` / `calculate_inflation()` -> `calculate_contributions()` -> plots / validation.
 
-## Vignettes
-
-The introduction vignette walks through the package methodology, core functions, and plotting helpers:
-
-- [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
-- [Advanced options](vignettes/advanced-options.Rmd)
-- [Calculating inflation burden](vignettes/inflation-burden.Rmd)
-- [Verifying calculated inflation](vignettes/verifying-calculated-inflation.Rmd)
-
 ## R workflow structure
 
 ```text
@@ -138,8 +129,17 @@ load("data/methodology_metadata.rda")
 load("data/country_coicop_special_cases.rda")
 cat("<small>\n")
 country_coicop_special_cases |>
-  dplyr::select(country, iso2, coicop_case, population_group_caveat, housing_caveat, package_status) |>
+  dplyr::select(country, coicop_case, population_group_caveat, housing_caveat, package_status) |>
   knitr::kable(format = "html", row.names = FALSE) |>
   print()
 cat("\n</small>\n")
 ```
+
+## Vignettes
+
+The introduction vignette walks through the package methodology, core functions, and plotting helpers:
+
+- [Introduction to inflationinequality](https://jeremimontornes.github.io/inflationinequality/articles/inflationinequality-intro.html)
+- [Advanced options](https://jeremimontornes.github.io/inflationinequality/articles/advanced-options.html)
+- [Calculating inflation burden](https://jeremimontornes.github.io/inflationinequality/articles/inflation-burden.html)
+- [Verifying calculated inflation](https://jeremimontornes.github.io/inflationinequality/articles/verifying-calculated-inflation.html)

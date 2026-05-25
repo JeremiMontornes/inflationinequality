@@ -24,14 +24,7 @@ methodology_metadata[
   "notes"
 ] <- paste(
   "Eurostat HBS income data are generally available at 3-digit COICOP",
-  "(package level = 2), which is the package default.",
-  "France income level = 3 uses bundled INSEE 4-digit COICOP data.",
-  "Belgium and Italy national-source level 3 support is under development,",
-  "following the country-specific approach used in Bruegel's work.",
-  "A live Eurostat check found that level = 3 returns the same income HBS",
-  "COICOP code set as level = 2 for DE, ES, and BE; IT currently exposes",
-  "some 4-digit rows in DBnomics, but no national Italy level 3 source is",
-  "integrated by default."
+  "(package level = 2), which is the package default."
 )
 
 methodology_metadata[
@@ -55,7 +48,6 @@ methodology_metadata[
 
 country_coicop_special_cases <- data.frame(
   country = c("France", "Belgium", "Italy"),
-  iso2 = c("FR", "BE", "IT"),
   coicop_case = c(
     paste(
       "France income level = 3 uses bundled INSEE Budget de famille 2017",

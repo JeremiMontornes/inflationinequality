@@ -40,7 +40,6 @@
 #' @format A data frame with the following columns:
 #' \describe{
 #'   \item{country}{Country name.}
-#'   \item{iso2}{2-letter country code.}
 #'   \item{coicop_case}{Country-specific COICOP or data-source case.}
 #'   \item{population_group_caveat}{Caveat about the demographic or income
 #'   grouping concept.}

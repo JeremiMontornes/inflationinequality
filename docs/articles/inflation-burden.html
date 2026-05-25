@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Calculating inflation burden</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Calculating inflation burden</h1>
+
+
+
+<p>This vignette explains how to calculate an inflation burden indicator
+with <code>inflationinequality</code>.</p>
+<p>The indicator follows a general cost-burden logic: a price shock is
+not only measured as an inflation rate, but also as an additional cost
+relative to household resources. In this package, the burden is
+expressed as a percentage of disposable income.</p>
+<hr />
+<div id="concept" class="section level2">
+<h2>Concept</h2>
+<p>Group-specific inflation rates answer the question:</p>
+<blockquote>
+<p>How fast are the prices of the consumption basket of group <span class="math inline">\(g\)</span> increasing?</p>
+</blockquote>
+<p>Inflation burden answers a slightly different question:</p>
+<blockquote>
+<p>How large is the inflation cost for group <span class="math inline">\(g\)</span>, relative to disposable income?</p>
+</blockquote>
+<p>This distinction matters because two groups can face similar
+inflation rates but have different consumption-to-income ratios. A group
+that consumes a larger share of its disposable income can face a higher
+burden from the same inflation rate.</p>
+</div>
+<div id="data-sources" class="section level2">
+<h2>Data sources</h2>
+<p>The default Eurostat workflow uses:</p>
+<ol style="list-style-type: decimal">
+<li>HICP prices and HICP item weights, loaded with
+<code>load_cpi()</code> and <code>load_index_weights()</code>.</li>
+<li>Household Budget Survey (HBS) expenditure shares by income quintile,
+loaded with <code>load_hbs()</code>.</li>
+<li>Eurostat experimental statistics <code>icw_sr_10</code>, aggregate
+propensity to consume by income quintile, loaded with
+<code>load_consumption_to_income()</code>.</li>
+<li>Eurostat HBS table <code>hbs_exp_t133</code>, mean consumption
+expenditure by income quintile, loaded with
+<code>load_consumption_expenditure()</code>.</li>
+</ol>
+<p>The Eurostat references are:</p>
+<ul>
+<li><a href="https://db.nomics.world/Eurostat/icw_sr_10">Eurostat
+<code>icw_sr_10</code></a>: aggregate propensity to consume by income
+quintile, expressed as a percentage of disposable income.</li>
+<li><a href="https://db.nomics.world/Eurostat/hbs_exp_t133">Eurostat
+<code>hbs_exp_t133</code></a>: mean consumption expenditure by income
+quintile, available in PPS per household or PPS per adult
+equivalent.</li>
+</ul>
+<p>For the Lowe/Törnqvist comparison and the notion of upper-level
+substitution bias, see the BLS article <a href="https://www.bls.gov/opub/mlr/2024/article/examining-us-inflation-across-households-grouped-by-equivalized-income.htm">Examining
+U.S. inflation across households grouped by equivalized income</a>.</p>
+</div>
+<div id="formula" class="section level2">
+<h2>Formula</h2>
+<p>Let:</p>
+<ul>
+<li><span class="math inline">\(\pi^{y,m}_g\)</span> be the year-on-year
+inflation rate for group <span class="math inline">\(g\)</span> in year
+<span class="math inline">\(y\)</span> and month <span class="math inline">\(m\)</span>, computed by
+<code>calculate_inflation()</code>.</li>
+<li><span class="math inline">\(c^Y_g\)</span> be the aggregate
+propensity to consume of group <span class="math inline">\(g\)</span> in
+annual source year <span class="math inline">\(Y\)</span>, expressed as
+a percentage of disposable income.</li>
+<li><span class="math inline">\(E^Y_g\)</span> be mean consumption
+expenditure of group <span class="math inline">\(g\)</span> in annual
+source year <span class="math inline">\(Y\)</span>, for example in PPS
+per household.</li>
+</ul>
+<p>The inflation burden is:</p>
+<p><span class="math display">\[
+Burden^{y,m}_g = \pi^{y,m}_g \times \frac{c^Y_g}{100}
+\]</span></p>
+<p>where <span class="math inline">\(Burden^{y,m}_g\)</span> is measured
+in percentage points of disposable income.</p>
+<p>When expenditure data are available, the inflation cost is:</p>
+<p><span class="math display">\[
+Cost^{y,m}_g = E^Y_g \times \frac{\pi^{y,m}_g}{100}
+\]</span></p>
+<p>where <span class="math inline">\(Cost^{y,m}_g\)</span> is measured
+in the same unit as <span class="math inline">\(E^Y_g\)</span>, for
+example PPS per household.</p>
+</div>
+<div id="timing-convention" class="section level2">
+<h2>Timing convention</h2>
+<p>The package matches annual burden inputs to monthly inflation using
+the latest available annual source year not later than the inflation
+year.</p>
+<p>For example, if Eurostat reports <code>icw_sr_10</code> values for
+2015 and 2020:</p>
+<ul>
+<li>monthly inflation in 2019 uses the 2015 value;</li>
+<li>monthly inflation in 2020 and later uses the 2020 value until a more
+recent source year is available.</li>
+</ul>
+<p>This mirrors the package’s general approach to sparse household
+survey waves: use the most recent household information available at the
+time of the price observation.</p>
+</div>
+<div id="france-example" class="section level2">
+<h2>France example</h2>
+<p>First calculate group-specific inflation by income quintile:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>inflation_fr <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="st">&quot;FR&quot;</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">level =</span> <span class="dv">2</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>Then calculate the inflation burden:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>burden_fr <span class="ot">&lt;-</span> <span class="fu">calculate_inflation_burden</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  inflation_fr,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">expenditure_unit =</span> <span class="st">&quot;PPS_HH&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">head</span>(burden_fr<span class="sc">$</span>dt)</span></code></pre></div>
+<p>The result is an object of class <code>&quot;inflation_burden&quot;</code>. Its
+<code>dt</code> component includes:</p>
+<ul>
+<li><code>inflation</code>: group-specific inflation rate.</li>
+<li><code>consumption_to_income</code>: consumption as a percentage of
+disposable income.</li>
+<li><code>inflation_burden</code>: inflation cost as a percentage of
+disposable income.</li>
+<li><code>expenditure</code>: mean consumption expenditure, if
+requested.</li>
+<li><code>inflation_cost</code>: inflation cost in the expenditure unit,
+if requested.</li>
+<li><code>consumption_to_income_year</code> and
+<code>expenditure_year</code>: source years used for the annual burden
+inputs.</li>
+</ul>
+</div>
+<div id="plotting-inflation-burden" class="section level2">
+<h2>Plotting inflation burden</h2>
+<p>The default plot shows the burden in percentage points of disposable
+income:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">plot_inflation_burden</span>(burden_fr)</span></code></pre></div>
+<p>If expenditure was included, the same object can be plotted as an
+inflation cost:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">plot_inflation_burden</span>(burden_fr, <span class="at">measure =</span> <span class="st">&quot;cost&quot;</span>)</span></code></pre></div>
+</div>
+<div id="bls-style-substitution-bias-table" class="section level2">
+<h2>BLS-style substitution-bias table</h2>
+<p>The BLS compares a Lowe-formula research CPI (<code>R-CPI-I</code>)
+with a chained Törnqvist-formula research CPI (<code>R-C-CPI-I</code>).
+The difference between their annualized growth rates is interpreted as
+an upper-level substitution-bias measure.</p>
+<p>The same idea can be applied to France with Eurostat HICP and HBS
+data:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">calculate_substitution_bias</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="st">&quot;FR&quot;</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">level =</span> <span class="dv">2</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>The returned columns are:</p>
+<ul>
+<li><code>lowe_growth</code>: annualized growth rate of the package’s
+Lowe-style fixed-weight aggregation.</li>
+<li><code>toernqvist_growth</code>: annualized growth rate of a chained
+Törnqvist aggregation computed with
+<code>hicp::toernqvist()</code>.</li>
+<li><code>substitution_bias</code>:
+<code>lowe_growth - toernqvist_growth</code>, in percentage points.</li>
+</ul>
+<p>This is not a perfect replication of the BLS table, because Eurostat
+HBS income-quintile expenditure shares are not available at the same
+monthly frequency as the U.S. Consumer Expenditure Survey inputs used by
+BLS. The package therefore uses annual category-specific weights and
+approximates the Törnqvist comparison with previous-year and
+current-year weights.</p>
+</div>
+<div id="custom-data" class="section level2">
+<h2>Custom data</h2>
+<p>Users can also supply their own consumption-to-income ratios. This is
+useful when using national sources, survey microdata, or groups other
+than Eurostat income quintiles.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>custom_ratio <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">category =</span> <span class="fu">c</span>(<span class="st">&quot;First quintile&quot;</span>, <span class="st">&quot;Fifth quintile&quot;</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">year =</span> <span class="fu">c</span>(<span class="dv">2020</span>, <span class="dv">2020</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">consumption_to_income =</span> <span class="fu">c</span>(<span class="fl">114.1</span>, <span class="fl">55.3</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>burden_custom <span class="ot">&lt;-</span> <span class="fu">calculate_inflation_burden</span>(</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  inflation_fr,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">consumption_to_income =</span> custom_ratio,</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">include_expenditure =</span> <span class="cn">FALSE</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span></code></pre></div>
+<p>The required columns are:</p>
+<ul>
+<li><code>category</code>: group label matching
+<code>inflation$categories</code>.</li>
+<li><code>year</code>: annual source year.</li>
+<li><code>consumption_to_income</code>: consumption as a percentage of
+disposable income.</li>
+</ul>
+<p>If expenditure is supplied, it must contain:</p>
+<ul>
+<li><code>category</code></li>
+<li><code>year</code></li>
+<li><code>expenditure</code></li>
+</ul>
+</div>
+<div id="interpretation" class="section level2">
+<h2>Interpretation</h2>
+<p>An inflation burden of 4 means that the estimated inflation cost for
+that group is equal to 4 percent of disposable income over the relevant
+annual inflation window.</p>
+<p>This should be read as a burden indicator, not as a direct welfare
+measure. It depends on the inflation measure, the consumption-to-income
+ratio, the household survey source year, and the assumption that annual
+consumption-to-income ratios can be used for monthly inflation
+observations until a newer source is available.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
