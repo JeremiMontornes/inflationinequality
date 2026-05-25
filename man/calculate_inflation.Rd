@@ -17,7 +17,9 @@ calculate_inflation(
   custom_index_weights = NULL,
   custom_hbs = NULL,
   interpolated_hbs = FALSE,
-  specific_hbs_year = NULL
+  specific_hbs_year = NULL,
+  france_insee_income_groups = c("decile", "quintile"),
+  recode_ecoicop2_to_ecoicop1 = NULL
 )
 }
 \arguments{
@@ -54,6 +56,17 @@ CPI data when the CPI dataset is incomplete.}
 
 \item{specific_hbs_year}{year of selected HBS wave. It's recommended to
 download HBS data first to see what HBS years are available.}
+
+\item{france_insee_income_groups}{grouping used for the bundled France
+INSEE level-3 income HBS data. \code{"decile"} keeps the original INSEE decile
+means. \code{"quintile"} averages adjacent decile means (D1-D2, D3-D4, ...)
+because the source values are mean expenditures for equal-population
+decile groups, not income-threshold bounds.}
+
+\item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
+codes back to ECOICOP v1-style codes before matching them to HBS weights.
+If \code{NULL}, this is enabled automatically for the bundled France INSEE
+level-3 income HBS calculation and disabled otherwise.}
 }
 \value{
 An object of class \code{"inflation"} is a list containing the following

@@ -34,6 +34,10 @@
 #' @param ensure_complete_cpi flag that when set to `TRUE`, synthesizes missing
 #'   CPI data when the CPI dataset is incomplete.
 #' @param custom_cpi an object of class `"cpi"`
+#' @param recode_ecoicop2_to_ecoicop1 whether to map ECOICOP v2 HICP item
+#'   codes back to ECOICOP v1-style codes before matching them to HBS weights.
+#'   If `NULL`, this is enabled automatically for the bundled France INSEE
+#'   level-3 income HBS calculation and disabled otherwise.
 #'
 #' @returns An object of class `"contributions"` is a list containing the
 #'   following components:
@@ -97,13 +101,31 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     custom_index_weights = NULL,
                                     custom_hbs = NULL,
                                     interpolated_hbs = FALSE,
-                                    specific_hbs_year = NULL) {
+                                    specific_hbs_year = NULL,
+                                    france_insee_income_groups = c("decile", "quintile"),
+                                    recode_ecoicop2_to_ecoicop1 = NULL) {
+  if (!is.null(country)) {
+    country <- toupper(country)
+  }
+  france_insee_income_groups <- match.arg(france_insee_income_groups)
+  if (is.null(recode_ecoicop2_to_ecoicop1)) {
+    recode_ecoicop2_to_ecoicop1 <- use_france_insee_level3_hbs(
+      country, category, level, custom_hbs
+    )
+  }
+  if (!is.logical(recode_ecoicop2_to_ecoicop1) ||
+      length(recode_ecoicop2_to_ecoicop1) != 1 ||
+      is.na(recode_ecoicop2_to_ecoicop1)) {
+    stop("'recode_ecoicop2_to_ecoicop1' must be TRUE, FALSE, or NULL.")
+  }
+
   # Set start year 2 years behind due to the requirements of the equation
   data_start_year <- if (!is.null(start_year)) {
     start_year - 2
   } else {
     start_year
   }
+  hicp_level <- if (recode_ecoicop2_to_ecoicop1) min(level + 1, 3) else level
 
   # Load CPI data
   cpi <- if (is.null(custom_cpi)) {
@@ -111,7 +133,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       stop("Either 'country' or 'custom_cpi' must be provided.")
     }
     load_cpi(
-      country, level = level,
+      country, level = hicp_level,
       start_year = data_start_year, start_month = start_month,
       end_year = end_year, end_month = end_month)
   } else {
@@ -128,7 +150,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     }
 
     if (!is.null(end_year)) {
-      if (end_year > custom_cpi$start_year) {
+      if (end_year > custom_cpi$end_year) {
         stop(paste0("Not enough CPI data. Earliest possible end year: ", end_year))
       }
       if (!is.null(end_month)
@@ -141,15 +163,36 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     custom_cpi
   }
 
+  index_weights_for_calc <- custom_index_weights
+  if (recode_ecoicop2_to_ecoicop1) {
+    cpi <- recode_cpi_ecoicop2_to_ecoicop1(cpi, target_level = level)
+    index_weights_for_calc <- if (is.null(index_weights_for_calc)) {
+      if (is.null(country)) {
+        stop("Either 'country' or 'custom_index_weights' must be provided.")
+      }
+      load_index_weights(
+        country, level = hicp_level,
+        start_year = data_start_year, end_year = end_year
+      )
+    } else {
+      index_weights_for_calc
+    }
+    index_weights_for_calc <- recode_index_weights_ecoicop2_to_ecoicop1(
+      index_weights_for_calc,
+      target_level = level
+    )
+  }
+
   weights <-
     calculate_weights(
       country, category,
       level = level,
       start_year = data_start_year, end_year = end_year,
-      custom_index_weights = custom_index_weights,
+      custom_index_weights = index_weights_for_calc,
       custom_hbs = custom_hbs,
       interpolated_hbs = interpolated_hbs,
-      specific_hbs_year = specific_hbs_year)
+      specific_hbs_year = specific_hbs_year,
+      france_insee_income_groups = france_insee_income_groups)
 
   # Definitely set start_year and end_year for the ticker
   start_year <- if (is.null(start_year) || start_year < cpi$start_year) {

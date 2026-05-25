@@ -13,7 +13,8 @@ calculate_weights(
   custom_index_weights = NULL,
   custom_hbs = NULL,
   interpolated_hbs = FALSE,
-  specific_hbs_year = NULL
+  specific_hbs_year = NULL,
+  france_insee_income_groups = c("decile", "quintile")
 )
 }
 \arguments{
@@ -41,6 +42,12 @@ level 1 and "012" is level 2. Default value is 2.}
 
 \item{specific_hbs_year}{year of selected HBS wave. It's recommended to
 download HBS data first to see what HBS years are available.}
+
+\item{france_insee_income_groups}{grouping used for the bundled France
+INSEE level-3 income HBS data. \code{"decile"} keeps the original INSEE decile
+means. \code{"quintile"} averages adjacent decile means (D1-D2, D3-D4, ...)
+because the source values are mean expenditures for equal-population
+decile groups, not income-threshold bounds.}
 }
 \value{
 An object of class \code{"weights"} is a list containing the following

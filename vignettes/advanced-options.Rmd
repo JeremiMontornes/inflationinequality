@@ -65,7 +65,7 @@ get_missing_cpi_tuples(corrected_cpi_fr)
 As a matter of convenience, this functionality has been added as an option in `calculate_contributions()` and `calculate_inflation()`.
 
 ```{r, eval = FALSE}
-inflation <- calculate_inflation("FR", "income", level = 3, ensure_complete_cpi = FALSE)
+inflation <- calculate_inflation("FR", "income", level = 3, ensure_complete_cpi = TRUE)
 ```
 
 ### Using sparse data

@@ -11,6 +11,10 @@
 #'   the first returned year is used.
 #' @param include_total whether to include the official all-items HICP index as
 #'   a `"Total"` category.
+#' @param formula upper-level index formula. `"laspeyres"` uses the package's
+#'   current Lowe-style fixed-quantity aggregation with annual weights.
+#'   `"toernqvist"` uses [hicp::toernqvist()] with previous-year and current-year
+#'   category weights as an approximation to a chained Törnqvist index.
 #' @param recode_ecoicop2_to_ecoicop1 whether to map ECOICOP v2 HICP item
 #'   codes back to ECOICOP v1-style codes before matching them to HBS weights.
 #'
@@ -52,8 +56,10 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
                                     custom_hbs = NULL,
                                     interpolated_hbs = FALSE,
                                     specific_hbs_year = NULL,
+                                    france_insee_income_groups = c("decile", "quintile"),
                                     base_year = NULL,
                                     include_total = TRUE,
+                                    formula = c("laspeyres", "toernqvist"),
                                     recode_ecoicop2_to_ecoicop1 = TRUE) {
   if (is.null(country) && is.null(custom_cpi)) {
     stop("Either 'country' or 'custom_cpi' must be provided.")
@@ -65,9 +71,13 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
   if (!is.null(country)) {
     country <- toupper(country)
   }
+  formula <- match.arg(formula)
+  france_insee_income_groups <- match.arg(france_insee_income_groups)
 
   if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
-    custom_hbs <- load_france_insee_hbs_level3()
+    custom_hbs <- load_france_insee_hbs_level3(
+      income_groups = france_insee_income_groups
+    )
   }
 
   data_start_year <- if (!is.null(start_year)) start_year - 1 else NULL
@@ -121,7 +131,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     ),
     custom_hbs = custom_hbs,
     interpolated_hbs = interpolated_hbs,
-    specific_hbs_year = specific_hbs_year
+    specific_hbs_year = specific_hbs_year,
+    france_insee_income_groups = france_insee_income_groups
   )
 
   price_dt <- data.table::copy(cpi_obj$dt)
@@ -144,11 +155,41 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     stop("No common COICOP-year observations between CPI data and category weights.")
   }
 
-  index_dt <- hicp_data[
-    !is.na(dec_ratio) & !is.na(weighted_consumption),
-    .(laspeyres = hicp::laspeyres(x = dec_ratio, w0 = weighted_consumption)),
-    by = .(category, year, month, date)
-  ]
+  if (formula == "toernqvist") {
+    weights_dt_previous <- data.table::copy(weights_dt)
+    weights_dt_previous[, year := year + 1L]
+    weights_dt_previous <- weights_dt_previous[
+      ,
+      .(coicop, year, category, weighted_consumption_previous = weighted_consumption)
+    ]
+    hicp_data <- merge(
+      hicp_data,
+      weights_dt_previous,
+      by = c("coicop", "year", "category"),
+      all.x = TRUE
+    )
+    hicp_data[
+      is.na(weighted_consumption_previous),
+      weighted_consumption_previous := weighted_consumption
+    ]
+
+    index_dt <- hicp_data[
+      !is.na(dec_ratio) & !is.na(weighted_consumption) &
+        !is.na(weighted_consumption_previous),
+      .(laspeyres = hicp::toernqvist(
+        x = dec_ratio,
+        w0 = weighted_consumption_previous,
+        wt = weighted_consumption
+      )),
+      by = .(category, year, month, date)
+    ]
+  } else {
+    index_dt <- hicp_data[
+      !is.na(dec_ratio) & !is.na(weighted_consumption),
+      .(laspeyres = hicp::laspeyres(x = dec_ratio, w0 = weighted_consumption)),
+      by = .(category, year, month, date)
+    ]
+  }
 
   data.table::setorder(index_dt, category, date)
   index_dt[, chain_laspeyres := hicp::chain(x = laspeyres, t = date, by = 12),
@@ -172,11 +213,25 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       data.table::setnames(total_weights, "weight_year", "year")
     }
     total_data <- merge(price_dt, total_weights, by = c("coicop", "year"))
-    total_dt <- total_data[
-      !is.na(dec_ratio) & !is.na(weight),
-      .(laspeyres = hicp::laspeyres(x = dec_ratio, w0 = weight)),
-      by = .(year, month, date)
-    ]
+    if (formula == "toernqvist") {
+      total_weights_previous <- data.table::copy(total_weights)
+      total_weights_previous[, year := year + 1L]
+      data.table::setnames(total_weights_previous, "weight", "weight_previous")
+      total_weights_previous <- total_weights_previous[, .(coicop, year, weight_previous)]
+      total_data <- merge(total_data, total_weights_previous, by = c("coicop", "year"), all.x = TRUE)
+      total_data[is.na(weight_previous), weight_previous := weight]
+      total_dt <- total_data[
+        !is.na(dec_ratio) & !is.na(weight) & !is.na(weight_previous),
+        .(laspeyres = hicp::toernqvist(x = dec_ratio, w0 = weight_previous, wt = weight)),
+        by = .(year, month, date)
+      ]
+    } else {
+      total_dt <- total_data[
+        !is.na(dec_ratio) & !is.na(weight),
+        .(laspeyres = hicp::laspeyres(x = dec_ratio, w0 = weight)),
+        by = .(year, month, date)
+      ]
+    }
     data.table::setorder(total_dt, date)
     total_dt[, category := "Total"]
     total_dt[, chain_laspeyres := hicp::chain(x = laspeyres, t = date, by = 12)]
@@ -211,7 +266,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       start_month = min(index_dt[year == min(year), month]),
       end_year = max(index_dt$year),
       end_month = max(index_dt[year == max(year), month]),
-      base_year = base_year
+      base_year = base_year,
+      formula = formula
     ),
     class = "price_indices"
   )
@@ -237,7 +293,8 @@ use_france_insee_level3_hbs <- function(country, category, level, custom_hbs) {
     identical(as.numeric(level), 3)
 }
 
-load_france_insee_hbs_level3 <- function() {
+load_france_insee_hbs_level3 <- function(income_groups = c("decile", "quintile")) {
+  income_groups <- match.arg(income_groups)
   file_name <- "INSEE_HBS_2017_level3.RDS"
   path <- system.file("extdata", file_name, package = "inflationinequality", mustWork = FALSE)
 
@@ -255,7 +312,52 @@ load_france_insee_hbs_level3 <- function() {
     )
   }
 
-  readRDS(path)
+  hbs_obj <- readRDS(path)
+
+  if (identical(income_groups, "quintile")) {
+    hbs_obj <- aggregate_france_insee_deciles_to_quintiles(hbs_obj)
+  }
+
+  hbs_obj
+}
+
+aggregate_france_insee_deciles_to_quintiles <- function(hbs_obj) {
+  if (length(hbs_obj$categories) != 10) {
+    stop("France INSEE decile aggregation expects exactly 10 income groups.")
+  }
+
+  dt <- data.table::copy(hbs_obj$dt)
+  dt_total <- data.table::copy(hbs_obj$dt_total)
+  quintile_categories <- category_data$income$categories
+  decile_to_quintile <- data.table::data.table(
+    category = hbs_obj$categories,
+    quintile = rep(quintile_categories, each = 2)
+  )
+
+  dt <- dt[
+    decile_to_quintile,
+    on = "category",
+    nomatch = 0
+  ]
+  dt <- dt[
+    ,
+    .(
+      series_name = paste(unique(stats::na.omit(series_name)), collapse = "; "),
+      consumption = mean(consumption, na.rm = TRUE)
+    ),
+    by = .(coicop, year, category = quintile)
+  ]
+  dt[series_name == "", series_name := NA_character_]
+  data.table::setcolorder(dt, c("series_name", "coicop", "year", "category", "consumption"))
+
+  hbs(
+    dt = dt,
+    dt_total = dt_total,
+    country = hbs_obj$country,
+    category = hbs_obj$category,
+    categories = quintile_categories,
+    level = hbs_obj$level
+  )
 }
 
 recode_cpi_ecoicop2_to_ecoicop1 <- function(cpi_obj, target_level) {

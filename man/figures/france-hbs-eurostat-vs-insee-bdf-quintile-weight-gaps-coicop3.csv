@@ -1,0 +1,451 @@
+weight_year,coicop,product_label,category,weight_eurostat_hbs,weight_insee_bdf,diff_insee_minus_eurostat,abs_diff
+2022,041,Actual rental payments made for housing,Fifth quintile,3.29796832355829,5.15028092143154,1.85231259787325,1.85231259787325
+2022,043,"Maintenance, repair and security of the dwelling",Fifth quintile,2.74526840272923,2.34897241546749,-0.396295987261741,0.396295987261741
+2022,081,Information and communication equipment,Fifth quintile,1.53799788358461,1.16357762095268,-0.374420262631936,0.374420262631936
+2022,054,"Glassware, tableware and household utensils",Fifth quintile,0.621366563493332,0.877253135447967,0.255886571954635,0.255886571954635
+2022,044,Water supply and miscellaneous services relating to the dwelling,Fifth quintile,1.45856282805881,1.63974299622643,0.181180168167614,0.181180168167614
+2022,09,"Recreation, sport and culture",Fifth quintile,8.62779117400588,8.79586077517842,0.168069601172533,0.168069601172533
+2022,051,"Furniture, furnishings, and loose carpets",Fifth quintile,2.75523114205609,2.60911302440014,-0.146118117655954,0.146118117655954
+2022,056,Goods and services for routine household maintenance,Fifth quintile,1.67589731788346,1.81386602146357,0.13796870358011,0.13796870358011
+2022,031,Clothing,Fifth quintile,3.6027311325623,3.47853080171153,-0.124200330850769,0.124200330850769
+2022,052,Household textiles,Fifth quintile,0.452148249986153,0.570249588319964,0.11810133833381,0.11810133833381
+2022,053,Household appliances,Fifth quintile,1.31944028960154,1.21351707696334,-0.105923212638197,0.105923212638197
+2022,055,Tools and equipment for house and garden,Fifth quintile,0.661454728879999,0.757916159941955,0.0964614310619555,0.0964614310619555
+2022,032,Footwear,Fifth quintile,1.12683721295214,1.0381759126065,-0.0886613003456351,0.0886613003456351
+2022,083,Information and communication services,Fifth quintile,2.72069512827346,2.64469794149729,-0.0759971867761702,0.0759971867761702
+2022,111,Food and beverage serving services,Fifth quintile,8.37331041883216,8.42422229163215,0.050911872799988,0.050911872799988
+2022,112,Accommodation services,Fifth quintile,2.63246787442531,2.60282067437309,-0.0296472000522185,0.0296472000522185
+2022,045,"Electricity, gas and other fuels",Fifth quintile,6.13413473079412,6.11485155637924,-0.0192831744148885,0.0192831744148885
+2022,082,"Software, excluding games",Fifth quintile,1.15638938615384e-07,9.65276955528611e-08,-1.91112430625234e-08,1.91112430625234e-08
+2022,01,Food and non-alcoholic beverages,Fifth quintile,17.1359116422059,,,
+2022,011,Food,Fifth quintile,,15.1756978384961,,
+2022,012,Non-alcoholic beverages,Fifth quintile,,1.28476658597897,,
+2022,013,Services for processing primary goods for food and non-alcoholic beverages,Fifth quintile,,1.23347290648613e-07,,
+2022,02,"Alcoholic beverages, tobacco and narcotics",Fifth quintile,,4.02522064951175,,
+2022,021,Alcoholic beverages,Fifth quintile,2.3775365779323,,,
+2022,022,Alcohol production services,Fifth quintile,7.11624237633135e-08,,,
+2022,023,Tobacco,Fifth quintile,2.81927732344307e-06,,,
+2022,06,Health,Fifth quintile,4.95982635155047,,,
+2022,061,Medicines and health products,Fifth quintile,,2.18254440069183,,
+2022,062,Outpatient care services,Fifth quintile,,2.29078607774664,,
+2022,063,Inpatient care services,Fifth quintile,,0.150974463988438,,
+2022,064,Other health services,Fifth quintile,,0.39600665855553,,
+2022,07,Transport,Fifth quintile,21.0156249882156,,,
+2022,071,Purchase of vehicles,Fifth quintile,,4.69831670316621,,
+2022,072,Operation of personal transport equipment,Fifth quintile,,10.2636913648284,,
+2022,073,Passenger transport services,Fifth quintile,,2.70838821398153,,
+2022,074,Transport services for goods,Fifth quintile,,0.345473944680889,,
+2022,10,Education services,Fifth quintile,,0.467387623096462,,
+2022,101,Early childhood and primary education,Fifth quintile,0.0578194693076922,,,
+2022,102,Secondary education,Fifth quintile,0.179240354853846,,,
+2022,103,Post-secondary non-tertiary education,Fifth quintile,1.15638938615384e-13,,,
+2022,104,Tertiary education,Fifth quintile,0.213932036438461,,,
+2022,105,Education not defined by level,Fifth quintile,0.0265969558815384,,,
+2022,12,Insurance and financial services,Fifth quintile,,4.76709634140899,,
+2022,121,Insurance,Fifth quintile,4.29020462263076,,,
+2022,122,Financial services,Fifth quintile,5.93227755096922e-07,,,
+2022,041,Actual rental payments made for housing,First quintile,20.5797255520957,11.490006635964,-9.08971891613169,9.08971891613169
+2022,081,Information and communication equipment,First quintile,1.37104211868776,1.93497615421811,0.563934035530344,0.563934035530344
+2022,09,"Recreation, sport and culture",First quintile,5.70359411995456,5.23356143574391,-0.470032684210656,0.470032684210656
+2022,044,Water supply and miscellaneous services relating to the dwelling,First quintile,3.0794922313036,2.70310631002608,-0.37638592127752,0.37638592127752
+2022,112,Accommodation services,First quintile,0.552165424696397,0.858910801323184,0.306745376626787,0.306745376626787
+2022,083,Information and communication services,First quintile,5.01239597428679,4.70926360139923,-0.303132372887559,0.303132372887559
+2022,111,Food and beverage serving services,First quintile,4.9762362612659,4.69358660886527,-0.282649652400625,0.282649652400625
+2022,045,"Electricity, gas and other fuels",First quintile,8.35427098304443,8.11629047027367,-0.237980512770758,0.237980512770758
+2022,031,Clothing,First quintile,3.41884299746463,3.55753130099964,0.138688303535009,0.138688303535009
+2022,043,"Maintenance, repair and security of the dwelling",First quintile,1.22362931946043,1.33093672896373,0.107307409503304,0.107307409503304
+2022,054,"Glassware, tableware and household utensils",First quintile,0.553914760733,0.615000219786708,0.061085459053708,0.061085459053708
+2022,051,"Furniture, furnishings, and loose carpets",First quintile,1.30030935004291,1.35182787601908,0.0515185259761741,0.0515185259761741
+2022,056,Goods and services for routine household maintenance,First quintile,0.81489383069374,0.787588560281074,-0.0273052704126661,0.0273052704126661
+2022,053,Household appliances,First quintile,0.980174848009233,1.00521042756191,0.0250355795526781,0.0250355795526781
+2022,055,Tools and equipment for house and garden,First quintile,0.336943541091042,0.351828875862888,0.0148853347718463,0.0148853347718463
+2022,052,Household textiles,First quintile,0.268710510479656,0.257715174191187,-0.0109953362884692,0.0109953362884692
+2022,032,Footwear,First quintile,1.00451456816138,0.999634462575237,-0.00488010558613861,0.00488010558613861
+2022,082,"Software, excluding games",First quintile,1.03085873585546e-07,1.3418006292495e-07,3.1094189339404e-08,3.1094189339404e-08
+2022,01,Food and non-alcoholic beverages,First quintile,17.543233263614,,,
+2022,011,Food,First quintile,,18.2850686039236,,
+2022,012,Non-alcoholic beverages,First quintile,,1.64608618396729,,
+2022,013,Services for processing primary goods for food and non-alcoholic beverages,First quintile,,9.49996226317114e-08,,
+2022,02,"Alcoholic beverages, tobacco and narcotics",First quintile,,5.58909920538862,,
+2022,021,Alcoholic beverages,First quintile,2.11944556091882,,,
+2022,022,Alcohol production services,First quintile,1.82382699420581e-07,,,
+2022,023,Tobacco,First quintile,2.51323359801561e-06,,,
+2022,06,Health,First quintile,4.42141754675506,,,
+2022,061,Medicines and health products,First quintile,,1.94808649858927,,
+2022,062,Outpatient care services,First quintile,,1.98894857248691,,
+2022,063,Inpatient care services,First quintile,,0.143490992508786,,
+2022,064,Other health services,First quintile,,0.213694174287883,,
+2022,07,Transport,First quintile,12.8248198183472,,,
+2022,071,Purchase of vehicles,First quintile,,2.32178218734268,,
+2022,072,Operation of personal transport equipment,First quintile,,10.6567881885422,,
+2022,073,Passenger transport services,First quintile,,2.42732534564773,,
+2022,074,Transport services for goods,First quintile,,0.172008664615778,,
+2022,10,Education services,First quintile,,0.771330902153298,,
+2022,101,Early childhood and primary education,First quintile,5.1542936792773e-08,,,
+2022,102,Secondary education,First quintile,1.59783104057596e-07,,,
+2022,103,Post-secondary non-tertiary education,First quintile,1.03085873585546e-13,,,
+2022,104,Tertiary education,First quintile,0.228850639359912,,,
+2022,105,Education not defined by level,First quintile,0.0237097509246756,,,
+2022,12,Insurance and financial services,First quintile,,3.83931460731144,,
+2022,121,Insurance,First quintile,3.30766348975027,,,
+2022,122,Financial services,First quintile,5.28830531493851e-07,,,
+2022,041,Actual rental payments made for housing,Fourth quintile,5.31685462037709,6.68992393410328,1.37306931372618,1.37306931372618
+2022,045,"Electricity, gas and other fuels",Fourth quintile,6.86750720984826,6.48520035912073,-0.382306850727526,0.382306850727526
+2022,111,Food and beverage serving services,Fourth quintile,6.55445136150128,6.2610110415751,-0.293440319926175,0.293440319926175
+2022,083,Information and communication services,Fourth quintile,3.38771352739075,3.13397930654298,-0.253734220847775,0.253734220847775
+2022,054,"Glassware, tableware and household utensils",Fourth quintile,0.916228076800478,1.1230228047835,0.206794727983026,0.206794727983026
+2022,031,Clothing,Fourth quintile,3.42732959249807,3.2310977118025,-0.196231880695568,0.196231880695568
+2022,081,Information and communication equipment,Fourth quintile,1.51189000266084,1.37170363948671,-0.140186363174133,0.140186363174133
+2022,09,"Recreation, sport and culture",Fourth quintile,7.24248606098383,7.34047064676782,0.0979845857839932,0.0979845857839932
+2022,051,"Furniture, furnishings, and loose carpets",Fourth quintile,2.0711756277053,2.16093155478113,0.0897559270758328,0.0897559270758328
+2022,053,Household appliances,Fourth quintile,1.29704247596693,1.2075052471821,-0.0895372287848268,0.0895372287848268
+2022,055,Tools and equipment for house and garden,Fourth quintile,0.743115859524812,0.803647671175853,0.0605318116510415,0.0605318116510415
+2022,032,Footwear,Fourth quintile,0.996937994235756,0.939879714157762,-0.0570582800779936,0.0570582800779936
+2022,056,Goods and services for routine household maintenance,Fourth quintile,1.04837635710824,0.992960137646503,-0.0554162194617364,0.0554162194617364
+2022,043,"Maintenance, repair and security of the dwelling",Fourth quintile,3.59822242237276,3.54309680140393,-0.0551256209688322,0.0551256209688322
+2022,044,Water supply and miscellaneous services relating to the dwelling,Fourth quintile,1.66019338291028,1.64237276247647,-0.0178206204338041,0.0178206204338041
+2022,112,Accommodation services,Fourth quintile,1.52222417902899,1.54000787409013,0.0177836950611405,0.0177836950611405
+2022,052,Household textiles,Fourth quintile,0.444472925594277,0.43694783074455,-0.00752509484972702,0.00752509484972702
+2022,082,"Software, excluding games",Fourth quintile,1.13675940049687e-07,1.21722533894295e-07,8.04659384460767e-09,8.04659384460767e-09
+2022,01,Food and non-alcoholic beverages,Fourth quintile,19.7402642047822,,,
+2022,011,Food,Fourth quintile,,16.2184183808683,,
+2022,012,Non-alcoholic beverages,Fourth quintile,,1.37454060745172,,
+2022,013,Services for processing primary goods for food and non-alcoholic beverages,Fourth quintile,,1.17287650865602e-07,,
+2022,02,"Alcoholic beverages, tobacco and narcotics",Fourth quintile,,4.50239526962673,,
+2022,021,Alcoholic beverages,Fourth quintile,2.5319421047067,,,
+2022,022,Alcohol production services,Fourth quintile,9.61873338881968e-08,,,
+2022,023,Tobacco,Fourth quintile,2.77141941841137e-06,,,
+2022,06,Health,Fourth quintile,5.20067425727319,,,
+2022,061,Medicines and health products,Fourth quintile,,1.90418069366076,,
+2022,062,Outpatient care services,Fourth quintile,,3.00128160457222,,
+2022,063,Inpatient care services,Fourth quintile,,0.230299034128006,,
+2022,064,Other health services,Fourth quintile,,0.260087994490803,,
+2022,07,Transport,Fourth quintile,19.272377745242,,,
+2022,071,Purchase of vehicles,Fourth quintile,,4.54382996903683,,
+2022,072,Operation of personal transport equipment,Fourth quintile,,11.7483705087399,,
+2022,073,Passenger transport services,Fourth quintile,,1.8548962385502,,
+2022,074,Transport services for goods,Fourth quintile,,0.225314585912307,,
+2022,10,Education services,Fourth quintile,,0.307395112499597,,
+2022,101,Early childhood and primary education,Fourth quintile,0.0568379700248436,,,
+2022,102,Secondary education,Fourth quintile,0.176197707077015,,,
+2022,103,Post-secondary non-tertiary education,Fourth quintile,1.13675940049687e-13,,,
+2022,104,Tertiary education,Fourth quintile,0.0841201956367685,,,
+2022,105,Education not defined by level,Fourth quintile,2.6145466211428e-08,,,
+2022,12,Insurance and financial services,Fourth quintile,,4.92523072361139,,
+2022,121,Insurance,Fourth quintile,4.33136054816348,,,
+2022,122,Financial services,Fourth quintile,5.83157572454895e-07,,,
+2022,041,Actual rental payments made for housing,Second quintile,14.0202853553486,10.6331119182805,-3.38717343706808,3.38717343706808
+2022,045,"Electricity, gas and other fuels",Second quintile,8.40788015039563,7.81040678225898,-0.597473368136658,0.597473368136658
+2022,044,Water supply and miscellaneous services relating to the dwelling,Second quintile,2.69529076511653,2.15159923930554,-0.543691525810993,0.543691525810993
+2022,09,"Recreation, sport and culture",Second quintile,6.07135898982415,5.56365657557619,-0.507702414247954,0.507702414247954
+2022,083,Information and communication services,Second quintile,4.30289736824001,3.98071561627872,-0.322181751961284,0.322181751961284
+2022,043,"Maintenance, repair and security of the dwelling",Second quintile,1.73670442710901,1.45591094632097,-0.280793480788036,0.280793480788036
+2022,054,"Glassware, tableware and household utensils",Second quintile,0.58963090490727,0.84807913815291,0.258448233245641,0.258448233245641
+2022,111,Food and beverage serving services,Second quintile,5.14995975623243,4.93632788009414,-0.213631876138291,0.213631876138291
+2022,112,Accommodation services,Second quintile,0.88165315884905,1.06521416933358,0.183561010484533,0.183561010484533
+2022,081,Information and communication equipment,Second quintile,1.45944622244417,1.64167421123885,0.182227988794674,0.182227988794674
+2022,056,Goods and services for routine household maintenance,Second quintile,0.939724254695961,0.823448937842073,-0.116275316853888,0.116275316853888
+2022,031,Clothing,Second quintile,3.19816241752898,3.09469006284783,-0.103472354681151,0.103472354681151
+2022,051,"Furniture, furnishings, and loose carpets",Second quintile,1.53794737842295,1.48451995458398,-0.0534274238389669,0.0534274238389669
+2022,032,Footwear,Second quintile,0.855428128376634,0.896818654438575,0.0413905260619405,0.0413905260619405
+2022,053,Household appliances,Second quintile,1.46072643842877,1.42068602351755,-0.0400404149112228,0.0400404149112228
+2022,055,Tools and equipment for house and garden,Second quintile,0.538004235814006,0.498440812606079,-0.0395634232079275,0.0395634232079275
+2022,052,Household textiles,Second quintile,0.286036828559234,0.321636032703793,0.0355992041445594,0.0355992041445594
+2022,082,"Software, excluding games",Second quintile,7.31551991200086e-08,1.06562636611984e-07,3.34074374919758e-08,3.34074374919758e-08
+2022,01,Food and non-alcoholic beverages,Second quintile,19.0555225400099,,,
+2022,011,Food,Second quintile,,18.1008276659176,,
+2022,012,Non-alcoholic beverages,Second quintile,,1.56986750327802,,
+2022,013,Services for processing primary goods for food and non-alcoholic beverages,Second quintile,,8.51566947494938e-08,,
+2022,02,"Alcoholic beverages, tobacco and narcotics",Second quintile,,5.69106866432308,,
+2022,021,Alcoholic beverages,Second quintile,2.25610634086107,,,
+2022,022,Alcohol production services,Second quintile,1.43496736735402e-07,,,
+2022,023,Tobacco,Second quintile,2.67528563181872e-06,,,
+2022,06,Health,Second quintile,5.02027553961059,,,
+2022,061,Medicines and health products,Second quintile,,1.96324736594025,,
+2022,062,Outpatient care services,Second quintile,,2.64748950515997,,
+2022,063,Inpatient care services,Second quintile,,0.18369504105033,,
+2022,064,Other health services,Second quintile,,0.104089330972101,,
+2022,07,Transport,Second quintile,15.1240061089809,,,
+2022,071,Purchase of vehicles,Second quintile,,3.16793049413868,,
+2022,072,Operation of personal transport equipment,Second quintile,,11.6293270810056,,
+2022,073,Passenger transport services,Second quintile,,1.42581585531569,,
+2022,074,Transport services for goods,Second quintile,,0.156995104741179,,
+2022,10,Education services,Second quintile,,0.312496388847734,,
+2022,101,Early childhood and primary education,Second quintile,5.48663993400065e-08,,,
+2022,102,Secondary education,Second quintile,1.7008583795402e-07,,,
+2022,103,Post-secondary non-tertiary education,Second quintile,1.09732798680013e-13,,,
+2022,104,Tertiary education,Second quintile,0.121803406534814,,,
+2022,105,Education not defined by level,Second quintile,2.5238543696403e-08,,,
+2022,12,Insurance and financial services,Second quintile,,4.42021285221019,,
+2022,121,Insurance,Second quintile,4.29114557865164,,,
+2022,122,Financial services,Second quintile,5.62929257228467e-07,,,
+2022,043,"Maintenance, repair and security of the dwelling",Third quintile,2.24119807140524,3.56630523967267,1.32510716826743,1.32510716826743
+2022,045,"Electricity, gas and other fuels",Third quintile,7.67865784486378,6.92900150915179,-0.749656335711986,0.749656335711986
+2022,09,"Recreation, sport and culture",Third quintile,6.83783771594636,6.30129428439597,-0.536543431550389,0.536543431550389
+2022,044,Water supply and miscellaneous services relating to the dwelling,Third quintile,2.18095252931342,1.72171031270886,-0.459242216604562,0.459242216604562
+2022,083,Information and communication services,Third quintile,3.90920076748007,3.55530307321765,-0.353897694262428,0.353897694262428
+2022,031,Clothing,Third quintile,3.30175490098261,2.98491206174683,-0.316842839235777,0.316842839235777
+2022,051,"Furniture, furnishings, and loose carpets",Third quintile,1.90531610264549,1.63447970489573,-0.270836397749766,0.270836397749766
+2022,111,Food and beverage serving services,Third quintile,5.62058902107412,5.88460652265503,0.264017501580913,0.264017501580913
+2022,056,Goods and services for routine household maintenance,Third quintile,1.04479103017025,0.802132725294894,-0.242658304875361,0.242658304875361
+2022,041,Actual rental payments made for housing,Third quintile,9.17574835830145,9.02818189392835,-0.147566464373101,0.147566464373101
+2022,054,"Glassware, tableware and household utensils",Third quintile,0.608729787886311,0.75205366967523,0.143323881788919,0.143323881788919
+2022,032,Footwear,Third quintile,0.993528580601044,0.859103682250883,-0.134424898350162,0.134424898350162
+2022,052,Household textiles,Third quintile,0.295301919433682,0.395792229239797,0.100490309806115,0.100490309806115
+2022,055,Tools and equipment for house and garden,Third quintile,0.555430866366311,0.483415249757144,-0.072015616609167,0.072015616609167
+2022,053,Household appliances,Third quintile,1.29260673941367,1.33680205187636,0.0441953124626888,0.0441953124626888
+2022,081,Information and communication equipment,Third quintile,1.50671951219999,1.47805812535975,-0.0286613868402421,0.0286613868402421
+2022,112,Accommodation services,Third quintile,1.06191284280889,1.07096132042862,0.0090484776197266,0.0090484776197266
+2022,082,"Software, excluding games",Third quintile,7.55247875789468e-08,9.60731510854005e-08,2.05483635064538e-08,2.05483635064538e-08
+2022,01,Food and non-alcoholic beverages,Third quintile,20.197361558276,,,
+2022,011,Food,Third quintile,,16.6617431864322,,
+2022,012,Non-alcoholic beverages,Third quintile,,1.43752168428699,,
+2022,013,Services for processing primary goods for food and non-alcoholic beverages,Third quintile,,1.03510440112497e-07,,
+2022,02,"Alcoholic beverages, tobacco and narcotics",Third quintile,,5.50819158518575,,
+2022,021,Alcoholic beverages,Third quintile,2.52328315301261,,,
+2022,022,Alcohol production services,Third quintile,1.22001579935222e-07,,,
+2022,023,Tobacco,Third quintile,2.76194148176208e-06,,,
+2022,06,Health,Third quintile,5.83074961605587,,,
+2022,061,Medicines and health products,Third quintile,,1.99748680436435,,
+2022,062,Outpatient care services,Third quintile,,2.59468497943699,,
+2022,063,Inpatient care services,Third quintile,,0.18803834674508,,
+2022,064,Other health services,Third quintile,,0.0873713530330677,,
+2022,07,Transport,Third quintile,16.7192998502893,,,
+2022,071,Purchase of vehicles,Third quintile,,3.74846111053075,,
+2022,072,Operation of personal transport equipment,Third quintile,,12.3795584191177,,
+2022,073,Passenger transport services,Third quintile,,1.59641330238467,,
+2022,074,Transport services for goods,Third quintile,,0.186659867208543,,
+2022,10,Education services,Third quintile,,0.265309273147548,,
+2022,101,Early childhood and primary education,Third quintile,0.0566435906842101,,,
+2022,102,Secondary education,Third quintile,0.175595131121051,,,
+2022,103,Post-secondary non-tertiary education,Third quintile,1.1328718136842e-13,,,
+2022,104,Tertiary education,Third quintile,0.0838325142126309,,,
+2022,105,Education not defined by level,Third quintile,2.60560517147366e-08,,,
+2022,12,Insurance and financial services,Third quintile,,4.5644462322872,,
+2022,121,Insurance,Third quintile,4.20295442876839,,,
+2022,122,Financial services,Third quintile,5.81163240419995e-07,,,
+2023,041,Actual rental payments made for housing,Fifth quintile,2.943183883083,4.6085595364541,1.6653756533711,1.6653756533711
+2023,043,"Maintenance, repair and security of the dwelling",Fifth quintile,2.64824921337531,2.27203660871873,-0.37621260465658,0.37621260465658
+2023,081,Information and communication equipment,Fifth quintile,1.30158631550999,0.987360987607041,-0.314225327902952,0.314225327902952
+2023,054,"Glassware, tableware and household utensils",Fifth quintile,0.534908777283183,0.757216626361068,0.222307849077885,0.222307849077885
+2023,09,"Recreation, sport and culture",Fifth quintile,8.69313598925641,8.88625072316536,0.193114733908951,0.193114733908951
+2023,044,Water supply and miscellaneous services relating to the dwelling,Fifth quintile,1.34974024146842,1.52147285048134,0.171732609012917,0.171732609012917
+2023,056,Goods and services for routine household maintenance,Fifth quintile,1.76643857104928,1.91698937670846,0.150550805659181,0.150550805659181
+2023,051,"Furniture, furnishings, and loose carpets",Fifth quintile,2.4418504776291,2.31855439306667,-0.123296084562431,0.123296084562431
+2023,031,Clothing,Fifth quintile,3.59707370813626,3.48238437439507,-0.114689333741192,0.114689333741192
+2023,052,Household textiles,Fifth quintile,0.389912437373556,0.493076815140154,0.103164377766598,0.103164377766598
+2023,111,Food and beverage serving services,Fifth quintile,10.8194554564477,10.9144384749093,0.0949830184615497,0.0949830184615497
+2023,053,Household appliances,Fifth quintile,1.1742449703562,1.08287474989592,-0.091370220460284,0.091370220460284
+2023,055,Tools and equipment for house and garden,Fifth quintile,0.580360997824802,0.666780096474835,0.0864190986500331,0.0864190986500331
+2023,032,Footwear,Fifth quintile,1.09811563126721,1.01442795478524,-0.0836876764819665,0.0836876764819665
+2023,083,Information and communication services,Fifth quintile,2.45864583884323,2.39637919285594,-0.0622666459872834,0.0622666459872834
+2023,112,Accommodation services,Fifth quintile,3.64864200132927,3.61722720501093,-0.0314147963183427,0.0314147963183427
+2023,045,"Electricity, gas and other fuels",Fifth quintile,5.69851864380334,5.69584220068097,-0.00267644312237447,0.00267644312237447
+2023,082,"Software, excluding games",Fifth quintile,1.12691455888311e-07,9.43196539148912e-08,-1.83718019734198e-08,1.83718019734198e-08
+2023,01,Food and non-alcoholic beverages,Fifth quintile,16.330962088564,,,
+2023,011,Food,Fifth quintile,,14.4734590541852,,
+2023,012,Non-alcoholic beverages,Fifth quintile,,1.25537794160426,,
+2023,013,Services for processing primary goods for food and non-alcoholic beverages,Fifth quintile,,1.20525758940817e-07,,
+2023,02,"Alcoholic beverages, tobacco and narcotics",Fifth quintile,,3.58394049459918,,
+2023,021,Alcoholic beverages,Fifth quintile,2.27862123806165,,,
+2023,022,Alcohol production services,Fifth quintile,6.93485882389607e-08,,,
+2023,023,Tobacco,Fifth quintile,2.33722079512357e-06,,,
+2023,06,Health,Fifth quintile,4.49321964274675,,,
+2023,061,Medicines and health products,Fifth quintile,,2.09123160101888,,
+2023,062,Outpatient care services,Fifth quintile,,1.98710827121575,,
+2023,063,Inpatient care services,Fifth quintile,,0.146626902625011,,
+2023,064,Other health services,Fifth quintile,,0.348253314161489,,
+2023,07,Transport,Fifth quintile,21.2088478757459,,,
+2023,071,Purchase of vehicles,Fifth quintile,,4.01952780573983,,
+2023,072,Operation of personal transport equipment,Fifth quintile,,9.89736045705287,,
+2023,073,Passenger transport services,Fifth quintile,,4.26106655225285,,
+2023,074,Transport services for goods,Fifth quintile,,0.342238218205156,,
+2023,10,Education services,Fifth quintile,,0.58301651944142,,
+2023,101,Early childhood and primary education,Fifth quintile,0.0788840191218178,,,
+2023,102,Secondary education,Fifth quintile,0.228763655453272,,,
+2023,103,Post-secondary non-tertiary education,Fifth quintile,1.12691455888311e-13,,,
+2023,104,Tertiary education,Fifth quintile,0.267642207734739,,,
+2023,105,Education not defined by level,Fifth quintile,0.0191575475010129,,,
+2023,12,Insurance and financial services,Fifth quintile,,4.37892048634157,,
+2023,121,Insurance,Fifth quintile,3.9498355288853,,,
+2023,122,Financial services,Fifth quintile,5.22888355321764e-07,,,
+2023,041,Actual rental payments made for housing,First quintile,19.1079013142469,10.564150703173,-8.54375061107382,8.54375061107382
+2023,09,"Recreation, sport and culture",First quintile,5.97899176647797,5.43272306195672,-0.546268704521254,0.546268704521254
+2023,081,Information and communication equipment,First quintile,1.20717581740022,1.68708220768561,0.479906390285386,0.479906390285386
+2023,111,Food and beverage serving services,First quintile,6.68977786506866,6.24822182388845,-0.441556041180211,0.441556041180211
+2023,112,Accommodation services,First quintile,0.79623245571144,1.22647762441376,0.430245168702316,0.430245168702316
+2023,044,Water supply and miscellaneous services relating to the dwelling,First quintile,2.96487687020823,2.57710179369253,-0.387775076515705,0.387775076515705
+2023,083,Information and communication services,First quintile,4.71263671157292,4.38442341095126,-0.328213300621658,0.328213300621658
+2023,045,"Electricity, gas and other fuels",First quintile,8.07457578859062,7.76800749873829,-0.306568289852328,0.306568289852328
+2023,031,Clothing,First quintile,3.55139628566598,3.65939766341087,0.108001377744887,0.108001377744887
+2023,043,"Maintenance, repair and security of the dwelling",First quintile,1.2280792947578,1.32274108300167,0.0946617882438663,0.0946617882438663
+2023,054,"Glassware, tableware and household utensils",First quintile,0.496109195953222,0.545444425410055,0.0493352294568328,0.0493352294568328
+2023,056,Goods and services for routine household maintenance,First quintile,0.893623657036527,0.855251657512417,-0.03837199952411,0.03837199952411
+2023,051,"Furniture, furnishings, and loose carpets",First quintile,1.19897522243686,1.2343144641731,0.0353392417362366,0.0353392417362366
+2023,032,Footwear,First quintile,1.01846386903318,1.0036250782463,-0.0148387907868828,0.0148387907868828
+2023,053,Household appliances,First quintile,0.907559308608247,0.92165703911034,0.0140977305020937,0.0140977305020937
+2023,052,Household textiles,First quintile,0.241086772190751,0.228965272113933,-0.0121215000768182,0.0121215000768182
+2023,055,Tools and equipment for house and garden,First quintile,0.307579738261528,0.318033570969037,0.0104538327075084,0.0104538327075084
+2023,082,"Software, excluding games",First quintile,1.04517386787898e-07,1.34715719789433e-07,3.01983330015354e-08,3.01983330015354e-08
+2023,01,Food and non-alcoholic beverages,First quintile,17.3946898138547,,,
+2023,011,Food,First quintile,,17.9184436195142,,
+2023,012,Non-alcoholic beverages,First quintile,,1.6526574833448,,
+2023,013,Services for processing primary goods for food and non-alcoholic beverages,First quintile,,9.53788682429947e-08,,
+2023,02,"Alcoholic beverages, tobacco and narcotics",First quintile,,5.11320189296171,,
+2023,021,Alcoholic beverages,First quintile,2.1133415608513,,,
+2023,022,Alcohol production services,First quintile,1.84915376624742e-07,,,
+2023,023,Tobacco,First quintile,2.167690601981e-06,,,
+2023,06,Health,First quintile,4.16730418133372,,,
+2023,061,Medicines and health products,First quintile,,1.91790594891685,,
+2023,062,Outpatient care services,First quintile,,1.77272175444527,,
+2023,063,Inpatient care services,First quintile,,0.143190705245404,,
+2023,064,Other health services,First quintile,,0.193092531698188,,
+2023,07,Transport,First quintile,13.4656875584312,,,
+2023,071,Purchase of vehicles,First quintile,,2.04095884939038,,
+2023,072,Operation of personal transport equipment,First quintile,,10.5589847241325,,
+2023,073,Passenger transport services,First quintile,,3.92387728864737,,
+2023,074,Transport services for goods,First quintile,,0.175082829218178,,
+2023,10,Education services,First quintile,,0.98860865477333,,
+2023,101,Early childhood and primary education,First quintile,7.31621707515285e-08,,,
+2023,102,Secondary education,First quintile,2.12170295179433e-07,,,
+2023,103,Post-secondary non-tertiary education,First quintile,1.04517386787898e-13,,,
+2023,104,Tertiary education,First quintile,0.297874552345509,,,
+2023,105,Education not defined by level,First quintile,0.0177679557539426,,,
+2023,12,Insurance and financial services,First quintile,,3.62365510916982,,
+2023,121,Insurance,First quintile,3.16828921679206,,,
+2023,122,Financial services,First quintile,4.84960674695846e-07,,,
+2023,041,Actual rental payments made for housing,Fourth quintile,4.81920665913429,6.1165581099213,1.29735145078701,1.29735145078701
+2023,111,Food and beverage serving services,Fourth quintile,8.60190030123917,8.28834253065657,-0.313557770582602,0.313557770582602
+2023,045,"Electricity, gas and other fuels",Fourth quintile,6.47974081960553,6.17230062736237,-0.30744019224316,0.30744019224316
+2023,083,Information and communication services,Fourth quintile,3.10937155914592,2.90153109770676,-0.207840461439166,0.207840461439166
+2023,054,"Glassware, tableware and household utensils",Fourth quintile,0.801097338608637,0.990456553053691,0.189359214445054,0.189359214445054
+2023,031,Clothing,Fourth quintile,3.47554730191303,3.30508464172355,-0.170462660189485,0.170462660189485
+2023,09,"Recreation, sport and culture",Fourth quintile,7.41164082296854,7.57732237436202,0.165681551393479,0.165681551393479
+2023,081,Information and communication equipment,Fourth quintile,1.29953290181598,1.18930306105155,-0.110229840764429,0.110229840764429
+2023,051,"Furniture, furnishings, and loose carpets",Fourth quintile,1.86435153100353,1.96208152988976,0.0977299988862335,0.0977299988862335
+2023,053,Household appliances,Fourth quintile,1.1723924534132,1.10096370922274,-0.0714287441904644,0.0714287441904644
+2023,055,Tools and equipment for house and garden,Fourth quintile,0.662223321642774,0.722401756482419,0.0601784348396453,0.0601784348396453
+2023,056,Goods and services for routine household maintenance,Fourth quintile,1.12232386975016,1.07225469629435,-0.0500691734558123,0.0500691734558123
+2023,032,Footwear,Fourth quintile,0.986744896010919,0.93837013790587,-0.0483747581050494,0.0483747581050494
+2023,112,Accommodation services,Fourth quintile,2.14287400968475,2.18678519187335,0.0439111821886029,0.0439111821886029
+2023,043,"Maintenance, repair and security of the dwelling",Fourth quintile,3.52542836279082,3.50164462301951,-0.0237837397713037,0.0237837397713037
+2023,044,Water supply and miscellaneous services relating to the dwelling,Fourth quintile,1.56039152093508,1.55708312721785,-0.00330839371723002,0.00330839371723002
+2023,052,Household textiles,Fourth quintile,0.389297302189029,0.386038688478917,-0.00325861371011199,0.00325861371011199
+2023,082,"Software, excluding games",Fourth quintile,1.12513671152898e-07,1.21527030742435e-07,9.01335958953645e-09,9.01335958953645e-09
+2023,01,Food and non-alcoholic beverages,Fourth quintile,19.1076538737632,,,
+2023,011,Food,Fourth quintile,,15.8046108831137,,
+2023,012,Non-alcoholic beverages,Fourth quintile,,1.37233290594799,,
+2023,013,Services for processing primary goods for food and non-alcoholic beverages,Fourth quintile,,1.17099270746614e-07,,
+2023,02,"Alcoholic beverages, tobacco and narcotics",Fourth quintile,,4.09606047451246,,
+2023,021,Alcoholic beverages,Fourth quintile,2.46461196660424,,,
+2023,022,Alcohol production services,Fourth quintile,9.5203875590914e-08,,,
+2023,023,Tobacco,Fourth quintile,2.33353353971111e-06,,,
+2023,06,Health,Fourth quintile,4.78520643413277,,,
+2023,061,Medicines and health products,Fourth quintile,,1.8642272210581,,
+2023,062,Outpatient care services,Fourth quintile,,2.66008420581908,,
+2023,063,Inpatient care services,Fourth quintile,,0.228535632212174,,
+2023,064,Other health services,Fourth quintile,,0.23370323161941,,
+2023,07,Transport,Fourth quintile,19.7542212908626,,,
+2023,071,Purchase of vehicles,Fourth quintile,,3.97197460210723,,
+2023,072,Operation of personal transport equipment,Fourth quintile,,11.5756418125145,,
+2023,073,Passenger transport services,Fourth quintile,,2.98180106025576,,
+2023,074,Transport services for goods,Fourth quintile,,0.228062644815811,,
+2023,10,Education services,Fourth quintile,,0.391789013128726,,
+2023,101,Early childhood and primary education,Fourth quintile,0.0787595698070289,,,
+2023,102,Secondary education,Fourth quintile,0.228402752440384,,,
+2023,103,Post-secondary non-tertiary education,Fourth quintile,1.12513671152898e-13,,,
+2023,104,Tertiary education,Fourth quintile,0.106887987595253,,,
+2023,105,Education not defined by level,Fourth quintile,1.91273240959927e-08,,,
+2023,12,Insurance and financial services,Fourth quintile,,4.62265361804623,,
+2023,121,Insurance,Fourth quintile,4.05018807050123,,,
+2023,122,Financial services,Fourth quintile,5.22063434149449e-07,,,
+2023,041,Actual rental payments made for housing,Second quintile,12.9319262971996,9.84378921055952,-3.08813708664002,3.08813708664002
+2023,045,"Electricity, gas and other fuels",Second quintile,8.07291958587426,7.52685101872804,-0.546068567146213,0.546068567146213
+2023,044,Water supply and miscellaneous services relating to the dwelling,Second quintile,2.5779003738863,2.06546310085308,-0.512437273033221,0.512437273033221
+2023,09,"Recreation, sport and culture",Second quintile,6.32263647640282,5.81524701396474,-0.507389462438084,0.507389462438084
+2023,083,Information and communication services,Second quintile,4.01894936098388,3.73171313872962,-0.287236222254253,0.287236222254253
+2023,043,"Maintenance, repair and security of the dwelling",Second quintile,1.7315514606737,1.45693392310065,-0.274617537573047,0.274617537573047
+2023,112,Accommodation services,Second quintile,1.26299430526122,1.53156739319208,0.268573087930858,0.268573087930858
+2023,111,Food and beverage serving services,Second quintile,6.8777676163892,6.61672695942129,-0.261040656967919,0.261040656967919
+2023,054,"Glassware, tableware and household utensils",Second quintile,0.524623251063691,0.75735453190409,0.232731280840398,0.232731280840398
+2023,081,Information and communication equipment,Second quintile,1.27655868324136,1.4412363787791,0.164677695537744,0.164677695537744
+2023,056,Goods and services for routine household maintenance,Second quintile,1.02373374922278,0.900365427916486,-0.123368321306289,0.123368321306289
+2023,031,Clothing,Second quintile,3.30030024252363,3.20527760180668,-0.0950226407169557,0.0950226407169557
+2023,032,Footwear,Second quintile,0.861600358020332,0.90661422680851,0.0450138687881782,0.0450138687881782
+2023,051,"Furniture, furnishings, and loose carpets",Second quintile,1.40876306235826,1.36482846614094,-0.0439345962173177,0.0439345962173177
+2023,055,Tools and equipment for house and garden,Second quintile,0.487886992110796,0.453672748058242,-0.0342142440525541,0.0342142440525541
+2023,052,Household textiles,Second quintile,0.254943321443872,0.287727872502803,0.0327845510589306,0.0327845510589306
+2023,053,Household appliances,Second quintile,1.34361025044191,1.31158994633861,-0.0320203041033056,0.0320203041033056
+2023,082,"Software, excluding games",Second quintile,7.36830408797319e-08,1.07726575401279e-07,3.40435345215469e-08,3.40435345215469e-08
+2023,01,Food and non-alcoholic beverages,Second quintile,18.7698529485765,,,
+2023,011,Food,Second quintile,,17.8603405634994,,
+2023,012,Non-alcoholic beverages,Second quintile,,1.58701450469627,,
+2023,013,Services for processing primary goods for food and non-alcoholic beverages,Second quintile,,8.60868254532594e-08,,
+2023,02,"Alcoholic beverages, tobacco and narcotics",Second quintile,,5.24242903241497,,
+2023,021,Alcoholic beverages,Second quintile,2.23480662988227,,,
+2023,022,Alcohol production services,Second quintile,1.44532118648705e-07,,,
+2023,023,Tobacco,Second quintile,2.29227940176846e-06,,,
+2023,06,Health,Second quintile,4.7006095929225,,,
+2023,061,Medicines and health products,Second quintile,,1.94617417385365,,
+2023,062,Outpatient care services,Second quintile,,2.37595865730343,,
+2023,063,Inpatient care services,Second quintile,,0.1845760011788,,
+2023,064,Other health services,Second quintile,,0.0947036293972131,,
+2023,07,Transport,Second quintile,15.775279487093,,,
+2023,071,Purchase of vehicles,Second quintile,,2.80398721856116,,
+2023,072,Operation of personal transport equipment,Second quintile,,11.6021379494822,,
+2023,073,Passenger transport services,Second quintile,,2.32080407403034,,
+2023,074,Transport services for goods,Second quintile,,0.160904042164254,,
+2023,10,Education services,Second quintile,,0.403288921610237,,
+2023,101,Early childhood and primary education,Second quintile,7.73671929237185e-08,,,
+2023,102,Secondary education,Second quintile,2.24364859478784e-07,,,
+2023,103,Post-secondary non-tertiary education,Second quintile,1.10524561319598e-13,,,
+2023,104,Tertiary education,Second quintile,0.157497499880427,,,
+2023,105,Education not defined by level,Second quintile,1.87891754243316e-08,,,
+2023,12,Insurance and financial services,Second quintile,,4.20072207919016,,
+2023,121,Insurance,Second quintile,4.08328511069795,,,
+2023,122,Financial services,Second quintile,5.12833964522934e-07,,,
+2023,043,"Maintenance, repair and security of the dwelling",Third quintile,2.21736122023363,3.54667387861599,1.32931265838236,1.32931265838236
+2023,045,"Electricity, gas and other fuels",Third quintile,7.31604126388573,6.63602514570393,-0.680016118181802,0.680016118181802
+2023,09,"Recreation, sport and culture",Third quintile,7.06606788020839,6.54538678596995,-0.520681094238446,0.520681094238446
+2023,044,Water supply and miscellaneous services relating to the dwelling,Third quintile,2.06991940082994,1.64253200290037,-0.427387397929568,0.427387397929568
+2023,111,Food and beverage serving services,Third quintile,7.44855809544886,7.83888592555188,0.390327830103018,0.390327830103018
+2023,083,Information and communication services,Third quintile,3.62314936270242,3.31223718012109,-0.310912182581335,0.310912182581335
+2023,031,Clothing,Third quintile,3.38099464629359,3.07239981166022,-0.308594834633375,0.308594834633375
+2023,056,Goods and services for routine household maintenance,Third quintile,1.12943888537006,0.871617763391189,-0.257821121978875,0.257821121978875
+2023,051,"Furniture, furnishings, and loose carpets",Third quintile,1.73184983972997,1.49337633593913,-0.238473503790842,0.238473503790842
+2023,054,"Glassware, tableware and household utensils",Third quintile,0.537450617465989,0.667435624737523,0.129985007271535,0.129985007271535
+2023,032,Footwear,Third quintile,0.993000403478242,0.863100121099041,-0.129900282379201,0.129900282379201
+2023,041,Actual rental payments made for housing,Third quintile,8.39836177190604,8.30615289781968,-0.0922088740863654,0.0922088740863654
+2023,052,Household textiles,Third quintile,0.26117684500454,0.351869968164323,0.0906931231597835,0.0906931231597835
+2023,055,Tools and equipment for house and garden,Third quintile,0.499816134019835,0.437267443891298,-0.0625486901285367,0.0625486901285367
+2023,053,Household appliances,Third quintile,1.1798248807575,1.22649215615829,0.0466672754007851,0.0466672754007851
+2023,112,Accommodation services,Third quintile,1.50952118969715,1.5302791581262,0.0207579684290526,0.0207579684290526
+2023,081,Information and communication equipment,Third quintile,1.30777134095481,1.28954782575349,-0.0182235152013224,0.0182235152013224
+2023,082,"Software, excluding games",Third quintile,7.5484637284549e-08,9.6520070917308e-08,2.1035433632759e-08,2.1035433632759e-08
+2023,01,Food and non-alcoholic beverages,Third quintile,19.7415552541337,,,
+2023,011,Food,Third quintile,,16.3383967901553,,
+2023,012,Non-alcoholic beverages,Third quintile,,1.44420884862215,,
+2023,013,Services for processing primary goods for food and non-alcoholic beverages,Third quintile,,1.03991957247858e-07,,
+2023,02,"Alcoholic beverages, tobacco and narcotics",Third quintile,,5.0424949562872,,
+2023,021,Alcoholic beverages,Third quintile,2.48023646957707,,,
+2023,022,Alcohol production services,Third quintile,1.21936721767348e-07,,,
+2023,023,Tobacco,Third quintile,2.34832706592232e-06,,,
+2023,06,Health,Third quintile,5.41748524001378,,,
+2023,061,Medicines and health products,Third quintile,,1.96783328033166,,
+2023,062,Outpatient care services,Third quintile,,2.31412583313046,,
+2023,063,Inpatient care services,Third quintile,,0.187768148995547,,
+2023,064,Other health services,Third quintile,,0.0790000139066629,,
+2023,07,Transport,Third quintile,17.3051361648727,,,
+2023,071,Purchase of vehicles,Third quintile,,3.29724406549097,,
+2023,072,Operation of personal transport equipment,Third quintile,,12.2740049360309,,
+2023,073,Passenger transport services,Third quintile,,2.58236767538504,,
+2023,074,Transport services for goods,Third quintile,,0.190120740237556,,
+2023,10,Education services,Third quintile,,0.340268243563847,,
+2023,101,Early childhood and primary education,Third quintile,0.0792588691487764,,,
+2023,102,Secondary education,Third quintile,0.229850720531452,,,
+2023,103,Post-secondary non-tertiary education,Third quintile,1.13226955926823e-13,,,
+2023,104,Tertiary education,Third quintile,0.107565608130482,,,
+2023,105,Education not defined by level,Third quintile,1.924858250756e-08,,,
+2023,12,Insurance and financial services,Third quintile,,4.31088624174716,,
+2023,121,Insurance,Third quintile,3.96860480523516,,,
+2023,122,Financial services,Third quintile,5.25373075500461e-07,,,

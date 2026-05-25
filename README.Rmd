@@ -31,20 +31,23 @@ Package version: `0.0.2`
 ## Features
 
 - Calculate and visualize inflation and contributions to inflation by households categories
+- Calculate inflation burden as a share of disposable income
 - Simulate counterfactual price indices
+
+## Methodological workflow
+
+The main workflow is:
+
+`load_*()` -> `calculate_weights()` -> `calculate_price_indices()` / `calculate_inflation()` -> `calculate_contributions()` -> plots / validation.
 
 ## Vignettes
 
 The introduction vignette walks through the package methodology, core functions, and plotting helpers:
 
 - [Introduction to inflationinequality](vignettes/inflationinequality-intro.Rmd)
-- [Online introduction page](https://jeremimontornes.github.io/inflationinequality/)
-
-After installing the package with vignettes, open it in R with:
-
-```{r, eval = FALSE}
-vignette("inflationinequality-intro", package = "inflationinequality")
-```
+- [Advanced options](vignettes/advanced-options.Rmd)
+- [Calculating inflation burden](vignettes/inflation-burden.Rmd)
+- [Verifying calculated inflation](vignettes/verifying-calculated-inflation.Rmd)
 
 ## R workflow structure
 
@@ -68,12 +71,20 @@ R/calculate_inflation.R               # Aggregate contributions into inflation i
 R/calculate_price_indices.R           # Build chained HICP price indices in level
 └── calculate_price_indices()         # Uses INSEE HBS level 3 automatically for France income level 3
 
+R/calculate_inflation_burden.R        # Inflation cost burden by household group
+├── load_consumption_to_income()
+├── load_consumption_expenditure()
+└── calculate_inflation_burden()
+
 R/compare_to_official_hicp.R          # Validation against published all-items HICP
 └── compare_to_official_hicp()
 
 R/plot_inflation.R                    # Standard plots
 ├── plot_time_series()
 ├── plot_grouped_bar()
+├── plot_weight_shares()
+├── plot_group_price_indices()
+├── plot_inflation_burden()
 ├── plot_contribution_gap()
 └── plot_inflation_gap()
 
@@ -88,11 +99,11 @@ R/coicop_bridge.R                     # COICOP matching and bridge tables
 
 COICOP bridge HTML tables:
 
-- [France HICP-HBS bridge, income level 2](docs/france_coicop_hicp_hbs_bridge_income_level2_2010_2026.html)
-- [France HICP-HBS bridge audit, income level 2](docs/france_coicop_hicp_hbs_bridge_income_level2_2010_2026_audit.html)
-- [France HICP-HBS bridge, INSEE income level 3](docs/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026.html)
-- [France HICP-HBS bridge audit, INSEE income level 3](docs/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026_audit.html)
-- [France ECOICOP v2 to COICOP v1 level 3 audit](docs/france_hicp_ecoicopv2_to_coicopv1_level3_audit.html)
+- [France HICP-HBS bridge, income level 2](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level2_2010_2026.html)
+- [France HICP-HBS bridge audit, income level 2](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level2_2010_2026_audit.html)
+- [France HICP-HBS bridge, INSEE income level 3](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026.html)
+- [France HICP-HBS bridge audit, INSEE income level 3](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026_audit.html)
+- [France ECOICOP v2 to COICOP v1 level 3 audit](https://jeremimontornes.github.io/inflationinequality/france_hicp_ecoicopv2_to_coicopv1_level3_audit.html)
 
 ## Example
 
@@ -115,6 +126,19 @@ load("data/methodology_metadata.rda")
 cat("<small>\n")
 methodology_metadata |>
   dplyr::select(topic, package_default, user_parameter, user_can_change, notes) |>
+  knitr::kable(format = "html", row.names = FALSE) |>
+  print()
+cat("\n</small>\n")
+```
+
+### Country-specific COICOP data caveats
+
+```{r country-coicop-special-cases, echo = FALSE, results = "asis"}
+load("data/methodology_metadata.rda")
+load("data/country_coicop_special_cases.rda")
+cat("<small>\n")
+country_coicop_special_cases |>
+  dplyr::select(country, iso2, coicop_case, population_group_caveat, housing_caveat, package_status) |>
   knitr::kable(format = "html", row.names = FALSE) |>
   print()
 cat("\n</small>\n")

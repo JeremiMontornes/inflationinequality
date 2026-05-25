@@ -71,6 +71,28 @@ You may notice that the year of the HBS data $y'$ and the year of the CPI weight
 
 These operations are implemented in `calculate_weights()` and data is downloaded using `load_index_weights()` and `load_hbs()`.
 
+### HBS timing and COICOP level
+
+HBS waves are not available for all countries in the same years. For the HBS-CPI merge, the package matches each CPI weight year with the closest available HBS wave at or before that year. If no earlier HBS wave exists, the earliest available wave is used. Users can override this timing rule with `specific_hbs_year`, `interpolated_hbs = TRUE`, or custom HBS and CPI-weight objects.
+
+Eurostat reports HBS income data generally at the 3-digit COICOP level. In package terms, this is `level = 2`, because `"012"` is a 3-digit COICOP code. This is the default level used for income-quintile calculations.
+
+For some countries, national statistical sources can support a finer 4-digit COICOP calculation (`level = 3`). France is currently implemented with bundled INSEE HBS level-3 data for income groups. Belgium and Italy level-3 / 4-digit support is under development, following the type of country-specific national-source approach used in Bruegel's inflation inequality work.
+
+For France, INSEE level-3 income data are mean expenditure amounts by decile. They are not decile income thresholds, so `D2 = Q1` would be incorrect. When a quintile alternative is needed at `level = 3`, the package averages adjacent decile means (`D1-D2`, `D3-D4`, ..., `D9-D10`) because each decile represents the same population share:
+
+```{r}
+weights_fr_q <- calculate_weights(
+  "FR",
+  "income",
+  level = 3,
+  start_year = 2019,
+  france_insee_income_groups = "quintile"
+)
+```
+
+A live Eurostat check found that `load_hbs(country, "income", level = 3)` returns the same HBS COICOP code set as `level = 2` for Germany, Spain, and Belgium. Italy is different: DBnomics currently exposes some 4-digit Eurostat HBS rows for income quintiles, but no national Italy level-3 source is integrated by default.
+
 ### Contributions to inflation formula
 
 The CPI is a chained index whose weights change each year. We calculate contributions using the following formula:

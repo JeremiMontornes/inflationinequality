@@ -1,0 +1,53 @@
+broad,label,year,q5_minus_q1,source
+01,Food,2022,-0.0267688671507374,Eurostat level 2
+02,Alcohol/tobacco,2022,0.00737476772745812,Eurostat level 2
+03,Clothing,2022,0.0142169257804002,Eurostat level 2
+04,Housing/water/energy,2022,-0.556295736943803,Eurostat level 2
+05,Furnishings,2022,0.198318266646801,Eurostat level 2
+06,Health,2022,0.00512364748830012,Eurostat level 2
+07,Transport,2022,0.799831484529447,Eurostat level 2
+08,Communication,2022,-0.00977892592533631,Eurostat level 2
+09,Recreation,2022,0.113149990612808,Eurostat level 2
+10,Education,2022,0.00863464562687553,Eurostat level 2
+11,Restaurants/hotels,2022,0.301541757531261,Eurostat level 2
+12,Other goods/services,2022,0.0178337744994607,Eurostat level 2
+13,Insurance/finance,2022,0,Eurostat level 2
+01,Food,2023,-0.090764212709003,Eurostat level 2
+02,Alcohol/tobacco,2023,0.0149884884239822,Eurostat level 2
+03,Clothing,2023,0.0113185764285721,Eurostat level 2
+04,Housing/water/energy,2023,-0.562927922132445,Eurostat level 2
+05,Furnishings,2023,0.220165840883646,Eurostat level 2
+06,Health,2023,0.00603647948433482,Eurostat level 2
+07,Transport,2023,0.336495865797012,Eurostat level 2
+08,Communication,2023,0.0462950262660941,Eurostat level 2
+09,Recreation,2023,0.126875245191335,Eurostat level 2
+10,Education,2023,0.0111170352905735,Eurostat level 2
+11,Restaurants/hotels,2023,0.362339012802596,Eurostat level 2
+12,Other goods/services,2023,0.0290896857407291,Eurostat level 2
+13,Insurance/finance,2023,0,Eurostat level 2
+01,Food,2022,-0.246528385788344,INSEE level 3 recoded
+02,Alcohol/tobacco,2022,0.0185583782882951,INSEE level 3 recoded
+03,Clothing,2022,0.00957282025432978,INSEE level 3 recoded
+04,Housing/water/energy,2022,-0.524488386822345,INSEE level 3 recoded
+05,Furnishings,2022,0.12248972072738,INSEE level 3 recoded
+06,Health,2022,0.00743902154423861,INSEE level 3 recoded
+07,Transport,2022,0.111626313827224,INSEE level 3 recoded
+08,Communication,2022,-0.0105520227902994,INSEE level 3 recoded
+09,Recreation,2022,0.110473161218524,INSEE level 3 recoded
+10,Education,2022,0,INSEE level 3 recoded
+11,Restaurants/hotels,2022,0.150218846601984,INSEE level 3 recoded
+12,Other goods/services,2022,0.0366311204895597,INSEE level 3 recoded
+13,Insurance/finance,2022,0,INSEE level 3 recoded
+01,Food,2023,-0.460671407404626,INSEE level 3 recoded
+02,Alcohol/tobacco,2023,0.00845714728170105,INSEE level 3 recoded
+03,Clothing,2023,0.0091453399816583,INSEE level 3 recoded
+04,Housing/water/energy,2023,-0.296136523673232,INSEE level 3 recoded
+05,Furnishings,2023,0.0747313339659885,INSEE level 3 recoded
+06,Health,2023,0.0104860286758557,INSEE level 3 recoded
+07,Transport,2023,0.123431423802422,INSEE level 3 recoded
+08,Communication,2023,0.00197699900505979,INSEE level 3 recoded
+09,Recreation,2023,0.10021519030757,INSEE level 3 recoded
+10,Education,2023,0,INSEE level 3 recoded
+11,Restaurants/hotels,2023,0.272799430884497,INSEE level 3 recoded
+12,Other goods/services,2023,0.0177265662267938,INSEE level 3 recoded
+13,Insurance/finance,2023,0,INSEE level 3 recoded

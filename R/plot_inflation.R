@@ -68,6 +68,276 @@ plot_time_series <- function(inflation) {
       legend.text = ggplot2::element_text(size = 12))
 }
 
+#' Plot COICOP expenditure shares by group
+#'
+#' @description
+#' `plot_weight_shares()` plots the expenditure shares used by
+#' [calculate_weights()] for one CPI weight year. Shares are shown by household
+#' group and COICOP category.
+#'
+#' @param weights An object of class `"weights"` returned by
+#'   [calculate_weights()].
+#' @param weight_year CPI weight year to plot. If `NULL`, the latest available
+#'   weight year is used.
+#' @param categories Optional character vector of household groups to display.
+#'   If `NULL`, all groups in `weights$categories` are used.
+#' @param top_n Number of COICOP categories to show separately, ranked by their
+#'   average expenditure share across displayed groups. Remaining categories are
+#'   grouped as `"Other"`.
+#'
+#' @return A ggplot object representing COICOP expenditure shares by group.
+#'
+#' @examples
+#' \dontrun{
+#' weights <- calculate_weights("FR", "income", level = 2, start_year = 2019)
+#' plot_weight_shares(weights, weight_year = 2024)
+#' }
+#'
+#' @export
+plot_weight_shares <- function(weights, weight_year = NULL, categories = NULL,
+                               top_n = 8) {
+  if (!inherits(weights, "weights")) {
+    stop("'weights' must be an object returned by calculate_weights().")
+  }
+
+  if (!is.null(top_n) && (!is.numeric(top_n) || length(top_n) != 1 || top_n < 1)) {
+    stop("'top_n' must be a positive number.")
+  }
+
+  dt <- data.table::copy(weights$dt)
+
+  if (is.null(weight_year)) {
+    weight_year <- max(dt$weight_year, na.rm = TRUE)
+  }
+
+  target_weight_year <- weight_year
+  dt <- dt[weight_year == target_weight_year]
+  if (nrow(dt) == 0) {
+    stop(sprintf("No weights found for weight_year = %s.", weight_year))
+  }
+
+  if (is.null(categories)) {
+    categories <- weights$categories
+  }
+
+  dt <- dt[category %in% categories]
+  if (nrow(dt) == 0) {
+    stop("'categories' does not match any category in weights.")
+  }
+
+  category_levels <- intersect(weights$categories, categories)
+  dt[, category := factor(category, levels = category_levels)]
+
+  if (!is.null(top_n)) {
+    coicop_rank <- dt[, .(avg_weight = mean(weighted_consumption)),
+                      by = coicop][order(-avg_weight)]
+    top_coicops <- coicop_rank[seq_len(min(nrow(coicop_rank), top_n)), coicop]
+    dt[, coicop_plot := data.table::fifelse(coicop %in% top_coicops, coicop, "Other")]
+  } else {
+    dt[, coicop_plot := coicop]
+  }
+
+  dt[, product_label := coicop_short_labels(coicop_plot)]
+
+  dt_plot <- dt[, .(weighted_consumption = sum(weighted_consumption)),
+                by = .(category, product_label)]
+
+  coicop_levels <- dt_plot[, .(avg_weight = mean(weighted_consumption)),
+                           by = product_label][order(-avg_weight), product_label]
+  coicop_levels <- c(setdiff(coicop_levels, "Other"), intersect("Other", coicop_levels))
+  dt_plot[, product_label := factor(product_label, levels = coicop_levels)]
+
+  ggplot2::ggplot(
+    dt_plot,
+    ggplot2::aes(x = category, y = weighted_consumption, fill = product_label)
+  ) +
+    ggplot2::geom_col(width = 0.75) +
+    ggplot2::labs(
+      title = "",
+      x = "",
+      y = "Share of expenditure (%)",
+      fill = "COICOP"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "bottom",
+      axis.text.x = ggplot2::element_text(angle = 30, hjust = 1),
+      legend.title = ggplot2::element_text(size = 10),
+      legend.text = ggplot2::element_text(size = 9)
+    ) +
+    ggplot2::guides(fill = ggplot2::guide_legend(ncol = 3))
+}
+
+coicop_short_labels <- function(coicop) {
+  labels <- load_coicop_labels()
+  labels <- labels[match(coicop, code), title]
+  labels[is.na(labels)] <- coicop[is.na(labels)]
+  labels[coicop == "Other"] <- "Other"
+
+  labels <- gsub("\\s*\\([^)]*\\)", "", labels)
+  labels <- gsub("^Other ", "", labels)
+  labels <- trimws(labels)
+
+  labels
+}
+
+load_coicop_labels <- function() {
+  label_env <- new.env(parent = emptyenv())
+  utils::data("COICOP_2018", package = "inflationinequality", envir = label_env)
+  data.table::as.data.table(label_env$COICOP_2018)
+}
+
+#' Plot price index levels by group
+#'
+#' @description
+#' `plot_group_price_indices()` plots the base-100 price index level for each
+#' household group returned by [calculate_price_indices()].
+#'
+#' @param price_indices An object of class `"price_indices"` returned by
+#'   [calculate_price_indices()].
+#' @param categories Optional character vector of household groups to display.
+#'   If `NULL`, all groups in `price_indices$categories` are used.
+#' @param include_total Whether to include the `"Total"` price index when it is
+#'   available.
+#'
+#' @return A ggplot object representing price index levels by group.
+#'
+#' @examples
+#' \dontrun{
+#' indices <- calculate_price_indices("FR", "income", level = 2, start_year = 2019)
+#' plot_group_price_indices(indices)
+#' }
+#'
+#' @export
+plot_group_price_indices <- function(price_indices, categories = NULL,
+                                     include_total = TRUE) {
+  if (!inherits(price_indices, "price_indices")) {
+    stop("'price_indices' must be an object returned by calculate_price_indices().")
+  }
+
+  if (!is.logical(include_total) || length(include_total) != 1 || is.na(include_total)) {
+    stop("'include_total' must be TRUE or FALSE.")
+  }
+
+  dt <- data.table::copy(price_indices$dt)
+  if (!"date" %in% names(dt)) {
+    dt[, date := as.Date(ISOdate(year, month, 1))]
+  }
+
+  if (is.null(categories)) {
+    categories <- price_indices$categories
+  }
+  if (include_total && "Total" %in% dt$category && !"Total" %in% categories) {
+    categories <- c(categories, "Total")
+  }
+  if (!include_total) {
+    categories <- setdiff(categories, "Total")
+  }
+
+  dt <- dt[category %in% categories]
+  if (nrow(dt) == 0) {
+    stop("'categories' does not match any category in price_indices.")
+  }
+
+  category_levels <- intersect(c(price_indices$categories, "Total"), categories)
+  dt[, category := factor(category, levels = unique(category_levels))]
+
+  ggplot2::ggplot(
+    dt,
+    ggplot2::aes(x = date, y = price_index, color = category, group = category)
+  ) +
+    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
+    ggplot2::labs(
+      title = "",
+      x = "",
+      y = "Price index (base 100)",
+      color = ""
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "bottom",
+      axis.text = ggplot2::element_text(size = 12),
+      legend.text = ggplot2::element_text(size = 12)
+    )
+}
+
+#' Plot inflation burden by group
+#'
+#' @description
+#' `plot_inflation_burden()` plots the inflation cost burden calculated by
+#' [calculate_inflation_burden()]. By default it shows the additional cost of
+#' inflation as a percentage of disposable income.
+#'
+#' @param burden An object of class `"inflation_burden"` returned by
+#'   [calculate_inflation_burden()].
+#' @param measure Measure to plot: `"income_share"` for the burden in
+#'   percentage points of disposable income, or `"cost"` for the cost in the
+#'   expenditure unit.
+#' @param categories Optional character vector of household groups to display.
+#'   If `NULL`, all groups in `burden$categories` are used.
+#'
+#' @return A ggplot object representing inflation burden by group.
+#'
+#' @examples
+#' \dontrun{
+#' inflation <- calculate_inflation("FR", "income", level = 2, start_year = 2019)
+#' burden <- calculate_inflation_burden(inflation)
+#' plot_inflation_burden(burden)
+#' }
+#'
+#' @export
+plot_inflation_burden <- function(burden,
+                                  measure = c("income_share", "cost"),
+                                  categories = NULL) {
+  if (!inherits(burden, "inflation_burden")) {
+    stop("'burden' must be an object returned by calculate_inflation_burden().")
+  }
+
+  measure <- match.arg(measure)
+  value_col <- if (measure == "income_share") "inflation_burden" else "inflation_cost"
+  if (!value_col %in% names(burden$dt)) {
+    stop(sprintf("'%s' is not available in burden$dt.", value_col))
+  }
+
+  dt <- data.table::copy(burden$dt)
+  if (is.null(categories)) {
+    categories <- burden$categories
+  }
+  dt <- dt[category %in% categories]
+  if (nrow(dt) == 0) {
+    stop("'categories' does not match any category in burden.")
+  }
+
+  category_levels <- intersect(burden$categories, categories)
+  dt[, category := factor(category, levels = category_levels)]
+
+  y_label <- if (measure == "income_share") {
+    "Inflation burden (% of disposable income)"
+  } else {
+    sprintf("Inflation cost (%s)", burden$expenditure_unit %||% "expenditure unit")
+  }
+
+  ggplot2::ggplot(
+    dt,
+    ggplot2::aes(x = date, y = get(value_col), color = category, group = category)
+  ) +
+    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
+    ggplot2::labs(
+      title = "",
+      x = "",
+      y = y_label,
+      color = ""
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "bottom",
+      axis.text = ggplot2::element_text(size = 12),
+      legend.text = ggplot2::element_text(size = 12)
+    )
+}
+
 #' Create a grouped bar chart of inflation data
 #'
 #' @description

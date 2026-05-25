@@ -37,6 +37,11 @@
 #' @param interpolated_hbs flag if you want to interpolate HBS weights
 #' @param specific_hbs_year year of selected HBS wave. It's recommended to
 #'   download HBS data first to see what HBS years are available.
+#' @param france_insee_income_groups grouping used for the bundled France
+#'   INSEE level-3 income HBS data. `"decile"` keeps the original INSEE decile
+#'   means. `"quintile"` averages adjacent decile means (D1-D2, D3-D4, ...)
+#'   because the source values are mean expenditures for equal-population
+#'   decile groups, not income-threshold bounds.
 #'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
@@ -87,10 +92,12 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               custom_index_weights = NULL,
                               custom_hbs = NULL,
                               interpolated_hbs = FALSE,
-                              specific_hbs_year = NULL) {
+                              specific_hbs_year = NULL,
+                              france_insee_income_groups = c("decile", "quintile")) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
+  france_insee_income_groups <- match.arg(france_insee_income_groups)
 
   # Load index weights
   index_weights <- if (is.null(custom_index_weights)) {
@@ -122,9 +129,13 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     if (is.null(country) || is.null(category)) {
       stop("Either both 'country' and 'category', or 'custom_hbs' must be provided.")
     }
-    load_hbs(
-      country, category,
-      level = level)
+    if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
+      load_france_insee_hbs_level3(income_groups = france_insee_income_groups)
+    } else {
+      load_hbs(
+        country, category,
+        level = level)
+    }
   } else {
     # Check if date range is sufficient
     if (!is.null(start_year)) {
