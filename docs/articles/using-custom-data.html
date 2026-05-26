@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Using national CPI-HBS data</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using national CPI-HBS data</h1>
+
+
+
+<p>This vignette introduces methods to include your own data.</p>
+<hr />
+<div id="downloading-data-from-eurostat" class="section level2">
+<h2>Downloading data from Eurostat</h2>
+<p>Using DBnomics, we download CPI and HBS data from any country in the
+Eurozone and compare with those of another, due to having standardized
+definitions of categories, etc.</p>
+<p>However, Eurostat only provides 2-digit COICOP HBS data. For some
+countries (France, Italy, etc.), instead of using the data published by
+Eurostat, data published directly by national statistical institutes can
+be used like France’s INSEE or Italy’s Istat.</p>
+<p>In this vignette, we will download datasets in CSV format and format
+the data for the package.</p>
+</div>
+<div id="downloading-cpi-from-insee" class="section level2">
+<h2>Downloading CPI from INSEE</h2>
+<p>Let’s download CPI data from INSEE, sourced from this page: <a href="https://www.insee.fr/fr/statistiques/series/102342213">https://www.insee.fr/fr/statistiques/series/102342213</a>.
+In particular, this CPI dataset is bundled with other data that we do
+not need so we’ll have to process this data.</p>
+<p>First, we load some necessary libraries.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Required for fast CSV reading</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Required for reading Excel spreadsheets</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Required for manipulating data.table objects,</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co"># which is the primary data format for this package</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co"># Required for the %&gt;% pipe operator</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co"># Required for some string operations</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co"># Required for some date operations</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code></pre></div>
+<p>We’ll use the CSV files since they’re easier to process into an R
+object. Download the ZIP archive for the CSV files from the website and
+extract the archive.</p>
+<p>We’ll first load <code>valeurs_mensuelles.csv</code> (monthly values)
+into a data.table.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Get CSV file path</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>monthly_values_csv_file <span class="ot">&lt;-</span> <span class="st">&quot;famille_IPC-2015/valeurs_mensuelles.csv&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Read CSV data into a data.table</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>INSEE_CPI_monthly_values <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(<span class="fu">read_csv2</span>(monthly_values_csv_file))</span></code></pre></div>
+<p>The following section will be dedicated to correctly formatting this
+dataset, which is essential for loading data from sources other than
+Eurostat to the <code>inflationinequality</code> package.</p>
+<div id="correctly-formatting-a-time-series-dataset" class="section level3">
+<h3>Correctly formatting a time series dataset</h3>
+<div id="formatting-cpi-per-product-category" class="section level4">
+<h4>Formatting CPI per product category</h4>
+<p>This dataset bundles together monthly CPI index data with other data
+like year-on-year change, which we do not need. In addition, the COICOP
+codes are written in the series name (identifier) or “Libellé” so we’ll
+have extract that. The dataset is structured in a <em>wide</em> format,
+rather than the <em>long</em> format preferred by our package. In wide
+format, each date is assigned its own column, excluding other
+identifiers such as the COICOP code. This structure is less conducive to
+efficient data analysis compared to the long format. We will write the
+code will clean the dataset into a format that is readable for our
+package.</p>
+<p>We’ll also filter for level 2 COICOP codes, that is 3-digit
+COICOP.</p>
+<p>First, we want to remove the columns <code>idBank</code>,
+<code>Dernière mise à jour</code> and <code>Période</code> because
+they’re useless.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_monthly_values <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  .[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="at">idBank =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="st">`</span><span class="at">Dernière mise à jour</span><span class="st">`</span> <span class="ot">=</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="st">`</span><span class="at">Période</span><span class="st">`</span> <span class="ot">=</span> <span class="cn">NULL</span>)]</span></code></pre></div>
+<p>Next, we use <code>str_extract()</code> to find the COICOP code in
+the <code>Libellé</code> column. The regex pattern looks for: - A
+positive lookbehind for the specific text preceding the code - Two
+digits followed by up to three occurrences of a dot and one or more
+digits</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  .[, coicop <span class="sc">:=</span> <span class="fu">str_extract</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>    <span class="st">`</span><span class="at">Libellé</span><span class="st">`</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="st">&quot;(?&lt;=Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )</span><span class="sc">\\</span><span class="st">d{2}(</span><span class="sc">\\</span><span class="st">.</span><span class="sc">\\</span><span class="st">d+){0,3}&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  )]</span></code></pre></div>
+<p>We also need to remove all NA values in the <code>coicop</code>
+column, in case there were no matches in <code>Libellé</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  .[<span class="sc">!</span><span class="fu">is.na</span>(coicop), ]</span></code></pre></div>
+<p>Then we use <code>str_remove_all()</code> to remove all dots from the
+extracted COICOP code. The regex pattern <code>&quot;\\.&quot;</code> matches any
+dot character.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  .[, coicop <span class="sc">:=</span> <span class="fu">str_remove_all</span>(coicop, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">.&quot;</span>)]</span></code></pre></div>
+<p>Now We’ll reshape data from wide to long format.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">melt</span>(<span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">&quot;Libellé&quot;</span>, <span class="st">&quot;coicop&quot;</span>), </span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                   <span class="at">variable.name =</span> <span class="st">&quot;date&quot;</span>, <span class="at">value.name =</span> <span class="st">&quot;value&quot;</span>)</span></code></pre></div>
+<p>Finally, we select and format necessary columns. Remember, in a “cpi”
+object, the “dt” component must (in any order) have the columns:
+<code>coicop</code>, <code>series_name</code>, <code>year</code>,
+<code>month</code>, <code>value</code></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  .[, .(coicop,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="at">series_name =</span> <span class="st">`</span><span class="at">Libellé</span><span class="st">`</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="at">year =</span> <span class="fu">year</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="at">month =</span> <span class="fu">month</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="at">value =</span> <span class="fu">as.numeric</span>(value)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  )]</span></code></pre></div>
+<p>Let’s see the layout of our newly formatted dataset.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Ignore the series_name column because it is very long</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">head</span>(INSEE_CPI_dt[, .SD, <span class="at">.SDcols =</span> <span class="sc">!</span><span class="fu">c</span>(<span class="st">&quot;series_name&quot;</span>)])</span></code></pre></div>
+</div>
+<div id="formatting-cpi-of-product-basket" class="section level4">
+<h4>Formatting CPI of product basket</h4>
+<p>The CSV file also has CPI data over the entire product basket. We can
+select the CPI of the product basket from a label.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>INSEE_CPI_dt_basket <span class="ot">&lt;-</span> INSEE_CPI_monthly_values <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  .[<span class="st">`</span><span class="at">Libellé</span><span class="st">`</span> <span class="sc">==</span> <span class="st">&quot;Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Ensemble&quot;</span>, ] <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="co"># For some stupid reason, INSEE&#39;s CSV file has two data series for the same thing.</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  .[<span class="dv">1</span>]</span></code></pre></div>
+<p>And we basically do the same thing as we did for the CPI per product
+category.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>INSEE_CPI_dt_basket <span class="ot">&lt;-</span> INSEE_CPI_dt_basket <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">melt</span>(<span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">&quot;Libellé&quot;</span>),</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>                   <span class="at">variable.name =</span> <span class="st">&quot;date&quot;</span>, <span class="at">value.name =</span> <span class="st">&quot;value&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  .[, .(<span class="at">series_name =</span> <span class="st">`</span><span class="at">Libellé</span><span class="st">`</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    <span class="at">year =</span> <span class="fu">year</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>    <span class="at">month =</span> <span class="fu">month</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="at">value =</span> <span class="fu">as.numeric</span>(value)</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  )]</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="fu">head</span>(INSEE_CPI_dt[, .SD, <span class="at">.SDcols =</span> <span class="sc">!</span><span class="fu">c</span>(<span class="st">&quot;series_name&quot;</span>)])</span></code></pre></div>
+</div>
+<div id="creating-a-cpi-object" class="section level4">
+<h4>Creating a “cpi” object</h4>
+<p>Now that we have both the CPI data for individual product categories
+<code>INSEE_CPI_dt</code> and for the entire product basket
+<code>INSEE_CPI_dt_basket</code>, we can initialise a <code>&quot;cpi&quot;</code>
+object that <code>inflationinequality</code> functions can read and
+manipulate.</p>
+<p>We would want to create two <code>&quot;cpi&quot;</code> objects, one with a
+maximum COICOP level 2 and another with a maximum COICOP level of 3.
+Therefore, we filter <code>INSEE_CPI_dt</code> by taking rows with
+<code>coicop</code> codes up to a certain length.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>INSEE_CPI_dt_level2 <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span> .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>INSEE_CPI <span class="ot">&lt;-</span> <span class="fu">cpi</span>(<span class="at">dt =</span> INSEE_CPI_dt_level2, <span class="at">dt_basket =</span> INSEE_CPI_dt_basket,</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>                 <span class="at">country =</span> <span class="st">&quot;FR&quot;</span>, <span class="at">level =</span> <span class="dv">2</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>INSEE_CPI_dt_level3 <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span> .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>INSEE_CPI_level3 <span class="ot">&lt;-</span> <span class="fu">cpi</span>(<span class="at">dt =</span> INSEE_CPI_dt_level3, <span class="at">dt_basket =</span> INSEE_CPI_dt_basket,</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>                        <span class="at">country =</span> <span class="st">&quot;FR&quot;</span>, <span class="at">level =</span> <span class="dv">3</span>)</span></code></pre></div>
+</div>
+<div id="loading-hbs-data-from-a-xlsx-spreadsheet" class="section level4">
+<h4>Loading HBS data from a XLSX spreadsheet</h4>
+<p>We can also similarily format HBS data from a XLSX spreadsheet.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Select the file path of the spreadsheet</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># Here, we include our example with the package </span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>XLSX_filepath <span class="ot">&lt;-</span> <span class="st">&quot;TF106_3digit.xlsx&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co"># Read the spreadsheet</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>TF106_3digit <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(XLSX_filepath)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co"># (Partially) convert the spreadsheet to our &quot;hbs&quot; format</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>INSEE_HBS_2017_all <span class="ot">&lt;-</span> </span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="co"># Convert to data.table</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="fu">as.data.table</span>(TF106_3digit) <span class="sc">%&gt;%</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="co"># Convert from wide format to long format</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="fu">melt</span>(</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>    <span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">&quot;IDENT&quot;</span>, <span class="st">&quot;Regroupement&quot;</span>), <span class="at">variable.name =</span> <span class="st">&quot;quantile&quot;</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>    <span class="at">value.name =</span> <span class="st">&quot;consumption&quot;</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>  <span class="co"># Rearrange columns and remove &quot;Ensemble&quot; (Total) values</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a>  .[, .(</span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>    <span class="at">series_name =</span> Regroupement,</span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>    <span class="at">coicop =</span> IDENT,</span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>    <span class="at">year =</span> <span class="dv">2017</span>,</span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>    <span class="at">category =</span> <span class="fu">as.character</span>(quantile),</span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a>    consumption</span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>  )] <span class="sc">%&gt;%</span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a>  <span class="co"># Remove CP00</span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  .[coicop <span class="sc">!=</span> <span class="st">&quot;00&quot;</span>]</span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co"># Select level 3 COICOPs</span></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a>INSEE_HBS_2017_dt <span class="ot">&lt;-</span> </span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a>  INSEE_HBS_2017_all <span class="sc">%&gt;%</span></span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>  .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">4</span> <span class="sc">&amp;</span> category <span class="sc">!=</span> <span class="st">&quot;Ensemble&quot;</span>, ]</span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co"># Select the total consumption from CP00</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="co"># Don&#39;t forget to rename consumption to total_consumption!</span></span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>INSEE_HBS_2017_dt_total <span class="ot">&lt;-</span> </span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a>  INSEE_HBS_2017_all <span class="sc">%&gt;%</span></span>
+<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a>  .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">4</span> <span class="sc">&amp;</span> category <span class="sc">==</span> <span class="st">&quot;Ensemble&quot;</span>, </span>
+<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a>    .(series_name, coicop, year,</span>
+<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a>      <span class="at">total_consumption =</span> consumption)]</span>
+<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a><span class="co"># Construct the &quot;hbs&quot; object</span></span>
+<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a><span class="co"># Don&#39;t forget to specify the order of the categories!</span></span>
+<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a>INSEE_HBS_2017 <span class="ot">&lt;-</span></span>
+<span id="cb13-44"><a href="#cb13-44" tabindex="-1"></a>  <span class="fu">hbs</span>(<span class="at">dt =</span> INSEE_HBS_2017_dt,</span>
+<span id="cb13-45"><a href="#cb13-45" tabindex="-1"></a>      <span class="at">dt_total =</span> INSEE_HBS_2017_dt_total,</span>
+<span id="cb13-46"><a href="#cb13-46" tabindex="-1"></a>      <span class="at">country =</span> <span class="st">&quot;FR&quot;</span>,</span>
+<span id="cb13-47"><a href="#cb13-47" tabindex="-1"></a>      <span class="at">category =</span> <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb13-48"><a href="#cb13-48" tabindex="-1"></a>      <span class="at">categories =</span> <span class="fu">c</span>(<span class="st">&quot;Décile1&quot;</span>, <span class="st">&quot;Décile2&quot;</span>, <span class="st">&quot;Décile3&quot;</span>, <span class="st">&quot;Décile4&quot;</span>, <span class="st">&quot;Décile5&quot;</span>,</span>
+<span id="cb13-49"><a href="#cb13-49" tabindex="-1"></a>                     <span class="st">&quot;Décile6&quot;</span>, <span class="st">&quot;Décile7&quot;</span>, <span class="st">&quot;Décile8&quot;</span>, <span class="st">&quot;Décile9&quot;</span>, <span class="st">&quot;Décile10&quot;</span>),</span>
+<span id="cb13-50"><a href="#cb13-50" tabindex="-1"></a>      <span class="at">level =</span> <span class="dv">3</span>)</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="loading-custom-data-in-a-inflationinequality-function" class="section level2">
+<h2>Loading custom data in a <code>inflationinequality</code>
+function</h2>
+<p>Since we’re using custom datasets, we don’t need to specify the
+country or category when calculating inflation.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>inflation <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="at">custom_cpi =</span> INSEE_CPI_level3,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">custom_index_weights =</span> INSEE_CPI_index_weights,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">custom_hbs =</span> INSEE_HBS_2017,</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">plot_time_series</span>(inflation)</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

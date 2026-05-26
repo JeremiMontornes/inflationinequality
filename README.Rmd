@@ -102,7 +102,8 @@ Let us visualize inflation inequality across income quintiles in France since 20
 
 ```{r example}
 library(inflationinequality)
-inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 3)
+inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 3,
+                                 france_insee_income_groups = "quintile")
 plot_time_series(inflation)
 ```
 
