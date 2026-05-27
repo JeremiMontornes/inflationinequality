@@ -41,7 +41,9 @@
 #'   INSEE level-3 income HBS data. `"decile"` keeps the original INSEE decile
 #'   means. `"quintile"` averages adjacent decile means (D1-D2, D3-D4, ...)
 #'   because the source values are mean expenditures for equal-population
-#'   decile groups, not income-threshold bounds.
+#'   decile groups, not income-threshold bounds. This option only affects
+#'   `category = "income"`; France `age` and `urban` level-3 HBS data keep their
+#'   original national groups.
 #'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
@@ -130,7 +132,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
       stop("Either both 'country' and 'category', or 'custom_hbs' must be provided.")
     }
     if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
-      load_france_insee_hbs_level3(income_groups = france_insee_income_groups)
+      load_france_insee_hbs_level3(category = category, income_groups = france_insee_income_groups)
     } else {
       load_hbs(
         country, category,

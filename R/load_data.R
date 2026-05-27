@@ -169,17 +169,30 @@ resolve_hicp_cpi_dataset <- function() {
 }
 
 download_hicp_dataset <- function(id, filters = list(), date.range = NULL) {
-  dt_raw <- tryCatch(
-    hicp::data(id = id, filters = filters, date.range = date.range),
-    error = function(e) NULL
-  )
+  prefer_json <- id %in% c("prc_hicp_minr", "prc_hicp_iw", "prc_hicp_inw", "prc_hicp_cow")
+  dt_raw <- NULL
+
+  if (prefer_json) {
+    dt_raw <- tryCatch(
+      eurostat_json_data(id, filters = filters, date.range = date.range),
+      error = function(e) NULL
+    )
+  }
+
+  if (is.null(dt_raw) || nrow(data.table::as.data.table(dt_raw)) == 0 ||
+      !all(c("time", "values") %in% names(data.table::as.data.table(dt_raw)))) {
+    dt_raw <- tryCatch(
+      hicp::data(id = id, filters = filters, date.range = date.range),
+      error = function(e) NULL
+    )
+  }
 
   dt_raw <- if (is.null(dt_raw)) {
     data.table::data.table()
   } else {
     data.table::as.data.table(dt_raw)
   }
-  if (nrow(dt_raw) == 0 || !all(c("time", "values") %in% names(dt_raw))) {
+  if (!prefer_json && (nrow(dt_raw) == 0 || !all(c("time", "values") %in% names(dt_raw)))) {
     dt_raw <- eurostat_json_data(id, filters = filters, date.range = date.range)
   }
 

@@ -12,7 +12,7 @@
 
 
 
-<title>Using national CPI-HBS data</title>
+<title>Using national HBS data</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -337,231 +337,309 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Using national CPI-HBS data</h1>
+<h1 class="title toc-ignore">Using national HBS data</h1>
 
 
 
-<p>This vignette introduces methods to include your own data.</p>
-<hr />
-<div id="downloading-data-from-eurostat" class="section level2">
-<h2>Downloading data from Eurostat</h2>
-<p>Using DBnomics, we download CPI and HBS data from any country in the
-Eurozone and compare with those of another, due to having standardized
-definitions of categories, etc.</p>
-<p>However, Eurostat only provides 2-digit COICOP HBS data. For some
-countries (France, Italy, etc.), instead of using the data published by
-Eurostat, data published directly by national statistical institutes can
-be used like France’s INSEE or Italy’s Istat.</p>
-<p>In this vignette, we will download datasets in CSV format and format
-the data for the package.</p>
+<p>This vignette explains when and how to use national HBS data with
+<code>inflationinequality</code>.</p>
+<p>The default workflow should be preferred whenever it is
+available:</p>
+<ul>
+<li>HICP price indices are downloaded from Eurostat by
+<code>load_cpi()</code>.</li>
+<li>HICP item weights are downloaded from Eurostat by
+<code>load_index_weights()</code>.</li>
+<li>HBS expenditure shares at <code>level = 1</code> or
+<code>level = 2</code> are downloaded from Eurostat through DBnomics by
+<code>load_hbs()</code>.</li>
+</ul>
+<p>Custom data are mainly useful when a national statistical institute
+provides HBS expenditure data at a finer COICOP level than Eurostat. In
+practice, this means using <code>custom_hbs</code> for
+<code>level = 3</code> calculations when national HBS data are
+available. For <code>level = 2</code>, the recommended workflow is still
+the harmonised Eurostat HBS data loaded through DBnomics.</p>
+<div id="recommended-workflows" class="section level2">
+<h2>Recommended workflows</h2>
+<div id="level-2-eurostat-hicp-and-eurostat-hbs" class="section level3">
+<h3>Level 2: Eurostat HICP and Eurostat HBS</h3>
+<p>For the harmonised <code>level = 2</code> workflow, no custom data
+are needed. The package downloads the HICP data from Eurostat and the
+HBS data from Eurostat through DBnomics.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>inflation <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(<span class="st">&quot;FR&quot;</span>, <span class="st">&quot;income&quot;</span>, <span class="at">start_year =</span> <span class="dv">2019</span>, <span class="at">level =</span> <span class="dv">2</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">plot_time_series</span>(inflation)</span></code></pre></div>
+<p>This is the preferred workflow for cross-country comparisons because
+the HBS categories are harmonised by Eurostat.</p>
 </div>
-<div id="downloading-cpi-from-insee" class="section level2">
-<h2>Downloading CPI from INSEE</h2>
-<p>Let’s download CPI data from INSEE, sourced from this page: <a href="https://www.insee.fr/fr/statistiques/series/102342213">https://www.insee.fr/fr/statistiques/series/102342213</a>.
-In particular, this CPI dataset is bundled with other data that we do
-not need so we’ll have to process this data.</p>
-<p>First, we load some necessary libraries.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Required for fast CSV reading</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Required for reading Excel spreadsheets</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Required for manipulating data.table objects,</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co"># which is the primary data format for this package</span></span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co"># Required for the %&gt;% pipe operator</span></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co"># Required for some string operations</span></span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co"># Required for some date operations</span></span>
-<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code></pre></div>
-<p>We’ll use the CSV files since they’re easier to process into an R
-object. Download the ZIP archive for the CSV files from the website and
-extract the archive.</p>
-<p>We’ll first load <code>valeurs_mensuelles.csv</code> (monthly values)
-into a data.table.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Get CSV file path</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>monthly_values_csv_file <span class="ot">&lt;-</span> <span class="st">&quot;famille_IPC-2015/valeurs_mensuelles.csv&quot;</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Read CSV data into a data.table</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>INSEE_CPI_monthly_values <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(<span class="fu">read_csv2</span>(monthly_values_csv_file))</span></code></pre></div>
-<p>The following section will be dedicated to correctly formatting this
-dataset, which is essential for loading data from sources other than
-Eurostat to the <code>inflationinequality</code> package.</p>
-<div id="correctly-formatting-a-time-series-dataset" class="section level3">
-<h3>Correctly formatting a time series dataset</h3>
-<div id="formatting-cpi-per-product-category" class="section level4">
-<h4>Formatting CPI per product category</h4>
-<p>This dataset bundles together monthly CPI index data with other data
-like year-on-year change, which we do not need. In addition, the COICOP
-codes are written in the series name (identifier) or “Libellé” so we’ll
-have extract that. The dataset is structured in a <em>wide</em> format,
-rather than the <em>long</em> format preferred by our package. In wide
-format, each date is assigned its own column, excluding other
-identifiers such as the COICOP code. This structure is less conducive to
-efficient data analysis compared to the long format. We will write the
-code will clean the dataset into a format that is readable for our
-package.</p>
-<p>We’ll also filter for level 2 COICOP codes, that is 3-digit
-COICOP.</p>
-<p>First, we want to remove the columns <code>idBank</code>,
-<code>Dernière mise à jour</code> and <code>Période</code> because
-they’re useless.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_monthly_values <span class="sc">%&gt;%</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  .[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="at">idBank =</span> <span class="cn">NULL</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="st">`</span><span class="at">Dernière mise à jour</span><span class="st">`</span> <span class="ot">=</span> <span class="cn">NULL</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="st">`</span><span class="at">Période</span><span class="st">`</span> <span class="ot">=</span> <span class="cn">NULL</span>)]</span></code></pre></div>
-<p>Next, we use <code>str_extract()</code> to find the COICOP code in
-the <code>Libellé</code> column. The regex pattern looks for: - A
-positive lookbehind for the specific text preceding the code - Two
-digits followed by up to three occurrences of a dot and one or more
-digits</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  .[, coicop <span class="sc">:=</span> <span class="fu">str_extract</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>    <span class="st">`</span><span class="at">Libellé</span><span class="st">`</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="st">&quot;(?&lt;=Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )</span><span class="sc">\\</span><span class="st">d{2}(</span><span class="sc">\\</span><span class="st">.</span><span class="sc">\\</span><span class="st">d+){0,3}&quot;</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  )]</span></code></pre></div>
-<p>We also need to remove all NA values in the <code>coicop</code>
-column, in case there were no matches in <code>Libellé</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  .[<span class="sc">!</span><span class="fu">is.na</span>(coicop), ]</span></code></pre></div>
-<p>Then we use <code>str_remove_all()</code> to remove all dots from the
-extracted COICOP code. The regex pattern <code>&quot;\\.&quot;</code> matches any
-dot character.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  .[, coicop <span class="sc">:=</span> <span class="fu">str_remove_all</span>(coicop, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">.&quot;</span>)]</span></code></pre></div>
-<p>Now We’ll reshape data from wide to long format.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">melt</span>(<span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">&quot;Libellé&quot;</span>, <span class="st">&quot;coicop&quot;</span>), </span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                   <span class="at">variable.name =</span> <span class="st">&quot;date&quot;</span>, <span class="at">value.name =</span> <span class="st">&quot;value&quot;</span>)</span></code></pre></div>
-<p>Finally, we select and format necessary columns. Remember, in a “cpi”
-object, the “dt” component must (in any order) have the columns:
-<code>coicop</code>, <code>series_name</code>, <code>year</code>,
-<code>month</code>, <code>value</code></p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>INSEE_CPI_dt <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  .[, .(coicop,</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="at">series_name =</span> <span class="st">`</span><span class="at">Libellé</span><span class="st">`</span>,</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="at">year =</span> <span class="fu">year</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="at">month =</span> <span class="fu">month</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="at">value =</span> <span class="fu">as.numeric</span>(value)</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  )]</span></code></pre></div>
-<p>Let’s see the layout of our newly formatted dataset.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Ignore the series_name column because it is very long</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">head</span>(INSEE_CPI_dt[, .SD, <span class="at">.SDcols =</span> <span class="sc">!</span><span class="fu">c</span>(<span class="st">&quot;series_name&quot;</span>)])</span></code></pre></div>
-</div>
-<div id="formatting-cpi-of-product-basket" class="section level4">
-<h4>Formatting CPI of product basket</h4>
-<p>The CSV file also has CPI data over the entire product basket. We can
-select the CPI of the product basket from a label.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>INSEE_CPI_dt_basket <span class="ot">&lt;-</span> INSEE_CPI_monthly_values <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  .[<span class="st">`</span><span class="at">Libellé</span><span class="st">`</span> <span class="sc">==</span> <span class="st">&quot;Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Ensemble&quot;</span>, ] <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="co"># For some stupid reason, INSEE&#39;s CSV file has two data series for the same thing.</span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  .[<span class="dv">1</span>]</span></code></pre></div>
-<p>And we basically do the same thing as we did for the CPI per product
-category.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>INSEE_CPI_dt_basket <span class="ot">&lt;-</span> INSEE_CPI_dt_basket <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">melt</span>(<span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">&quot;Libellé&quot;</span>),</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>                   <span class="at">variable.name =</span> <span class="st">&quot;date&quot;</span>, <span class="at">value.name =</span> <span class="st">&quot;value&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  .[, .(<span class="at">series_name =</span> <span class="st">`</span><span class="at">Libellé</span><span class="st">`</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    <span class="at">year =</span> <span class="fu">year</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>    <span class="at">month =</span> <span class="fu">month</span>(<span class="fu">ym</span>(<span class="fu">as.character</span>(date))),</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="at">value =</span> <span class="fu">as.numeric</span>(value)</span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  )]</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="fu">head</span>(INSEE_CPI_dt[, .SD, <span class="at">.SDcols =</span> <span class="sc">!</span><span class="fu">c</span>(<span class="st">&quot;series_name&quot;</span>)])</span></code></pre></div>
-</div>
-<div id="creating-a-cpi-object" class="section level4">
-<h4>Creating a “cpi” object</h4>
-<p>Now that we have both the CPI data for individual product categories
-<code>INSEE_CPI_dt</code> and for the entire product basket
-<code>INSEE_CPI_dt_basket</code>, we can initialise a <code>&quot;cpi&quot;</code>
-object that <code>inflationinequality</code> functions can read and
-manipulate.</p>
-<p>We would want to create two <code>&quot;cpi&quot;</code> objects, one with a
-maximum COICOP level 2 and another with a maximum COICOP level of 3.
-Therefore, we filter <code>INSEE_CPI_dt</code> by taking rows with
-<code>coicop</code> codes up to a certain length.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>INSEE_CPI_dt_level2 <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span> .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span>]</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>INSEE_CPI <span class="ot">&lt;-</span> <span class="fu">cpi</span>(<span class="at">dt =</span> INSEE_CPI_dt_level2, <span class="at">dt_basket =</span> INSEE_CPI_dt_basket,</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>                 <span class="at">country =</span> <span class="st">&quot;FR&quot;</span>, <span class="at">level =</span> <span class="dv">2</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>INSEE_CPI_dt_level3 <span class="ot">&lt;-</span> INSEE_CPI_dt <span class="sc">%&gt;%</span> .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">1</span>]</span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>INSEE_CPI_level3 <span class="ot">&lt;-</span> <span class="fu">cpi</span>(<span class="at">dt =</span> INSEE_CPI_dt_level3, <span class="at">dt_basket =</span> INSEE_CPI_dt_basket,</span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>                        <span class="at">country =</span> <span class="st">&quot;FR&quot;</span>, <span class="at">level =</span> <span class="dv">3</span>)</span></code></pre></div>
-</div>
-<div id="loading-hbs-data-from-a-xlsx-spreadsheet" class="section level4">
-<h4>Loading HBS data from a XLSX spreadsheet</h4>
-<p>We can also similarily format HBS data from a XLSX spreadsheet.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Select the file path of the spreadsheet</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># Here, we include our example with the package </span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>XLSX_filepath <span class="ot">&lt;-</span> <span class="st">&quot;TF106_3digit.xlsx&quot;</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co"># Read the spreadsheet</span></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>TF106_3digit <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(XLSX_filepath)</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co"># (Partially) convert the spreadsheet to our &quot;hbs&quot; format</span></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>INSEE_HBS_2017_all <span class="ot">&lt;-</span> </span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="co"># Convert to data.table</span></span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="fu">as.data.table</span>(TF106_3digit) <span class="sc">%&gt;%</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="co"># Convert from wide format to long format</span></span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="fu">melt</span>(</span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>    <span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">&quot;IDENT&quot;</span>, <span class="st">&quot;Regroupement&quot;</span>), <span class="at">variable.name =</span> <span class="st">&quot;quantile&quot;</span>,</span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>    <span class="at">value.name =</span> <span class="st">&quot;consumption&quot;</span></span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>  <span class="co"># Rearrange columns and remove &quot;Ensemble&quot; (Total) values</span></span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a>  .[, .(</span>
-<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>    <span class="at">series_name =</span> Regroupement,</span>
-<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>    <span class="at">coicop =</span> IDENT,</span>
-<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>    <span class="at">year =</span> <span class="dv">2017</span>,</span>
-<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>    <span class="at">category =</span> <span class="fu">as.character</span>(quantile),</span>
-<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a>    consumption</span>
-<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>  )] <span class="sc">%&gt;%</span></span>
-<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a>  <span class="co"># Remove CP00</span></span>
-<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  .[coicop <span class="sc">!=</span> <span class="st">&quot;00&quot;</span>]</span>
-<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a></span>
-<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co"># Select level 3 COICOPs</span></span>
-<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a>INSEE_HBS_2017_dt <span class="ot">&lt;-</span> </span>
-<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a>  INSEE_HBS_2017_all <span class="sc">%&gt;%</span></span>
-<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>  .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">4</span> <span class="sc">&amp;</span> category <span class="sc">!=</span> <span class="st">&quot;Ensemble&quot;</span>, ]</span>
-<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a></span>
-<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co"># Select the total consumption from CP00</span></span>
-<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="co"># Don&#39;t forget to rename consumption to total_consumption!</span></span>
-<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>INSEE_HBS_2017_dt_total <span class="ot">&lt;-</span> </span>
-<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a>  INSEE_HBS_2017_all <span class="sc">%&gt;%</span></span>
-<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a>  .[<span class="fu">nchar</span>(coicop) <span class="sc">&lt;=</span> <span class="dv">4</span> <span class="sc">&amp;</span> category <span class="sc">==</span> <span class="st">&quot;Ensemble&quot;</span>, </span>
-<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a>    .(series_name, coicop, year,</span>
-<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a>      <span class="at">total_consumption =</span> consumption)]</span>
-<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a></span>
-<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a><span class="co"># Construct the &quot;hbs&quot; object</span></span>
-<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a><span class="co"># Don&#39;t forget to specify the order of the categories!</span></span>
-<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a>INSEE_HBS_2017 <span class="ot">&lt;-</span></span>
-<span id="cb13-44"><a href="#cb13-44" tabindex="-1"></a>  <span class="fu">hbs</span>(<span class="at">dt =</span> INSEE_HBS_2017_dt,</span>
-<span id="cb13-45"><a href="#cb13-45" tabindex="-1"></a>      <span class="at">dt_total =</span> INSEE_HBS_2017_dt_total,</span>
-<span id="cb13-46"><a href="#cb13-46" tabindex="-1"></a>      <span class="at">country =</span> <span class="st">&quot;FR&quot;</span>,</span>
-<span id="cb13-47"><a href="#cb13-47" tabindex="-1"></a>      <span class="at">category =</span> <span class="st">&quot;income&quot;</span>,</span>
-<span id="cb13-48"><a href="#cb13-48" tabindex="-1"></a>      <span class="at">categories =</span> <span class="fu">c</span>(<span class="st">&quot;Décile1&quot;</span>, <span class="st">&quot;Décile2&quot;</span>, <span class="st">&quot;Décile3&quot;</span>, <span class="st">&quot;Décile4&quot;</span>, <span class="st">&quot;Décile5&quot;</span>,</span>
-<span id="cb13-49"><a href="#cb13-49" tabindex="-1"></a>                     <span class="st">&quot;Décile6&quot;</span>, <span class="st">&quot;Décile7&quot;</span>, <span class="st">&quot;Décile8&quot;</span>, <span class="st">&quot;Décile9&quot;</span>, <span class="st">&quot;Décile10&quot;</span>),</span>
-<span id="cb13-50"><a href="#cb13-50" tabindex="-1"></a>      <span class="at">level =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div id="france-level-3-bundled-national-hbs" class="section level3">
+<h3>France level 3: bundled national HBS</h3>
+<p>France is a special case already implemented in the package. For
+<code>country = &quot;FR&quot;</code>, <code>level = 3</code>, and bundled
+national HBS categories, <code>inflationinequality</code> automatically
+uses INSEE Budget de famille 2017 HBS data when <code>custom_hbs</code>
+is not supplied. HICP prices and HICP weights are still downloaded from
+Eurostat.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>inflation_fr_level3 <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="st">&quot;FR&quot;</span>, <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">level =</span> <span class="dv">3</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">plot_time_series</span>(inflation_fr_level3)</span></code></pre></div>
+<p>The same automatic workflow is available for residence-area
+groups:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r">inflation_fr_urban_level3 &lt;- calculate_inflation(
+  &quot;FR&quot;, &quot;urban&quot;,
+  start_year = 2019,
+  level = 3
+)
+plot_time_series(inflation_fr_urban_level3)</code></pre></div>
+<p>The automatic workflow is also available for age groups:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inflation_fr_age_level3 &lt;- calculate_inflation(
+  &quot;FR&quot;, &quot;age&quot;,
+  start_year = 2019,
+  level = 3
+)
+plot_time_series(inflation_fr_age_level3)</code></pre></div>
+<p>The INSEE source is available by standard-of-living decile. If a
+quintile presentation is needed at <code>level = 3</code>, use:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>inflation_fr_quintile <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="st">&quot;FR&quot;</span>, <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">level =</span> <span class="dv">3</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">france_insee_income_groups =</span> <span class="st">&quot;quintile&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">plot_time_series</span>(inflation_fr_quintile)</span></code></pre></div>
+<p>The option <code>france_insee_income_groups = &quot;quintile&quot;</code>
+averages adjacent INSEE decile mean expenditures (<code>D1-D2</code>,
+<code>D3-D4</code>, …, <code>D9-D10</code>). These are expenditure means
+for equal-population decile groups, not income-threshold bounds.</p>
 </div>
 </div>
+<div id="when-to-use-custom-data" class="section level2">
+<h2>When to use custom data</h2>
+<p>Use custom data when:</p>
+<ul>
+<li>Eurostat HBS is too aggregated for the calculation you want,
+typically because you need <code>level = 3</code>.</li>
+<li>You have national HBS data with the columns needed to build an
+<code>&quot;hbs&quot;</code> object.</li>
+<li>You still want the package to use Eurostat HICP prices and Eurostat
+HICP item weights.</li>
+</ul>
+<p>In that case, provide <code>custom_hbs</code> and keep
+<code>country</code>, <code>category</code>, and <code>level</code> in
+the calculation call:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>inflation <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="st">&quot;FR&quot;</span>, <span class="st">&quot;income&quot;</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">level =</span> <span class="dv">3</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">custom_hbs =</span> national_hbs_level3</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>You do not need to manually download CPI data from INSEE for the
+standard package workflow. The package now uses Eurostat HICP downloads
+for prices and HICP weights. INSEE CPI downloads are only useful for
+separate validation exercises or for a fully custom CPI workflow.</p>
 </div>
-<div id="loading-custom-data-in-a-inflationinequality-function" class="section level2">
-<h2>Loading custom data in a <code>inflationinequality</code>
-function</h2>
-<p>Since we’re using custom datasets, we don’t need to specify the
-country or category when calculating inflation.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>inflation <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="at">custom_cpi =</span> INSEE_CPI_level3,</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">custom_index_weights =</span> INSEE_CPI_index_weights,</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">custom_hbs =</span> INSEE_HBS_2017,</span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">start_year =</span> <span class="dv">2019</span></span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>)</span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">plot_time_series</span>(inflation)</span></code></pre></div>
+<div id="formatting-national-hbs-data" class="section level2">
+<h2>Formatting national HBS data</h2>
+<p>A custom HBS object is built with <code>hbs()</code>. It has two data
+components:</p>
+<ul>
+<li><code>dt</code>: group-specific expenditure by COICOP item.</li>
+<li><code>dt_total</code>: total expenditure by COICOP item.</li>
+</ul>
+<p>The <code>dt</code> table must contain:</p>
+<ul>
+<li><code>series_name</code>: source label or identifier.</li>
+<li><code>coicop</code>: COICOP code, without the <code>CP</code>
+prefix.</li>
+<li><code>year</code>: HBS survey year.</li>
+<li><code>category</code>: household group, such as income decile or
+income quintile.</li>
+<li><code>consumption</code>: expenditure amount or share.</li>
+</ul>
+<p>The <code>dt_total</code> table must contain:</p>
+<ul>
+<li><code>coicop</code></li>
+<li><code>year</code></li>
+<li><code>total_consumption</code></li>
+</ul>
+<p>The examples below start from national HBS spreadsheets with
+expenditure by COICOP and household group. The old BdF scripts such as
+<code>2_Calcul_Poids_age.R</code> and
+<code>2_Calcul_Poids_zone_residence.R</code> merge CPI weights and HBS
+data month by month. That is no longer necessary for the standard
+package workflow: <code>custom_hbs</code> should contain national HBS
+expenditure data only, and the package then combines it with Eurostat
+HICP prices and HICP item weights internally.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r">library(readxl)
+library(data.table)</code></pre></div>
+<p>The helper below converts a wide national HBS table into an
+<code>&quot;hbs&quot;</code> object. It keeps rows up to COICOP level 3
+(<code>01</code>, <code>011</code>, <code>0111</code>, etc.), removes
+the aggregate <code>00</code>, and uses the <code>Ensemble</code> column
+as the all-household total.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r">make_national_hbs_level3 &lt;- function(path, category, group_cols, group_labels,
+                                     survey_year = 2017, country = &quot;FR&quot;) {
+  raw &lt;- as.data.table(read_xlsx(path))
+
+  national_hbs_all &lt;- melt(
+    raw,
+    id.vars = c(&quot;IDENT&quot;, &quot;Regroupement&quot;, &quot;Ensemble&quot;),
+    measure.vars = group_cols,
+    variable.name = &quot;source_group&quot;,
+    value.name = &quot;consumption&quot;
+  )
+
+  national_hbs_all[, source_group := as.character(source_group)]
+  national_hbs_all[, category_label := group_labels[source_group]]
+
+  national_hbs_dt &lt;- national_hbs_all[
+    IDENT != &quot;00&quot; &amp; nchar(IDENT) &lt;= 4,
+    .(
+      series_name = as.character(Regroupement),
+      coicop = as.character(IDENT),
+      year = survey_year,
+      category = as.character(category_label),
+      consumption = as.numeric(consumption)
+    )
+  ]
+
+  national_hbs_dt_total &lt;- raw[
+    IDENT != &quot;00&quot; &amp; nchar(IDENT) &lt;= 4,
+    .(
+      series_name = as.character(Regroupement),
+      coicop = as.character(IDENT),
+      year = survey_year,
+      total_consumption = as.numeric(Ensemble)
+    )
+  ]
+
+  hbs(
+    dt = national_hbs_dt,
+    dt_total = national_hbs_dt_total,
+    country = country,
+    category = category,
+    categories = unname(group_labels),
+    level = 3
+  )
+}</code></pre></div>
+<div id="income-groups" class="section level3">
+<h3>Income groups</h3>
+<p><code>TF106_3digit.xlsx</code> contains the French national HBS
+expenditures by standard-of-living decile. The package already bundles
+this France income <code>level = 3</code> source, so this example is
+mainly useful if you want to reproduce the object explicitly or adapt
+the workflow to another national source.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r">income_groups &lt;- setNames(
+  paste(&quot;Decile&quot;, 1:10),
+  grep(&quot;^D&quot;, names(read_xlsx(&quot;TF106_3digit.xlsx&quot;, n_max = 0)), value = TRUE)
+)
+
+national_hbs_income_level3 &lt;- make_national_hbs_level3(
+  &quot;TF106_3digit.xlsx&quot;,
+  category = &quot;income&quot;,
+  group_cols = names(income_groups),
+  group_labels = income_groups
+)</code></pre></div>
+</div>
+<div id="residence-area-groups" class="section level3">
+<h3>Residence area groups</h3>
+<p><code>TF104_3digit.xlsx</code> provides French national HBS
+expenditures by residence area. It can be used as
+<code>custom_hbs</code> for <code>category = &quot;urban&quot;</code> at
+<code>level = 3</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r">urban_groups &lt;- c(
+  Rural = &quot;Rural areas&quot;,
+  Petites_villes = &quot;Small towns&quot;,
+  Villes_moyennes = &quot;Medium-sized towns&quot;,
+  Grandes_villes = &quot;Large cities&quot;,
+  Paris = &quot;Paris&quot;
+)
+
+national_hbs_urban_level3 &lt;- make_national_hbs_level3(
+  &quot;TF104_3digit.xlsx&quot;,
+  category = &quot;urban&quot;,
+  group_cols = names(urban_groups),
+  group_labels = urban_groups
+)</code></pre></div>
+</div>
+<div id="age-groups" class="section level3">
+<h3>Age groups</h3>
+<p><code>TF102_3digit.xlsx</code> provides French national HBS
+expenditures by age group. The package already bundles this France age
+<code>level = 3</code> source, so this example is mainly useful if you
+want to reproduce the object explicitly or adapt the workflow to another
+national source. The category order matters because it controls the order
+used in plots and gap calculations.</p>
+<p>The bundled age source groups <code>De65a74ans</code> and
+<code>De75ansetplus</code> into <code>&quot;65 years or over&quot;</code> by
+averaging the two national expenditure profiles.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r">age_groups &lt;- c(
+  Moinsde25ans = &quot;Under 25 years&quot;,
+  De25a34ans = &quot;25-34 years&quot;,
+  De35a44ans = &quot;35-44 years&quot;,
+  De45a54ans = &quot;45-54 years&quot;,
+  De55a64ans = &quot;55-64 years&quot;,
+  De65a74ans = &quot;65 years or over&quot;,
+  De75ansetplus = &quot;65 years or over&quot;
+)
+
+national_hbs_age_level3 &lt;- make_national_hbs_level3(
+  &quot;TF102_3digit.xlsx&quot;,
+  category = &quot;age&quot;,
+  group_cols = names(age_groups),
+  group_labels = age_groups
+)</code></pre></div>
+</div>
+</div>
+<div id="using-custom-hbs-in-calculations" class="section level2">
+<h2>Using custom HBS in calculations</h2>
+<p>Once the HBS object is ready, pass it through
+<code>custom_hbs</code>. The package will still download HICP prices and
+HICP item weights from Eurostat.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r">inflation &lt;- calculate_inflation(
+  &quot;FR&quot;, &quot;income&quot;,
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_income_level3
+)
+plot_time_series(inflation)</code></pre></div>
+<p>For residence area or age, change the <code>category</code> argument
+and pass the matching HBS object:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r">inflation_urban &lt;- calculate_inflation(
+  &quot;FR&quot;, &quot;urban&quot;,
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_urban_level3
+)
+
+inflation_age &lt;- calculate_inflation(
+  &quot;FR&quot;, &quot;age&quot;,
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_age_level3
+)</code></pre></div>
+<p>The same object can be used in lower-level functions:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r">weights &lt;- calculate_weights(
+  &quot;FR&quot;, &quot;income&quot;,
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_income_level3
+)
+
+indices &lt;- calculate_price_indices(
+  &quot;FR&quot;, &quot;income&quot;,
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_income_level3
+)</code></pre></div>
+<p>If you also provide a fully custom price-index source, use
+<code>custom_cpi</code> and, when needed,
+<code>custom_index_weights</code>. That is a more advanced workflow and
+should only be used when the Eurostat HICP series are not appropriate
+for the target calculation.</p>
 </div>
 
 

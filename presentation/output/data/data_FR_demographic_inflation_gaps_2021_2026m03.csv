@@ -1,0 +1,253 @@
+year,month,inflation_gap,date,dimension,low_label,high_label
+2021,1,-0.216276024729379,2021-01-01,France - revenu,1er quintile,5e quintile
+2021,2,-0.0824299208111122,2021-02-01,France - revenu,1er quintile,5e quintile
+2021,3,-0.0870743861175192,2021-03-01,France - revenu,1er quintile,5e quintile
+2021,4,-0.0100012307293689,2021-04-01,France - revenu,1er quintile,5e quintile
+2021,5,0.111053242861705,2021-05-01,France - revenu,1er quintile,5e quintile
+2021,6,0.0810129844932275,2021-06-01,France - revenu,1er quintile,5e quintile
+2021,7,0.114869289243215,2021-07-01,France - revenu,1er quintile,5e quintile
+2021,8,0.0237322851321782,2021-08-01,France - revenu,1er quintile,5e quintile
+2021,9,0.0540594648117811,2021-09-01,France - revenu,1er quintile,5e quintile
+2021,10,0.138903855491844,2021-10-01,France - revenu,1er quintile,5e quintile
+2021,11,0.0909983903996423,2021-11-01,France - revenu,1er quintile,5e quintile
+2021,12,0.122518017015973,2021-12-01,France - revenu,1er quintile,5e quintile
+2022,1,0.117230718611744,2022-01-01,France - revenu,1er quintile,5e quintile
+2022,2,0.0608070620789203,2022-02-01,France - revenu,1er quintile,5e quintile
+2022,3,0.312852184741028,2022-03-01,France - revenu,1er quintile,5e quintile
+2022,4,0.23610893907806,2022-04-01,France - revenu,1er quintile,5e quintile
+2022,5,0.191660626842878,2022-05-01,France - revenu,1er quintile,5e quintile
+2022,6,0.278185684483692,2022-06-01,France - revenu,1er quintile,5e quintile
+2022,7,0.221241208691469,2022-07-01,France - revenu,1er quintile,5e quintile
+2022,8,0.172830700518125,2022-08-01,France - revenu,1er quintile,5e quintile
+2022,9,0.25964371290731,2022-09-01,France - revenu,1er quintile,5e quintile
+2022,10,0.321737945534786,2022-10-01,France - revenu,1er quintile,5e quintile
+2022,11,0.291656315080363,2022-11-01,France - revenu,1er quintile,5e quintile
+2022,12,0.110757850825058,2022-12-01,France - revenu,1er quintile,5e quintile
+2023,1,0.106375362823784,2023-01-01,France - revenu,1er quintile,5e quintile
+2023,2,0.202506542316718,2023-02-01,France - revenu,1er quintile,5e quintile
+2023,3,0.0958808162705846,2023-03-01,France - revenu,1er quintile,5e quintile
+2023,4,0.128673186404812,2023-04-01,France - revenu,1er quintile,5e quintile
+2023,5,0.100566970449209,2023-05-01,France - revenu,1er quintile,5e quintile
+2023,6,-0.0193421309570452,2023-06-01,France - revenu,1er quintile,5e quintile
+2023,7,-0.0176666247635762,2023-07-01,France - revenu,1er quintile,5e quintile
+2023,8,0.260948558314361,2023-08-01,France - revenu,1er quintile,5e quintile
+2023,9,0.259839375918121,2023-09-01,France - revenu,1er quintile,5e quintile
+2023,10,0.132626035365275,2023-10-01,France - revenu,1er quintile,5e quintile
+2023,11,0.153981365041231,2023-11-01,France - revenu,1er quintile,5e quintile
+2023,12,0.249672194172272,2023-12-01,France - revenu,1er quintile,5e quintile
+2024,1,0.264836788742261,2024-01-01,France - revenu,1er quintile,5e quintile
+2024,2,0.30999418864178,2024-02-01,France - revenu,1er quintile,5e quintile
+2024,3,0.18875394147762,2024-03-01,France - revenu,1er quintile,5e quintile
+2024,4,0.194291484331085,2024-04-01,France - revenu,1er quintile,5e quintile
+2024,5,0.239702860352977,2024-05-01,France - revenu,1er quintile,5e quintile
+2024,6,0.24732722908293,2024-06-01,France - revenu,1er quintile,5e quintile
+2024,7,0.255308535200835,2024-07-01,France - revenu,1er quintile,5e quintile
+2024,8,-0.0197395233762567,2024-08-01,France - revenu,1er quintile,5e quintile
+2024,9,-0.112163823280853,2024-09-01,France - revenu,1er quintile,5e quintile
+2024,10,-0.0993246010865254,2024-10-01,France - revenu,1er quintile,5e quintile
+2024,11,-0.0650341950542277,2024-11-01,France - revenu,1er quintile,5e quintile
+2024,12,-0.0393347029390145,2024-12-01,France - revenu,1er quintile,5e quintile
+2025,1,-0.0333468799628849,2025-01-01,France - revenu,1er quintile,5e quintile
+2025,2,-0.397348870078536,2025-02-01,France - revenu,1er quintile,5e quintile
+2025,3,-0.366723228895677,2025-03-01,France - revenu,1er quintile,5e quintile
+2025,4,-0.419790893341192,2025-04-01,France - revenu,1er quintile,5e quintile
+2025,5,-0.431094454909918,2025-05-01,France - revenu,1er quintile,5e quintile
+2025,6,-0.373991062052427,2025-06-01,France - revenu,1er quintile,5e quintile
+2025,7,-0.347259150362428,2025-07-01,France - revenu,1er quintile,5e quintile
+2025,8,-0.315952557388471,2025-08-01,France - revenu,1er quintile,5e quintile
+2025,9,-0.251589682825933,2025-09-01,France - revenu,1er quintile,5e quintile
+2025,10,-0.261553337812575,2025-10-01,France - revenu,1er quintile,5e quintile
+2025,11,-0.226284624247114,2025-11-01,France - revenu,1er quintile,5e quintile
+2025,12,-0.177000945346788,2025-12-01,France - revenu,1er quintile,5e quintile
+2026,1,-0.14466664079795,2026-01-01,France - revenu,1er quintile,5e quintile
+2026,2,-0.0535599866545796,2026-02-01,France - revenu,1er quintile,5e quintile
+2026,3,0.130184336729938,2026-03-01,France - revenu,1er quintile,5e quintile
+2021,1,0.215963050730511,2021-01-01,France - age,moins de 25 ans,65 ans ou plus
+2021,2,0.0012286946442972,2021-02-01,France - age,moins de 25 ans,65 ans ou plus
+2021,3,-0.0231455661066928,2021-03-01,France - age,moins de 25 ans,65 ans ou plus
+2021,4,0.164407377338552,2021-04-01,France - age,moins de 25 ans,65 ans ou plus
+2021,5,0.0675285298980852,2021-05-01,France - age,moins de 25 ans,65 ans ou plus
+2021,6,-0.316430527284424,2021-06-01,France - age,moins de 25 ans,65 ans ou plus
+2021,7,-0.933411483742037,2021-07-01,France - age,moins de 25 ans,65 ans ou plus
+2021,8,-0.571414030596619,2021-08-01,France - age,moins de 25 ans,65 ans ou plus
+2021,9,-0.74173541322561,2021-09-01,France - age,moins de 25 ans,65 ans ou plus
+2021,10,-0.884424507387402,2021-10-01,France - age,moins de 25 ans,65 ans ou plus
+2021,11,-0.834666517821676,2021-11-01,France - age,moins de 25 ans,65 ans ou plus
+2021,12,-1.28153073735177,2021-12-01,France - age,moins de 25 ans,65 ans ou plus
+2022,1,-1.40122034239329,2022-01-01,France - age,moins de 25 ans,65 ans ou plus
+2022,2,-1.30133184097651,2022-02-01,France - age,moins de 25 ans,65 ans ou plus
+2022,3,-1.67224967705929,2022-03-01,France - age,moins de 25 ans,65 ans ou plus
+2022,4,-1.87930962108871,2022-04-01,France - age,moins de 25 ans,65 ans ou plus
+2022,5,-2.03552968130356,2022-05-01,France - age,moins de 25 ans,65 ans ou plus
+2022,6,-2.12446721250594,2022-06-01,France - age,moins de 25 ans,65 ans ou plus
+2022,7,-1.94446608936136,2022-07-01,France - age,moins de 25 ans,65 ans ou plus
+2022,8,-1.98679916832872,2022-08-01,France - age,moins de 25 ans,65 ans ou plus
+2022,9,-2.44389910150224,2022-09-01,France - age,moins de 25 ans,65 ans ou plus
+2022,10,-2.88265404616577,2022-10-01,France - age,moins de 25 ans,65 ans ou plus
+2022,11,-2.76118734614933,2022-11-01,France - age,moins de 25 ans,65 ans ou plus
+2022,12,-2.28943251772719,2022-12-01,France - age,moins de 25 ans,65 ans ou plus
+2023,1,-2.68685200294081,2023-01-01,France - age,moins de 25 ans,65 ans ou plus
+2023,2,-2.31191293375861,2023-02-01,France - age,moins de 25 ans,65 ans ou plus
+2023,3,-2.03856948199472,2023-03-01,France - age,moins de 25 ans,65 ans ou plus
+2023,4,-1.17658092700311,2023-04-01,France - age,moins de 25 ans,65 ans ou plus
+2023,5,-1.04132325769527,2023-05-01,France - age,moins de 25 ans,65 ans ou plus
+2023,6,-1.19112406787619,2023-06-01,France - age,moins de 25 ans,65 ans ou plus
+2023,7,-0.467081725803775,2023-07-01,France - age,moins de 25 ans,65 ans ou plus
+2023,8,-0.548658806318628,2023-08-01,France - age,moins de 25 ans,65 ans ou plus
+2023,9,-0.407203138492961,2023-09-01,France - age,moins de 25 ans,65 ans ou plus
+2023,10,0.363385612873326,2023-10-01,France - age,moins de 25 ans,65 ans ou plus
+2023,11,0.0577395244251946,2023-11-01,France - age,moins de 25 ans,65 ans ou plus
+2023,12,-0.0817700130552961,2023-12-01,France - age,moins de 25 ans,65 ans ou plus
+2024,1,-0.323875420476701,2024-01-01,France - age,moins de 25 ans,65 ans ou plus
+2024,2,-0.18248366529143,2024-02-01,France - age,moins de 25 ans,65 ans ou plus
+2024,3,0.282935988140909,2024-03-01,France - age,moins de 25 ans,65 ans ou plus
+2024,4,-0.216110982836834,2024-04-01,France - age,moins de 25 ans,65 ans ou plus
+2024,5,-0.316480773456131,2024-05-01,France - age,moins de 25 ans,65 ans ou plus
+2024,6,-0.348320199715637,2024-06-01,France - age,moins de 25 ans,65 ans ou plus
+2024,7,-0.885333104714416,2024-07-01,France - age,moins de 25 ans,65 ans ou plus
+2024,8,-0.68283841114827,2024-08-01,France - age,moins de 25 ans,65 ans ou plus
+2024,9,-0.893319639765376,2024-09-01,France - age,moins de 25 ans,65 ans ou plus
+2024,10,-0.842076326714721,2024-10-01,France - age,moins de 25 ans,65 ans ou plus
+2024,11,-0.702708242601043,2024-11-01,France - age,moins de 25 ans,65 ans ou plus
+2024,12,-0.739359217317574,2024-12-01,France - age,moins de 25 ans,65 ans ou plus
+2025,1,-0.780543212175855,2025-01-01,France - age,moins de 25 ans,65 ans ou plus
+2025,2,-1.04242307384137,2025-02-01,France - age,moins de 25 ans,65 ans ou plus
+2025,3,-1.68852124343377,2025-03-01,France - age,moins de 25 ans,65 ans ou plus
+2025,4,-1.47736724552068,2025-04-01,France - age,moins de 25 ans,65 ans ou plus
+2025,5,-1.59115214729472,2025-05-01,France - age,moins de 25 ans,65 ans ou plus
+2025,6,-1.26429194120192,2025-06-01,France - age,moins de 25 ans,65 ans ou plus
+2025,7,-1.00074717078865,2025-07-01,France - age,moins de 25 ans,65 ans ou plus
+2025,8,-1.04866155725405,2025-08-01,France - age,moins de 25 ans,65 ans ou plus
+2025,9,-0.807534405290769,2025-09-01,France - age,moins de 25 ans,65 ans ou plus
+2025,10,-0.601353144760595,2025-10-01,France - age,moins de 25 ans,65 ans ou plus
+2025,11,-0.557744846929291,2025-11-01,France - age,moins de 25 ans,65 ans ou plus
+2025,12,-0.302986978726081,2025-12-01,France - age,moins de 25 ans,65 ans ou plus
+2026,1,-0.329606958715478,2026-01-01,France - age,moins de 25 ans,65 ans ou plus
+2026,2,-0.105943185355808,2026-02-01,France - age,moins de 25 ans,65 ans ou plus
+2026,3,0.246405721262662,2026-03-01,France - age,moins de 25 ans,65 ans ou plus
+2021,1,-0.93065486746834,2021-01-01,France - residence,rural,Paris
+2021,2,-0.400012791265716,2021-02-01,France - residence,rural,Paris
+2021,3,0.0623046330433987,2021-03-01,France - residence,rural,Paris
+2021,4,0.515888382684943,2021-04-01,France - residence,rural,Paris
+2021,5,0.740448047415309,2021-05-01,France - residence,rural,Paris
+2021,6,0.953828171205735,2021-06-01,France - residence,rural,Paris
+2021,7,1.0581288087244,2021-07-01,France - residence,rural,Paris
+2021,8,0.803239423145652,2021-08-01,France - residence,rural,Paris
+2021,9,0.651641881959267,2021-09-01,France - residence,rural,Paris
+2021,10,1.05412616343718,2021-10-01,France - residence,rural,Paris
+2021,11,1.13180533363683,2021-11-01,France - residence,rural,Paris
+2021,12,1.25049923695805,2021-12-01,France - residence,rural,Paris
+2022,1,1.56964459943057,2022-01-01,France - residence,rural,Paris
+2022,2,1.81658909494541,2022-02-01,France - residence,rural,Paris
+2022,3,3.10708843127234,2022-03-01,France - residence,rural,Paris
+2022,4,2.33640492459004,2022-04-01,France - residence,rural,Paris
+2022,5,2.82629115229981,2022-05-01,France - residence,rural,Paris
+2022,6,3.36571348324942,2022-06-01,France - residence,rural,Paris
+2022,7,2.71380344070666,2022-07-01,France - residence,rural,Paris
+2022,8,2.37880160705483,2022-08-01,France - residence,rural,Paris
+2022,9,2.39636258854544,2022-09-01,France - residence,rural,Paris
+2022,10,2.5402106749256,2022-10-01,France - residence,rural,Paris
+2022,11,2.4350776840708,2022-11-01,France - residence,rural,Paris
+2022,12,1.89564391177848,2022-12-01,France - residence,rural,Paris
+2023,1,2.02703754368439,2023-01-01,France - residence,rural,Paris
+2023,2,1.34314998961268,2023-02-01,France - residence,rural,Paris
+2023,3,0.0559967708723077,2023-03-01,France - residence,rural,Paris
+2023,4,0.316231628124805,2023-04-01,France - residence,rural,Paris
+2023,5,-0.336568682116198,2023-05-01,France - residence,rural,Paris
+2023,6,-1.05992217914852,2023-06-01,France - residence,rural,Paris
+2023,7,-1.06997731934536,2023-07-01,France - residence,rural,Paris
+2023,8,0.167776470088467,2023-08-01,France - residence,rural,Paris
+2023,9,0.921198467905039,2023-09-01,France - residence,rural,Paris
+2023,10,0.0627883688179756,2023-10-01,France - residence,rural,Paris
+2023,11,0.138869811950047,2023-11-01,France - residence,rural,Paris
+2023,12,0.152071612459952,2023-12-01,France - residence,rural,Paris
+2024,1,-0.32267745529705,2024-01-01,France - residence,rural,Paris
+2024,2,0.0554178275627746,2024-02-01,France - residence,rural,Paris
+2024,3,-0.124521996314741,2024-03-01,France - residence,rural,Paris
+2024,4,0.0577634579614581,2024-04-01,France - residence,rural,Paris
+2024,5,0.283716554992994,2024-05-01,France - residence,rural,Paris
+2024,6,0.173252774435622,2024-06-01,France - residence,rural,Paris
+2024,7,0.274964411812673,2024-07-01,France - residence,rural,Paris
+2024,8,-0.82511361447877,2024-08-01,France - residence,rural,Paris
+2024,9,-1.17321202552973,2024-09-01,France - residence,rural,Paris
+2024,10,-1.18446554868795,2024-10-01,France - residence,rural,Paris
+2024,11,-0.959021129647142,2024-11-01,France - residence,rural,Paris
+2024,12,-0.689351810014431,2024-12-01,France - residence,rural,Paris
+2025,1,-0.250866137367254,2025-01-01,France - residence,rural,Paris
+2025,2,-0.960898316932518,2025-02-01,France - residence,rural,Paris
+2025,3,-0.906454875873243,2025-03-01,France - residence,rural,Paris
+2025,4,-1.4013013357451,2025-04-01,France - residence,rural,Paris
+2025,5,-1.09171794108209,2025-05-01,France - residence,rural,Paris
+2025,6,-1.00559536948061,2025-06-01,France - residence,rural,Paris
+2025,7,-1.0103193755421,2025-07-01,France - residence,rural,Paris
+2025,8,-0.580861660218586,2025-08-01,France - residence,rural,Paris
+2025,9,-0.386539934106207,2025-09-01,France - residence,rural,Paris
+2025,10,-0.420527472752764,2025-10-01,France - residence,rural,Paris
+2025,11,-0.374686613752564,2025-11-01,France - residence,rural,Paris
+2025,12,-0.547846093970163,2025-12-01,France - residence,rural,Paris
+2026,1,-0.673627949371691,2026-01-01,France - residence,rural,Paris
+2026,2,-0.26642663509259,2026-02-01,France - residence,rural,Paris
+2026,3,0.654931034478501,2026-03-01,France - residence,rural,Paris
+2021,1,-0.147893888565068,2021-01-01,Lituanie - revenu,1er quintile,5e quintile
+2021,2,-0.340684525038881,2021-02-01,Lituanie - revenu,1er quintile,5e quintile
+2021,3,-0.754962225967481,2021-03-01,Lituanie - revenu,1er quintile,5e quintile
+2021,4,-0.767073348260997,2021-04-01,Lituanie - revenu,1er quintile,5e quintile
+2021,5,-0.863293308307003,2021-05-01,Lituanie - revenu,1er quintile,5e quintile
+2021,6,-0.843151858180329,2021-06-01,Lituanie - revenu,1er quintile,5e quintile
+2021,7,-0.076607508709043,2021-07-01,Lituanie - revenu,1er quintile,5e quintile
+2021,8,0.104626765578987,2021-08-01,Lituanie - revenu,1er quintile,5e quintile
+2021,9,-0.00836543096221032,2021-09-01,Lituanie - revenu,1er quintile,5e quintile
+2021,10,-0.273671138327053,2021-10-01,Lituanie - revenu,1er quintile,5e quintile
+2021,11,-0.530465209332299,2021-11-01,Lituanie - revenu,1er quintile,5e quintile
+2021,12,0.739675226052036,2021-12-01,Lituanie - revenu,1er quintile,5e quintile
+2022,1,1.6623179706006,2022-01-01,Lituanie - revenu,1er quintile,5e quintile
+2022,2,2.2106602583079,2022-02-01,Lituanie - revenu,1er quintile,5e quintile
+2022,3,1.69302238147958,2022-03-01,Lituanie - revenu,1er quintile,5e quintile
+2022,4,2.08533484073562,2022-04-01,Lituanie - revenu,1er quintile,5e quintile
+2022,5,2.33468344640254,2022-05-01,Lituanie - revenu,1er quintile,5e quintile
+2022,6,2.23007285565574,2022-06-01,Lituanie - revenu,1er quintile,5e quintile
+2022,7,3.37625093094738,2022-07-01,Lituanie - revenu,1er quintile,5e quintile
+2022,8,4.67735448219104,2022-08-01,Lituanie - revenu,1er quintile,5e quintile
+2022,9,6.00405297277263,2022-09-01,Lituanie - revenu,1er quintile,5e quintile
+2022,10,5.56996366384929,2022-10-01,Lituanie - revenu,1er quintile,5e quintile
+2022,11,5.41943400806181,2022-11-01,Lituanie - revenu,1er quintile,5e quintile
+2022,12,4.96127668144245,2022-12-01,Lituanie - revenu,1er quintile,5e quintile
+2023,1,4.47389038018577,2023-01-01,Lituanie - revenu,1er quintile,5e quintile
+2023,2,4.24428983007897,2023-02-01,Lituanie - revenu,1er quintile,5e quintile
+2023,3,4.52588503720073,2023-03-01,Lituanie - revenu,1er quintile,5e quintile
+2023,4,3.1521213046712,2023-04-01,Lituanie - revenu,1er quintile,5e quintile
+2023,5,3.138525564592,2023-05-01,Lituanie - revenu,1er quintile,5e quintile
+2023,6,2.93011499029418,2023-06-01,Lituanie - revenu,1er quintile,5e quintile
+2023,7,1.28957296442275,2023-07-01,Lituanie - revenu,1er quintile,5e quintile
+2023,8,-0.367870567259576,2023-08-01,Lituanie - revenu,1er quintile,5e quintile
+2023,9,-1.87140556437974,2023-09-01,Lituanie - revenu,1er quintile,5e quintile
+2023,10,-1.35884608844525,2023-10-01,Lituanie - revenu,1er quintile,5e quintile
+2023,11,-0.933658933706139,2023-11-01,Lituanie - revenu,1er quintile,5e quintile
+2023,12,-1.36252421416021,2023-12-01,Lituanie - revenu,1er quintile,5e quintile
+2024,1,-1.67640669140075,2024-01-01,Lituanie - revenu,1er quintile,5e quintile
+2024,2,-2.1648702842735,2024-02-01,Lituanie - revenu,1er quintile,5e quintile
+2024,3,-2.38133242143175,2024-03-01,Lituanie - revenu,1er quintile,5e quintile
+2024,4,-2.19770111620733,2024-04-01,Lituanie - revenu,1er quintile,5e quintile
+2024,5,-2.10483707506099,2024-05-01,Lituanie - revenu,1er quintile,5e quintile
+2024,6,-1.82523995929917,2024-06-01,Lituanie - revenu,1er quintile,5e quintile
+2024,7,-1.50297033497822,2024-07-01,Lituanie - revenu,1er quintile,5e quintile
+2024,8,-0.949901312637359,2024-08-01,Lituanie - revenu,1er quintile,5e quintile
+2024,9,-0.369889069262957,2024-09-01,Lituanie - revenu,1er quintile,5e quintile
+2024,10,-0.569813097462019,2024-10-01,Lituanie - revenu,1er quintile,5e quintile
+2024,11,-0.708430659729931,2024-11-01,Lituanie - revenu,1er quintile,5e quintile
+2024,12,-0.822421225509393,2024-12-01,Lituanie - revenu,1er quintile,5e quintile
+2025,1,-0.703578893825011,2025-01-01,Lituanie - revenu,1er quintile,5e quintile
+2025,2,-0.299834932817587,2025-02-01,Lituanie - revenu,1er quintile,5e quintile
+2025,3,0.374613220922955,2025-03-01,Lituanie - revenu,1er quintile,5e quintile
+2025,4,0.645530627872097,2025-04-01,Lituanie - revenu,1er quintile,5e quintile
+2025,5,0.333024151511664,2025-05-01,Lituanie - revenu,1er quintile,5e quintile
+2025,6,0.17985361577553,2025-06-01,Lituanie - revenu,1er quintile,5e quintile
+2025,7,0.102065913094793,2025-07-01,Lituanie - revenu,1er quintile,5e quintile
+2025,8,0.250527410313002,2025-08-01,Lituanie - revenu,1er quintile,5e quintile
+2025,9,-0.0353435294399969,2025-09-01,Lituanie - revenu,1er quintile,5e quintile
+2025,10,0.21571490302663,2025-10-01,Lituanie - revenu,1er quintile,5e quintile
+2025,11,0.201266512278011,2025-11-01,Lituanie - revenu,1er quintile,5e quintile
+2025,12,0.326673856218758,2025-12-01,Lituanie - revenu,1er quintile,5e quintile
+2026,1,0.700786191957362,2026-01-01,Lituanie - revenu,1er quintile,5e quintile
+2026,2,0.673496191098546,2026-02-01,Lituanie - revenu,1er quintile,5e quintile
+2026,3,-0.27554334922168,2026-03-01,Lituanie - revenu,1er quintile,5e quintile

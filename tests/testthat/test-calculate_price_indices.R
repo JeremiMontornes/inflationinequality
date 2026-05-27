@@ -193,6 +193,127 @@ test_that("France INSEE level 3 HBS can be aggregated from deciles to quintiles"
   expect_equal(hbs_quintile$dt_total, hbs_decile$dt_total)
 })
 
+test_that("France INSEE level 3 HBS is available for residence area groups", {
+  hbs_urban <- inflationinequality:::load_france_insee_hbs_level3(category = "urban")
+
+  expect_true(inflationinequality:::use_france_insee_level3_hbs("FR", "urban", 3, NULL))
+  expect_s3_class(hbs_urban, "hbs")
+  expect_equal(hbs_urban$country, "FR")
+  expect_equal(hbs_urban$category, "urban")
+  expect_equal(hbs_urban$level, 3)
+  expect_equal(
+    hbs_urban$categories,
+    c("Rural areas", "Small towns", "Medium-sized towns", "Large cities", "Paris")
+  )
+  expect_true("0111" %in% hbs_urban$dt$coicop)
+})
+
+test_that("calculate_price_indices uses INSEE HBS for France urban level 3", {
+  cpi_dt <- data.table::data.table(
+    series_name = rep("CPI", 8),
+    coicop = rep(c("0111", "0112"), each = 4),
+    value = c(100, 102, 104, 106, 100, 101, 103, 105),
+    year = rep(c(2021, 2022, 2022, 2022), 2),
+    month = rep(c(12, 1, 2, 3), 2)
+  )
+  cpi_basket <- data.table::data.table(
+    series_name = rep("CPI", 4),
+    value = c(100, 101.5, 103.5, 105.5),
+    year = c(2021, 2022, 2022, 2022),
+    month = c(12, 1, 2, 3)
+  )
+  custom_cpi <- cpi(cpi_dt, cpi_basket, country = "FR", level = 3)
+
+  index_weights_dt <- data.table::data.table(
+    coicop = c("0111", "0112"),
+    weight = c(500, 500),
+    year = c(2022, 2022)
+  )
+  custom_index_weights <- index_weights(
+    index_weights_dt,
+    country = "FR",
+    level = 3,
+    base_total = 1000
+  )
+
+  result <- calculate_price_indices(
+    "FR", "urban",
+    level = 3,
+    start_year = 2022,
+    end_year = 2022,
+    end_month = 3,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    base_year = 2022
+  )
+
+  expect_s3_class(result, "price_indices")
+  expect_equal(result$category, "urban")
+  expect_true(all(c("Rural areas", "Paris", "Total") %in% result$categories))
+})
+
+test_that("France INSEE level 3 HBS is available for age groups", {
+  hbs_age <- inflationinequality:::load_france_insee_hbs_level3(category = "age")
+
+  expect_true(inflationinequality:::use_france_insee_level3_hbs("FR", "age", 3, NULL))
+  expect_s3_class(hbs_age, "hbs")
+  expect_equal(hbs_age$country, "FR")
+  expect_equal(hbs_age$category, "age")
+  expect_equal(hbs_age$level, 3)
+  expect_equal(
+    hbs_age$categories,
+    c(
+      "Under 25 years", "25-34 years", "35-44 years", "45-54 years",
+      "55-64 years", "65 years or over"
+    )
+  )
+  expect_true("0111" %in% hbs_age$dt$coicop)
+})
+
+test_that("calculate_price_indices uses INSEE HBS for France age level 3", {
+  cpi_dt <- data.table::data.table(
+    series_name = rep("CPI", 8),
+    coicop = rep(c("0111", "0112"), each = 4),
+    value = c(100, 102, 104, 106, 100, 101, 103, 105),
+    year = rep(c(2021, 2022, 2022, 2022), 2),
+    month = rep(c(12, 1, 2, 3), 2)
+  )
+  cpi_basket <- data.table::data.table(
+    series_name = rep("CPI", 4),
+    value = c(100, 101.5, 103.5, 105.5),
+    year = c(2021, 2022, 2022, 2022),
+    month = c(12, 1, 2, 3)
+  )
+  custom_cpi <- cpi(cpi_dt, cpi_basket, country = "FR", level = 3)
+
+  index_weights_dt <- data.table::data.table(
+    coicop = c("0111", "0112"),
+    weight = c(500, 500),
+    year = c(2022, 2022)
+  )
+  custom_index_weights <- index_weights(
+    index_weights_dt,
+    country = "FR",
+    level = 3,
+    base_total = 1000
+  )
+
+  result <- calculate_price_indices(
+    "FR", "age",
+    level = 3,
+    start_year = 2022,
+    end_year = 2022,
+    end_month = 3,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    base_year = 2022
+  )
+
+  expect_s3_class(result, "price_indices")
+  expect_equal(result$category, "age")
+  expect_true(all(c("Under 25 years", "65 years or over", "Total") %in% result$categories))
+})
+
 test_that("calculate_price_indices uses quintile option for France income level 3", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 8),

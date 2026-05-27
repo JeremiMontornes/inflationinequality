@@ -1,8 +1,8 @@
 ---
-title: "Using national CPI-HBS data"
+title: "Using national HBS data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Using national CPI-HBS data}
+  %\VignetteIndexEntry{Using national HBS data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -22,309 +22,289 @@ library(inflationinequality)
 options(rdbnomics.use_readLines = TRUE)
 ```
 
-This vignette introduces methods to include your own data.
+This vignette explains when and how to use national HBS data with `inflationinequality`.
 
-***
+The default workflow should be preferred whenever it is available:
 
-## Downloading data from Eurostat
+- HICP price indices are downloaded from Eurostat by `load_cpi()`.
+- HICP item weights are downloaded from Eurostat by `load_index_weights()`.
+- HBS expenditure shares at `level = 1` or `level = 2` are downloaded from Eurostat through DBnomics by `load_hbs()`.
 
-Using DBnomics, we can download CPI and HBS data from euro area countries and compare countries because the categories are standardized.
+Custom data are mainly useful when a national statistical institute provides HBS expenditure data at a finer COICOP level than Eurostat. In practice, this means using `custom_hbs` for `level = 3` calculations when national HBS data are available. For `level = 2`, the recommended workflow is still the harmonised Eurostat HBS data loaded through DBnomics.
 
-However, Eurostat  only provides 2-digit COICOP HBS data. For some countries (France, Italy, etc.), instead of using the data published by Eurostat, data published directly by national statistical institutes can be used like France's INSEE or Italy's Istat.
+## Recommended workflows
 
-In this vignette, we will download datasets in CSV format and format the data for the package.
+### Level 2: Eurostat HICP and Eurostat HBS
 
-## Downloading CPI from INSEE
-
-Let's download CPI data from INSEE, sourced from this page: [https://www.insee.fr/fr/statistiques/series/102342213](https://www.insee.fr/fr/statistiques/series/102342213). In particular, this CPI dataset is bundled with other data that we do not need so we'll have to process this data.
-
-First, we load some necessary libraries.
+For the harmonised `level = 2` workflow, no custom data are needed. The package downloads the HICP data from Eurostat and the HBS data from Eurostat through DBnomics.
 
 ```{r}
-# Required for fast CSV reading
-library(readr)
-
-# Required for reading Excel spreadsheets
-library(readxl)
-
-# Required for manipulating data.table objects,
-# which is the primary data format for this package
-library(data.table)
-
-# Required for the %>% pipe operator
-library(dplyr)
-
-# Required for some string operations
-library(stringr)
-
-# Required for some date operations
-library(lubridate)
+inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 2)
+plot_time_series(inflation)
 ```
 
-We'll use the CSV files since they're easier to process into an R object.
-Download the ZIP archive for the CSV files from the website and extract the archive.
+This is the preferred workflow for cross-country comparisons because the HBS categories are harmonised by Eurostat.
 
-We'll first load `valeurs_mensuelles.csv` (monthly values) into a data.table.
+### France level 3: bundled national HBS
+
+France is a special case already implemented in the package. For `country = "FR"`, `level = 3`, and bundled national HBS categories, `inflationinequality` automatically uses INSEE Budget de famille 2017 HBS data when `custom_hbs` is not supplied. HICP prices and HICP weights are still downloaded from Eurostat.
 
 ```{r}
-# Get CSV file path
-monthly_values_csv_file <- "famille_IPC-2015/valeurs_mensuelles.csv"
-
-# Read CSV data into a data.table
-INSEE_CPI_monthly_values <- as.data.table(read_csv2(monthly_values_csv_file))
+inflation_fr_level3 <- calculate_inflation(
+  "FR", "income",
+  start_year = 2019,
+  level = 3
+)
+plot_time_series(inflation_fr_level3)
 ```
 
-The following section will be dedicated to correctly formatting this dataset, which is essential for loading data from sources other than Eurostat to the `inflationinequality` package.
-
-### Correctly formatting a time series dataset
-
-#### Formatting CPI per product category
-
-This dataset bundles together monthly CPI index data with other data like year-on-year change, which we do not need.
-In addition, the COICOP codes are written in the series name (identifier) or "Libellé" so we'll have extract that.
-The dataset is structured in a *wide* format, rather than the *long* format preferred by our package.
-In wide format, each date is assigned its own column, excluding other identifiers such as the COICOP code.
-This structure is less conducive to efficient data analysis compared to the long format.
-We will write code to clean the dataset into a format that is readable by the package.
-
-We'll also filter for level 2 COICOP codes, that is 3-digit COICOP.
-
-First, we want to remove the columns `idBank`, `Dernière mise à jour` and `Période` because they're useless.
+The same automatic workflow is available for residence-area groups:
 
 ```{r}
-INSEE_CPI_dt <- INSEE_CPI_monthly_values %>%
-  .[, `:=`(
-    idBank = NULL,
-    `Dernière mise à jour` = NULL,
-    `Période` = NULL)]
+inflation_fr_urban_level3 <- calculate_inflation(
+  "FR", "urban",
+  start_year = 2019,
+  level = 3
+)
+plot_time_series(inflation_fr_urban_level3)
 ```
 
-Next, we use `str_extract()` to find the COICOP code in the `Libellé` column.
-The regex pattern looks for:
-- A positive lookbehind for the specific text preceding the code
-- Two digits followed by up to three occurrences of a dot and one or more digits
+The automatic workflow is also available for age groups:
 
 ```{r}
-INSEE_CPI_dt <- INSEE_CPI_dt %>%
-  .[, coicop := str_extract(
-    `Libellé`,
-    "(?<=Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )\\d{2}(\\.\\d+){0,3}"
-  )]
+inflation_fr_age_level3 <- calculate_inflation(
+  "FR", "age",
+  start_year = 2019,
+  level = 3
+)
+plot_time_series(inflation_fr_age_level3)
 ```
 
-We also need to remove all NA values in the `coicop` column, in case there were no matches in `Libellé`.
+The INSEE source is available by standard-of-living decile. If a quintile presentation is needed at `level = 3`, use:
 
 ```{r}
-INSEE_CPI_dt <- INSEE_CPI_dt %>%
-  .[!is.na(coicop), ]
+inflation_fr_quintile <- calculate_inflation(
+  "FR", "income",
+  start_year = 2019,
+  level = 3,
+  france_insee_income_groups = "quintile"
+)
+plot_time_series(inflation_fr_quintile)
 ```
 
-Then we use `str_remove_all()` to remove all dots from the extracted COICOP code.
-The regex pattern `"\\."` matches any dot character.
+The option `france_insee_income_groups = "quintile"` averages adjacent INSEE decile mean expenditures (`D1-D2`, `D3-D4`, ..., `D9-D10`). These are expenditure means for equal-population decile groups, not income-threshold bounds.
 
-```{r}
-INSEE_CPI_dt <- INSEE_CPI_dt %>%
-  .[, coicop := str_remove_all(coicop, "\\.")]
-```
+## When to use custom data
 
-Now We'll reshape data from wide to long format.
+Use custom data when:
 
-```{r}
-INSEE_CPI_dt <- INSEE_CPI_dt %>%
-  melt(id.vars = c("Libellé", "coicop"), 
-                   variable.name = "date", value.name = "value")
-```
+- Eurostat HBS is too aggregated for the calculation you want, typically because you need `level = 3`.
+- You have national HBS data with the columns needed to build an `"hbs"` object.
+- You still want the package to use Eurostat HICP prices and Eurostat HICP item weights.
 
-
-Finally, we select and format necessary columns.
-Remember, in a "cpi" object, the "dt" component must (in any order) have the columns: `coicop`, `series_name`, `year`, `month`, `value`
-
-```{r}
-INSEE_CPI_dt <- INSEE_CPI_dt %>%
-  .[, .(coicop,
-    series_name = `Libellé`,
-    year = year(ym(as.character(date))),
-    month = month(ym(as.character(date))),
-    value = as.numeric(value)
-  )]
-```
-
-Let's see the layout of our newly formatted dataset.
-
-```{r}
-# Ignore the series_name column because it is very long
-head(INSEE_CPI_dt[, .SD, .SDcols = !c("series_name")])
-```
-
-#### Formatting CPI of product basket
-
-The CSV file also has CPI data over the entire product basket.
-We can select the CPI of the product basket from a label.
-
-```{r}
-INSEE_CPI_dt_basket <- INSEE_CPI_monthly_values %>%
-  .[`Libellé` == "Indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Ensemble", ] %>%
-  # INSEE's CSV file has two data series for the same aggregate.
-  .[1]
-```
-
-And we basically do the same thing as we did for the CPI per product category.
-
-```{r}
-INSEE_CPI_dt_basket <- INSEE_CPI_dt_basket %>%
-  melt(id.vars = c("Libellé"),
-                   variable.name = "date", value.name = "value") %>%
-  .[, .(series_name = `Libellé`,
-    year = year(ym(as.character(date))),
-    month = month(ym(as.character(date))),
-    value = as.numeric(value)
-  )]
-
-head(INSEE_CPI_dt[, .SD, .SDcols = !c("series_name")])
-```
-
-#### Creating a "cpi" object
-
-Now that we have both the CPI data for individual product categories `INSEE_CPI_dt` and for the entire product basket `INSEE_CPI_dt_basket`, we can initialise a `"cpi"` object that `inflationinequality` functions can read and manipulate.
-
-We would want to create two `"cpi"` objects, one with a maximum COICOP level 2 and another with a maximum COICOP level of 3.
-Therefore, we filter `INSEE_CPI_dt` by taking rows with `coicop` codes up to a certain length.
-
-```{r}
-INSEE_CPI_dt_level2 <- INSEE_CPI_dt %>% .[nchar(coicop) <= 2 + 1]
-INSEE_CPI <- cpi(dt = INSEE_CPI_dt_level2, dt_basket = INSEE_CPI_dt_basket,
-                 country = "FR", level = 2)
-
-INSEE_CPI_dt_level3 <- INSEE_CPI_dt %>% .[nchar(coicop) <= 3 + 1]
-INSEE_CPI_level3 <- cpi(dt = INSEE_CPI_dt_level3, dt_basket = INSEE_CPI_dt_basket,
-                        country = "FR", level = 3)
-```
-
-```{r, include=FALSE}
-# We don't include this because it's redundant
-annual_values_csv_file <- "famille_IPC-2015/valeurs_annuelles.csv"
-INSEE_CPI_annual_values <- as.data.table(read_csv2(annual_values_csv_file))
-
-INSEE_CPI_w_dt <- INSEE_CPI_annual_values %>%
-  .[, `:=`(
-    idBank = NULL,
-    `Dernière mise à jour` = NULL,
-    `Période` = NULL
-  )] %>%
-  .[, coicop := str_extract(
-    `Libellé`,
-    "(?<=Pondérations de l'indice des prix à la consommation - Base 2015 - Ensemble des ménages - France - Nomenclature Coicop : )\\d{2}(\\.\\d+){0,3}"
-    )] %>%
-  .[, coicop := str_remove_all(coicop, "\\.")] %>%
-  .[!is.na(coicop), ] %>%
-  melt(id.vars = c("Libellé", "coicop"), 
-                   variable.name = "date", value.name = "weight")  %>%
-  .[, `:=`(
-    weight = as.numeric(weight),
-    year = as.numeric(as.character(date))
-  )] %>%
-  .[, `:=`(
-    date = NULL,
-    `Libellé` = NULL
-  )]
-
-INSEE_CPI_w_dt_level2 <- INSEE_CPI_w_dt %>% .[nchar(coicop) <= 3]
-INSEE_CPI_index_weights <- 
-  index_weights(dt = INSEE_CPI_w_dt_level2, country = "FR", level = 2, base_total = 10000)
-
-
-INSEE_CPI_w_dt_level3 <- INSEE_CPI_w_dt %>% .[nchar(coicop) <= 4]
-INSEE_CPI_index_weights_level3 <- 
-  index_weights(dt = INSEE_CPI_w_dt_level3, country = "FR", level = 3, base_total = 10000)
-```
-
-#### Loading HBS data from a XLSX spreadsheet
-
-We can also format HBS data from an XLSX spreadsheet.
-
-```{r}
-# Select the file path of the spreadsheet
-# Here, we include our example with the package 
-XLSX_filepath <- "TF106_3digit.xlsx"
-
-# Read the spreadsheet
-TF106_3digit <- read_xlsx(XLSX_filepath)
-
-# (Partially) convert the spreadsheet to our "hbs" format
-INSEE_HBS_2017_all <- 
-  # Convert to data.table
-  as.data.table(TF106_3digit) %>%
-  # Convert from wide format to long format
-  melt(
-    id.vars = c("IDENT", "Regroupement"), variable.name = "quantile",
-    value.name = "consumption"
-  ) %>%
-  # Rearrange columns and remove "Ensemble" (Total) values
-  .[, .(
-    series_name = Regroupement,
-    coicop = IDENT,
-    year = 2017,
-    category = as.character(quantile),
-    consumption
-  )] %>%
-  # Remove CP00
-  .[coicop != "00"]
-
-# Select level 3 COICOPs
-INSEE_HBS_2017_dt <- 
-  INSEE_HBS_2017_all %>%
-  .[nchar(coicop) <= 4 & category != "Ensemble", ]
-
-# Select the total consumption from CP00
-# Don't forget to rename consumption to total_consumption!
-INSEE_HBS_2017_dt_total <- 
-  INSEE_HBS_2017_all %>%
-  .[nchar(coicop) <= 4 & category == "Ensemble", 
-    .(series_name, coicop, year,
-      total_consumption = consumption)]
-
-# Construct the "hbs" object
-# Don't forget to specify the order of the categories!
-INSEE_HBS_2017 <-
-  hbs(dt = INSEE_HBS_2017_dt,
-      dt_total = INSEE_HBS_2017_dt_total,
-      country = "FR",
-      category = "income",
-      categories = c("Décile1", "Décile2", "Décile3", "Décile4", "Décile5",
-                     "Décile6", "Décile7", "Décile8", "Décile9", "Décile10"),
-      level = 3)
-```
-
-```{r, include = FALSE}
-INSEE_inflation_income_dt <- INSEE_CPI_annual_values %>%
-  .[, `:=`(
-    idBank = NULL,
-    `Dernière mise à jour` = NULL,
-    `Période` = NULL
-  )] %>%
-  .[`Libellé` %like% "Indice annuel des prix à la consommation - Base 2015 - Niveau de vie du ménage", ] %>%
-  melt(id.vars = c("Libellé"), 
-                   variable.name = "date", value.name = "cpi")  %>%
-  .[!is.na(cpi), .(
-    series_name = `Libellé`,
-    category = c("Décile2", "Décile3", "Décile4", "Décile5", "Décile6", "Décile7", "Décile8", "Décile9", "Décile10", "Décile1"),
-    cpi = as.numeric(cpi),
-    year = as.numeric(as.character(date))
-  )] %>%
-  .[, headline_inflation := ((cpi / shift(cpi, 1)) - 1) * 100, by = .(category)] %>%
-  .[!is.na(headline_inflation), .(series_name, category, year, headline_inflation)]
-```
-
-## Loading custom data in a `inflationinequality` function
-
-Since we're using custom datasets, we don't need to specify the country or category when calculating inflation.
+In that case, provide `custom_hbs` and keep `country`, `category`, and `level` in the calculation call:
 
 ```{r}
 inflation <- calculate_inflation(
-  custom_cpi = INSEE_CPI_level3,
-  custom_index_weights = INSEE_CPI_index_weights,
-  custom_hbs = INSEE_HBS_2017,
-  start_year = 2019
+  "FR", "income",
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_level3
+)
+```
+
+You do not need to manually download CPI data from INSEE for the standard package workflow. The package now uses Eurostat HICP downloads for prices and HICP weights. INSEE CPI downloads are only useful for separate validation exercises or for a fully custom CPI workflow.
+
+## Formatting national HBS data
+
+A custom HBS object is built with `hbs()`. It has two data components:
+
+- `dt`: group-specific expenditure by COICOP item.
+- `dt_total`: total expenditure by COICOP item.
+
+The `dt` table must contain:
+
+- `series_name`: source label or identifier.
+- `coicop`: COICOP code, without the `CP` prefix.
+- `year`: HBS survey year.
+- `category`: household group, such as income decile or income quintile.
+- `consumption`: expenditure amount or share.
+
+The `dt_total` table must contain:
+
+- `coicop`
+- `year`
+- `total_consumption`
+
+The examples below start from national HBS spreadsheets with expenditure by COICOP and household group. The old BdF scripts such as `2_Calcul_Poids_age.R` and `2_Calcul_Poids_zone_residence.R` merge CPI weights and HBS data month by month. That is no longer necessary for the standard package workflow: `custom_hbs` should contain national HBS expenditure data only, and the package then combines it with Eurostat HICP prices and HICP item weights internally.
+
+```{r}
+library(readxl)
+library(data.table)
+```
+
+The helper below converts a wide national HBS table into an `"hbs"` object. It keeps rows up to COICOP level 3 (`01`, `011`, `0111`, etc.), removes the aggregate `00`, and uses the `Ensemble` column as the all-household total.
+
+```{r}
+make_national_hbs_level3 <- function(path, category, group_cols, group_labels,
+                                     survey_year = 2017, country = "FR") {
+  raw <- as.data.table(read_xlsx(path))
+
+  national_hbs_all <- melt(
+    raw,
+    id.vars = c("IDENT", "Regroupement", "Ensemble"),
+    measure.vars = group_cols,
+    variable.name = "source_group",
+    value.name = "consumption"
+  )
+
+  national_hbs_all[, source_group := as.character(source_group)]
+  national_hbs_all[, category_label := group_labels[source_group]]
+
+  national_hbs_dt <- national_hbs_all[
+    IDENT != "00" & nchar(IDENT) <= 4,
+    .(
+      series_name = as.character(Regroupement),
+      coicop = as.character(IDENT),
+      year = survey_year,
+      category = as.character(category_label),
+      consumption = as.numeric(consumption)
+    )
+  ]
+
+  national_hbs_dt_total <- raw[
+    IDENT != "00" & nchar(IDENT) <= 4,
+    .(
+      series_name = as.character(Regroupement),
+      coicop = as.character(IDENT),
+      year = survey_year,
+      total_consumption = as.numeric(Ensemble)
+    )
+  ]
+
+  hbs(
+    dt = national_hbs_dt,
+    dt_total = national_hbs_dt_total,
+    country = country,
+    category = category,
+    categories = unname(group_labels),
+    level = 3
+  )
+}
+```
+
+### Income groups
+
+`TF106_3digit.xlsx` contains the French national HBS expenditures by standard-of-living decile. The package already bundles this France income `level = 3` source, so this example is mainly useful if you want to reproduce the object explicitly or adapt the workflow to another national source.
+
+```{r}
+income_groups <- setNames(
+  paste("Decile", 1:10),
+  grep("^D", names(read_xlsx("TF106_3digit.xlsx", n_max = 0)), value = TRUE)
+)
+
+national_hbs_income_level3 <- make_national_hbs_level3(
+  "TF106_3digit.xlsx",
+  category = "income",
+  group_cols = names(income_groups),
+  group_labels = income_groups
+)
+```
+
+### Residence area groups
+
+`TF104_3digit.xlsx` provides French national HBS expenditures by residence area. It can be used as `custom_hbs` for `category = "urban"` at `level = 3`.
+
+```{r}
+urban_groups <- c(
+  Rural = "Rural areas",
+  Petites_villes = "Small towns",
+  Villes_moyennes = "Medium-sized towns",
+  Grandes_villes = "Large cities",
+  Paris = "Paris"
+)
+
+national_hbs_urban_level3 <- make_national_hbs_level3(
+  "TF104_3digit.xlsx",
+  category = "urban",
+  group_cols = names(urban_groups),
+  group_labels = urban_groups
+)
+```
+
+### Age groups
+
+`TF102_3digit.xlsx` provides French national HBS expenditures by age group. The package already bundles this France age `level = 3` source, so this example is mainly useful if you want to reproduce the object explicitly or adapt the workflow to another national source. The category order matters because it controls the order used in plots and gap calculations.
+
+The bundled age source groups `De65a74ans` and `De75ansetplus` into `"65 years or over"` by averaging the two national expenditure profiles.
+
+```{r}
+age_groups <- c(
+  Moinsde25ans = "Under 25 years",
+  De25a34ans = "25-34 years",
+  De35a44ans = "35-44 years",
+  De45a54ans = "45-54 years",
+  De55a64ans = "55-64 years",
+  De65a74ans = "65 years or over",
+  De75ansetplus = "65 years or over"
+)
+
+national_hbs_age_level3 <- make_national_hbs_level3(
+  "TF102_3digit.xlsx",
+  category = "age",
+  group_cols = names(age_groups),
+  group_labels = age_groups
+)
+```
+
+## Using custom HBS in calculations
+
+Once the HBS object is ready, pass it through `custom_hbs`. The package will still download HICP prices and HICP item weights from Eurostat.
+
+```{r}
+inflation <- calculate_inflation(
+  "FR", "income",
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_income_level3
 )
 plot_time_series(inflation)
 ```
+
+For residence area or age, change the `category` argument and pass the matching HBS object:
+
+```{r}
+inflation_urban <- calculate_inflation(
+  "FR", "urban",
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_urban_level3
+)
+
+inflation_age <- calculate_inflation(
+  "FR", "age",
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_age_level3
+)
+```
+
+The same object can be used in lower-level functions:
+
+```{r}
+weights <- calculate_weights(
+  "FR", "income",
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_income_level3
+)
+
+indices <- calculate_price_indices(
+  "FR", "income",
+  level = 3,
+  start_year = 2019,
+  custom_hbs = national_hbs_income_level3
+)
+```
+
+If you also provide a fully custom price-index source, use `custom_cpi` and, when needed, `custom_index_weights`. That is a more advanced workflow and should only be used when the Eurostat HICP series are not appropriate for the target calculation.

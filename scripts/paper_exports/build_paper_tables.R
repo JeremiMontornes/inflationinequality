@@ -92,7 +92,7 @@ todo <- function(reason) {
 table_registry <- list(
   list(
     order = 1,
-    file = "fr_decile_validation_summary.tex",
+    file = "tab_FR_decile_validation_summary.tex",
     caption = "Comparison with annual inflation by decile: France",
     status = "implemented",
     builder = function() {
@@ -122,7 +122,7 @@ table_registry <- list(
       ]
       write_latex_table(
         out,
-        "fr_decile_validation_summary.tex",
+        "tab_FR_decile_validation_summary.tex",
         "Comparison with annual inflation by decile: France",
         "tab:fr-decile-validation",
         paste(
@@ -136,7 +136,7 @@ table_registry <- list(
   ),
   list(
     order = 2,
-    file = "aggregation_bias_level1_level2_six_countries.tex",
+    file = "tab_EU6_aggregation_bias_level1_level2.tex",
     caption = "Aggregation bias between COICOP levels 1 and 2",
     status = "implemented",
     builder = function() {
@@ -163,7 +163,7 @@ table_registry <- list(
       ]
       write_latex_table(
         out,
-        "aggregation_bias_level1_level2_six_countries.tex",
+        "tab_EU6_aggregation_bias_level1_level2.tex",
         "Aggregation bias between COICOP levels 1 and 2",
         "tab:aggregation-bias-level1-level2",
         paste(
@@ -177,7 +177,7 @@ table_registry <- list(
   ),
   list(
     order = 3,
-    file = "fr_substitution_bias_level2.tex",
+    file = "tab_FR_substitution_bias_income_level2.tex",
     caption = "Upper-level substitution bias by income group, France, COICOP level 2",
     status = "implemented",
     builder = function() {
@@ -198,7 +198,7 @@ table_registry <- list(
       ]
       write_latex_table(
         out,
-        "fr_substitution_bias_level2.tex",
+        "tab_FR_substitution_bias_income_level2.tex",
         "Upper-level substitution bias by income group, France, COICOP level 2",
         "tab:fr-substitution-bias",
         paste(
@@ -250,4 +250,6 @@ run_exports <- function(registry = table_registry, overwrite = TRUE) {
   invisible(manifest)
 }
 
-run_exports()
+if (!identical(Sys.getenv("INFLATIONINEQUALITY_SKIP_RUN_EXPORTS"), "true")) {
+  run_exports()
+}

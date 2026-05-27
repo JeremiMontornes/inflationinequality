@@ -25,10 +25,11 @@
 #'   indices when `country` contains several countries.
 #'
 #' @section France level 3:
-#' For France income groups, `level = 3` automatically uses the bundled INSEE
-#' 2017 HBS level-3 data when `custom_hbs` is not supplied. Eurostat public HBS
-#' data are generally not available at this granularity, so the national HBS
-#' source is required for a genuine 4-digit COICOP calculation.
+#' For France, `level = 3` automatically uses bundled INSEE 2017 HBS level-3
+#' data for income, age, and residence-area groups when `custom_hbs` is not
+#' supplied. Eurostat public HBS data are generally not available at this
+#' granularity, so the national HBS source is required for a genuine 4-digit
+#' COICOP calculation.
 #'
 #' @returns An object of class `"price_indices"` containing:
 #' - `dt`: a `data.table` with columns `year`, `month`, `date`, `category`,
@@ -153,6 +154,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
 
   if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
     custom_hbs <- load_france_insee_hbs_level3(
+      category = category,
       income_groups = france_insee_income_groups
     )
   }
@@ -607,8 +609,9 @@ rebase_or_first_available <- function(x, t, t.ref) {
 use_france_insee_level3_hbs <- function(country, category, level, custom_hbs) {
   is.null(custom_hbs) &&
     identical(country, "FR") &&
-    identical(category, "income") &&
-    identical(as.numeric(level), 3)
+    isTRUE(category %in% c("income", "age", "urban")) &&
+    identical(as.numeric(level), 3) &&
+    file.exists(france_insee_hbs_level3_path(category))
 }
 
 use_euro_area_fast_total <- function(country, custom_hbs) {
@@ -654,9 +657,16 @@ calculate_total_price_index_dt <- function(price_dt, index_weights_obj, base_yea
   total_dt[, .(category, year, month, date, laspeyres, chain_laspeyres, price_index, annual_rate)]
 }
 
-load_france_insee_hbs_level3 <- function(income_groups = c("decile", "quintile")) {
-  income_groups <- match.arg(income_groups)
-  file_name <- "INSEE_HBS_2017_level3.RDS"
+france_insee_hbs_level3_file_name <- function(category) {
+  if (identical(category, "income")) {
+    "INSEE_HBS_2017_level3.RDS"
+  } else {
+    paste0("INSEE_HBS_2017_", category, "_level3.RDS")
+  }
+}
+
+france_insee_hbs_level3_path <- function(category) {
+  file_name <- france_insee_hbs_level3_file_name(category)
   path <- system.file("extdata", file_name, package = "inflationinequality", mustWork = FALSE)
 
   if (!nzchar(path)) {
@@ -665,9 +675,23 @@ load_france_insee_hbs_level3 <- function(income_groups = c("decile", "quintile")
     path <- if (file.exists(source_path)) source_path else vignette_path
   }
 
+  path
+}
+
+load_france_insee_hbs_level3 <- function(category = "income",
+                                         income_groups = c("decile", "quintile")) {
+  if (category %in% c("decile", "quintile")) {
+    income_groups <- category
+    category <- "income"
+  }
+  category <- match.arg(category, c("income", "age", "urban"))
+  income_groups <- match.arg(income_groups)
+  file_name <- france_insee_hbs_level3_file_name(category)
+  path <- france_insee_hbs_level3_path(category)
+
   if (!file.exists(path)) {
     stop(
-      "France level 3 income indices require the bundled INSEE HBS file '",
+      "France level 3 ", category, " indices require the bundled INSEE HBS file '",
       file_name,
       "', but it could not be found. Provide 'custom_hbs' explicitly."
     )
@@ -675,7 +699,7 @@ load_france_insee_hbs_level3 <- function(income_groups = c("decile", "quintile")
 
   hbs_obj <- readRDS(path)
 
-  if (identical(income_groups, "quintile")) {
+  if (identical(category, "income") && identical(income_groups, "quintile")) {
     hbs_obj <- aggregate_france_insee_deciles_to_quintiles(hbs_obj)
   }
 

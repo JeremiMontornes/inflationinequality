@@ -1,0 +1,167 @@
+\appendix
+\section{Upper-Level Substitution Bias}
+\label{app:substitution-bias}
+
+This appendix describes the upper-level substitution-bias diagnostic used to
+compare the package's baseline group-specific HICP aggregation with a chained
+Tornqvist alternative. The purpose of the exercise is not to replace the
+official HICP convention, but to quantify how sensitive measured inflation
+inequality is to the upper-level aggregation formula used to combine COICOP
+price relatives.
+
+\subsection{Conceptual background}
+
+In a fixed-basket price index, expenditure weights are held fixed while prices
+change. Such an index does not fully account for substitution across
+consumption categories when relative prices change. If households shift
+expenditure away from categories whose prices rise relatively faster, a
+fixed-weight index will generally grow faster than a symmetric index that uses
+information on both initial and later expenditure shares. This difference is
+usually interpreted as an upper-level substitution bias.
+
+The Bureau of Labor Statistics applies this logic by comparing a research CPI
+based on a fixed-basket formula with a chained superlative index. In the HICP
+setting considered here, the reference index is kept closer to the Eurostat
+convention: monthly COICOP price relatives are aggregated with annual
+expenditure weights and then chain-linked over time. The comparison index is a
+chained Tornqvist index computed from the same matched HICP-HBS data.
+
+\subsection{Index definitions}
+
+Let \(p_{j,t}\) denote the elementary price index for COICOP category \(j\) in
+month \(t\). Let \(r_{j,t}\) denote the corresponding unchained price relative
+used in the monthly aggregation. For household group \(g\), let
+\(w_{j,g,y}\) be the annual expenditure weight assigned to COICOP category
+\(j\) in year \(y\). These weights are obtained by combining official HICP
+item weights with HBS expenditure shares by income group.
+
+For each household group \(g\), the package first computes a Laspeyres-type
+monthly aggregate using the annual weights available for the corresponding
+link period:
+
+\[
+L_{g,t}
+= \sum_j s_{j,g,y(t)} r_{j,t},
+\]
+
+where \(s_{j,g,y(t)}\) denotes the normalized expenditure share for group
+\(g\), category \(j\), and the annual weight year associated with month \(t\).
+The monthly aggregates are then chain-linked to obtain a Eurostat-style
+chained Laspeyres index:
+
+\[
+P^{CL}_{g,t}
+= \operatorname{chain}\left(L_{g,t}\right).
+\]
+
+The comparison index uses the Tornqvist formula at the same upper level. Let
+\(s_{j,g,y(t)-1}\) and \(s_{j,g,y(t)}\) denote the previous-year and current-year
+shares used for the link. The monthly Tornqvist aggregate is:
+
+\[
+T_{g,t}
+= \prod_j r_{j,t}^{\frac{1}{2}
+\left(s_{j,g,y(t)-1} + s_{j,g,y(t)}\right)}.
+\]
+
+These Tornqvist aggregates are also chain-linked:
+
+\[
+P^{CT}_{g,t}
+= \operatorname{chain}\left(T_{g,t}\right).
+\]
+
+\subsection{Annualized growth rates}
+
+For each group \(g\), the comparison is made using annualized growth rates over
+the selected sample window. If \(t_0\) and \(t_1\) are the first and last months
+available in the comparison, and \(m=t_1-t_0\) is the number of elapsed months,
+the annualized growth rate of index \(P\) is:
+
+\[
+\gamma_g(P)
+= \left[
+\left(\frac{P_{g,t_1}}{P_{g,t_0}}\right)^{12/m} - 1
+\right] \times 100.
+\]
+
+The upper-level substitution-bias diagnostic is then defined as:
+
+\[
+\operatorname{SB}_g
+= \gamma_g\left(P^{CL}\right)
+- \gamma_g\left(P^{CT}\right).
+\]
+
+In the package output, these terms are reported as:
+
+\[
+\texttt{substitution\_bias}
+= \texttt{chained\_laspeyres\_growth}
+- \texttt{chained\_toernqvist\_growth}.
+\]
+
+A positive value indicates that the chained Laspeyres aggregation grows faster
+than the chained Tornqvist alternative over the same period.
+
+\subsection{Example for France}
+
+Table~\ref{tab:fr-substitution-bias} reports the diagnostic for France by
+income quintile, using Eurostat HICP and HBS data at COICOP level 2 from 2019
+onwards. The calculation corresponds to:
+
+\begin{verbatim}
+calculate_substitution_bias(
+  "FR",
+  "income",
+  level = 2,
+  start_year = 2019
+)
+\end{verbatim}
+
+\begin{table}[htbp]
+\centering
+\caption{Upper-level substitution bias by income group, France, COICOP level 2}
+\label{tab:fr-substitution-bias}
+\begin{tabular}{lrrr}
+\hline
+Income group & Chained Laspeyres growth & Chained Tornqvist growth & Substitution bias \\
+\hline
+Total & 2.96 & 2.90 & 0.06 \\
+First quintile & 2.83 & 2.74 & 0.10 \\
+Second quintile & 2.94 & 2.85 & 0.10 \\
+Third quintile & 2.98 & 2.90 & 0.09 \\
+Fourth quintile & 3.01 & 2.93 & 0.08 \\
+Fifth quintile & 2.99 & 2.92 & 0.07 \\
+\hline
+\end{tabular}
+\begin{minipage}{0.9\textwidth}
+\footnotesize
+\emph{Notes:} Growth rates and substitution-bias estimates are expressed in
+annualized percentage points over the selected sample window. The chained
+Laspeyres index follows the package's HICP-style aggregation with annual
+weights. The chained Tornqvist index uses previous-year and current-year
+category weights in the upper-level aggregation.
+\end{minipage}
+\end{table}
+
+\subsection{Interpretation and limitations}
+
+The estimates in Table~\ref{tab:fr-substitution-bias} are small but positive
+for all income groups. This indicates that, over the selected period, the
+Eurostat-style chained Laspeyres aggregation produces slightly higher
+annualized price growth than the chained Tornqvist alternative. The difference
+is somewhat larger for the first income quintile than for the fifth quintile in
+this example, suggesting that the choice of upper-level formula can affect the
+measured distributional profile of inflation, even when the magnitude remains
+modest.
+
+Several limitations should be kept in mind. First, Eurostat HBS expenditure
+shares by income group are not observed monthly. The Tornqvist comparison is
+therefore approximated with annual category-specific weights rather than with
+high-frequency household expenditure data. Second, HBS waves are available only
+periodically and are matched to annual HICP weights using the package's HBS-CPI
+timing rule. Third, the calculation is performed at the selected COICOP level;
+results may differ when more detailed national HBS sources are used. The
+diagnostic should therefore be read as a robustness check on the aggregation
+formula, not as an official chained consumer price index.

@@ -47,7 +47,9 @@ download HBS data first to see what HBS years are available.}
 INSEE level-3 income HBS data. \code{"decile"} keeps the original INSEE decile
 means. \code{"quintile"} averages adjacent decile means (D1-D2, D3-D4, ...)
 because the source values are mean expenditures for equal-population
-decile groups, not income-threshold bounds.}
+decile groups, not income-threshold bounds. This option only affects
+\code{category = "income"}; France \code{age} and \code{urban} level-3 HBS data keep their
+original national groups.}
 }
 \value{
 An object of class \code{"weights"} is a list containing the following
