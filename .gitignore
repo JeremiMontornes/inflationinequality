@@ -5,3 +5,9 @@
 inst/doc
 /doc/
 /Meta/
+
+# Keep paper/presentation production artifacts out of the R package repo.
+/paper_appendices/
+/presentation/
+*.tex
+*.pptx
