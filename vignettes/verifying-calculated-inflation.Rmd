@@ -1,8 +1,8 @@
 ---
-title: "Verifying calculated inflation"
+title: "Verifications"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Verifying calculated inflation}
+  %\VignetteIndexEntry{Verifications}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
