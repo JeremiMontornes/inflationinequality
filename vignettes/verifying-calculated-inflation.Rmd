@@ -91,6 +91,88 @@ package calculates group-specific baskets from HBS expenditure patterns and then
 averages the group indices, while the official all-items HICP uses the official
 national aggregate basket directly. Small differences are therefore expected.
 
+### Euro-area aggregate validation
+
+For euro-area calculations, the validation is slightly different. The package
+first calculates national unchained monthly movements, then aggregates these
+movements with Eurostat HICP country weights before chain-linking and rebasing
+the euro-area index. To isolate this aggregation step, the diagnostic below uses
+the recalculated `"Total"` category for `EA20`: this is the country-weighted
+average of each country's all-items HICP-style total. It is not the average of
+the Q1-to-Q5 household-group indices, nor the country-weighted average of those
+within-country quintile averages.
+
+The comparison covers January 2015 to April 2026. Both the recalculated `EA20`
+total and the official Eurostat all-items HICP are expressed with base
+2025 = 100. Over the 136 monthly observations, the mean difference is
+-0.036 index point, the mean absolute difference is 0.085 index point, the RMSE
+is 0.104 index point, and the maximum absolute difference is 0.352 index point.
+This shows that the euro-area aggregation used by the package is very close to
+the published EA20 HICP, while still leaving small differences due to COICOP
+coverage, ECOICOP mapping, and the use of annual country weights.
+
+```{r ea20-hicp-level-code}
+indices_ea20 <- calculate_price_indices(
+  "EA20",
+  "income",
+  start_year = 2015,
+  end_year = 2026,
+  end_month = 4,
+  base_year = 2025,
+  include_total = TRUE
+)
+
+ea20_total <- indices_ea20$dt[
+  category == "Total",
+  .(year, month, date, calculated_value = price_index)
+]
+
+official_ea20 <- load_cpi(
+  "EA20",
+  level = 2,
+  start_year = 2015,
+  end_year = 2026,
+  end_month = 4
+)
+
+official_ea20_total <- official_ea20$dt_basket[
+  ,
+  .(
+    year,
+    month,
+    date = as.Date(sprintf("%04d-%02d-01", year, month)),
+    official_value = hicp::rebase(
+      value,
+      t = as.Date(sprintf("%04d-%02d-01", year, month)),
+      t.ref = "2025"
+    )
+  )
+]
+
+ea20_comparison <- merge(
+  ea20_total,
+  official_ea20_total,
+  by = c("year", "month", "date"),
+  all.x = TRUE
+)
+ea20_comparison[, difference := calculated_value - official_value]
+
+ea20_comparison[
+  !is.na(calculated_value) & !is.na(official_value),
+  .(
+    n = .N,
+    mean_difference = mean(difference),
+    mean_abs_difference = mean(abs(difference)),
+    rmse = sqrt(mean(difference^2)),
+    max_abs_difference = max(abs(difference))
+  )
+]
+```
+
+```{r ea20-hicp-level-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
+knitr::include_graphics("../docs/ea20_hicp_validation_total_vs_official_2015_2026_04.png")
+```
+
 ## France INSEE level-3 validation
 
 France is the first country in the package with a national-source level-3

@@ -30,6 +30,13 @@ aggregate national HICP indices into a country-group aggregate such as the
 euro area. The default \code{aggregate_geo = "EA20"} reads \code{statinfo = "COWEA20"}
 from Eurostat dataset \code{prc_hicp_cow}.
 }
+\details{
+If a requested annual country-weight year is not yet available in
+\code{prc_hicp_cow}, the latest available previous country weights are carried
+forward with a warning. This allows partial-year calculations when HICP price
+indices and item weights are available before the corresponding country
+weights are published.
+}
 \examples{
 \dontrun{
 weights <- load_country_weights("EA20", countries = c("DE", "FR", "IT"))

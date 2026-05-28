@@ -72,7 +72,7 @@ decile groups, not income-threshold bounds. This option only affects
 original national groups.}
 
 \item{base_year}{year used to rebase the chained index to 100. If \code{NULL},
-the first returned year is used.}
+the package uses \code{2025} as the default presentation base.}
 
 \item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
 codes back to ECOICOP v1-style codes before matching them to HBS weights.}

@@ -313,6 +313,42 @@ test_that("loading weights data with nonexistent COICOP level", {
   expect_error(load_index_weights("FR", level = 4))
 })
 
+test_that("load_country_weights carries latest available weights forward", {
+  local_mocked_bindings(
+    download_hicp_dataset = function(id, filters = list(), date.range = NULL) {
+      expect_equal(id, "prc_hicp_cow")
+      if (!is.null(date.range) && identical(date.range[1], "2026")) {
+        return(data.table::data.table(
+          statinfo = character(),
+          geo = character(),
+          time = character(),
+          values = numeric()
+        ))
+      }
+      data.table::data.table(
+        statinfo = "COWEA20",
+        geo = c("DE", "FR"),
+        time = "2025",
+        values = c(270, 195)
+      )
+    },
+    .package = "inflationinequality"
+  )
+
+  expect_warning(
+    weights <- load_country_weights(
+      "EA20",
+      countries = c("DE", "FR"),
+      start_year = 2026,
+      end_year = 2026
+    ),
+    "carrying forward"
+  )
+
+  expect_equal(weights$year, c(2026L, 2026L))
+  expect_equal(weights$country_weight, c(270, 195))
+})
+
 # Test consistency across COICOP levels
 # weights_fr$dt_2 <- load_index_weights("FR", level = 2)
 # weights_fr$dt_3 <- load_index_weights("FR", level = 3)

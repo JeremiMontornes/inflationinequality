@@ -14,8 +14,8 @@ load_cpi(
 )
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
-country at a time is accepted.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2) or Eurostat
+country aggregate such as \code{"EA20"}.}
 
 \item{level}{COICOP level. Possible values are 1-3. For example, "01" is
 level 1 and "012" is level 2. Default value is 2.}
@@ -33,7 +33,8 @@ An object of class \code{"cpi"} (see \code{\link[=cpi]{cpi()}}).
 }
 \description{
 \code{load_cpi()} downloads monthly CPI data from Eurostat's HICP (Harmonised
-Indices of Consumer Prices) database from a specified country.
+Indices of Consumer Prices) database from a specified country or country
+aggregate such as \code{"EA20"}.
 }
 \details{
 It's possible that some datasets do not contain all available COICOP codes on

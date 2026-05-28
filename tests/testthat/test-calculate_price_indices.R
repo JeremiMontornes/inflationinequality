@@ -70,6 +70,70 @@ test_that("calculate_price_indices returns chained indices by category", {
   expect_true(all(result$dt$month %in% 1:3))
 })
 
+test_that("calculate_price_indices defaults to the package presentation base", {
+  cpi_dt <- data.table::data.table(
+    series_name = rep("CPI", 6),
+    coicop = rep(c("01", "02"), each = 3),
+    value = c(100, 102, 104, 100, 101, 103),
+    year = rep(c(2024, 2025, 2025), 2),
+    month = rep(c(12, 1, 2), 2)
+  )
+  cpi_basket <- data.table::data.table(
+    series_name = rep("CPI", 3),
+    value = c(100, 101.5, 103.5),
+    year = c(2024, 2025, 2025),
+    month = c(12, 1, 2)
+  )
+  custom_cpi <- cpi(cpi_dt, cpi_basket, country = "FR", level = 1)
+
+  index_weights_dt <- data.table::data.table(
+    coicop = c("01", "02"),
+    weight = c(500, 500),
+    year = c(2025, 2025)
+  )
+  custom_index_weights <- index_weights(
+    index_weights_dt,
+    country = "FR",
+    level = 1,
+    base_total = 1000
+  )
+
+  hbs_dt <- data.table::data.table(
+    series_name = "HBS",
+    coicop = rep(c("01", "02"), each = 2),
+    year = 2025,
+    category = rep(c("Low", "High"), 2),
+    consumption = c(70, 30, 30, 70)
+  )
+  hbs_total <- data.table::data.table(
+    series_name = "HBS",
+    coicop = c("01", "02"),
+    year = 2025,
+    total_consumption = c(100, 100)
+  )
+  custom_hbs <- hbs(
+    hbs_dt,
+    hbs_total,
+    country = "FR",
+    category = "income",
+    categories = c("Low", "High"),
+    level = 1
+  )
+
+  result <- calculate_price_indices(
+    "FR", "income",
+    level = 1,
+    start_year = 2025,
+    end_year = 2025,
+    end_month = 2,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs
+  )
+
+  expect_equal(result$base_year, 2025)
+})
+
 test_that("calculate_price_indices uses INSEE HBS for France income level 3", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 8),

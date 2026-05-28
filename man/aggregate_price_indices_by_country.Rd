@@ -32,7 +32,7 @@ if that argument is missing.}
 level 1 and "012" is level 2. Default value is 2.}
 
 \item{base_year}{year used to rebase the chained index to 100. If \code{NULL},
-the first returned year is used.}
+the package uses \code{2025} as the default presentation base.}
 
 \item{formula}{upper-level index formula. \code{"laspeyres"} uses the package's
 Eurostat-style chained Laspeyres aggregation with annual weights.
@@ -45,6 +45,7 @@ An object of class \code{"price_indices"}.
 \description{
 \code{aggregate_price_indices_by_country()} combines national \code{"price_indices"}
 objects into a country-group aggregate by taking a weighted mean of national
-price-index levels by date and household group. It is used internally when
+unchained monthly movements by date and household group, then chain-linking
+and rebasing the aggregate. It is used internally when
 \code{\link[=calculate_price_indices]{calculate_price_indices()}} is called with several countries.
 }

@@ -27,7 +27,8 @@ category_data <- list(
 #'
 #' @description
 #' `load_cpi()` downloads monthly CPI data from Eurostat's HICP (Harmonised
-#' Indices of Consumer Prices) database from a specified country.
+#' Indices of Consumer Prices) database from a specified country or country
+#' aggregate such as `"EA20"`.
 #'
 #' @inheritParams load_index_weights
 #' @param start_month month of start date.
@@ -65,9 +66,11 @@ load_cpi <- function(country, level = 2,
                      start_year = NULL, start_month = NULL,
                      end_year = NULL, end_month = NULL) {
   # Input validation
-  if (!is.character(country) || nchar(country) != 2) {
-    stop("Country must be a 2-character ISO code")
+  if (!is.character(country) || length(country) != 1 ||
+      !(nchar(country) == 2 || grepl("^EA[0-9]+$", toupper(country)))) {
+    stop("Country must be a 2-character ISO code or an euro-area aggregate such as 'EA20'")
   }
+  country <- toupper(country)
   if (!is.numeric(level) || !level %in% 1:3) {
     stop("Level must be an integer between 1 and 3")
   }
@@ -441,6 +444,8 @@ load_country_weights <- function(aggregate_geo = "EA20", countries = NULL,
     substr(dates$start_date, 1, 4),
     substr(dates$end_date, 1, 4)
   )
+  date_start_year <- as.integer(date_range[1])
+  date_end_year <- as.integer(date_range[2])
 
   statinfo <- paste0("COW", aggregate_geo)
   dt_raw <- download_hicp_dataset(
@@ -448,6 +453,13 @@ load_country_weights <- function(aggregate_geo = "EA20", countries = NULL,
     filters = list(statinfo = statinfo),
     date.range = date_range
   )
+  if (nrow(dt_raw) == 0 && !is.null(start_year) && !is.null(end_year)) {
+    dt_raw <- download_hicp_dataset(
+      id = "prc_hicp_cow",
+      filters = list(statinfo = statinfo),
+      date.range = c(NA, date_range[2])
+    )
+  }
 
   if (nrow(dt_raw) == 0) {
     stop(sprintf("No HICP country weights found for '%s'.", aggregate_geo))
@@ -462,6 +474,7 @@ load_country_weights <- function(aggregate_geo = "EA20", countries = NULL,
     )
   ]
   dt <- dt[!is.na(country) & !is.na(year) & !is.na(country_weight)]
+  dt <- dt[year <= date_end_year]
   if (!is.null(countries)) {
     dt <- dt[country %in% countries]
     missing_countries <- setdiff(countries, unique(dt$country))
@@ -474,6 +487,43 @@ load_country_weights <- function(aggregate_geo = "EA20", countries = NULL,
         )
       )
     }
+  }
+
+  if (!is.null(start_year) && !is.null(end_year)) {
+    requested_years <- seq.int(date_start_year, date_end_year)
+    grid <- data.table::CJ(country = unique(dt$country), year = requested_years)
+    dt_available <- data.table::copy(dt)
+    dt_available[, source_year := year]
+    data.table::setorder(dt_available, country, year)
+    dt <- dt_available[
+      grid,
+      on = .(country, year),
+      roll = Inf
+    ]
+    if (any(is.na(dt$source_year))) {
+      missing_weights <- unique(dt[is.na(source_year), .(country, year)])
+      stop(
+        "No prior '", aggregate_geo, "' country weights found for: ",
+        paste(sprintf("%s-%s", missing_weights$country, missing_weights$year),
+              collapse = ", ")
+      )
+    }
+    carried_forward <- unique(dt[source_year != year, .(year, source_year)])
+    if (nrow(carried_forward) > 0) {
+      warning(
+        "Requested '", aggregate_geo, "' country weights include years not ",
+        "available in prc_hicp_cow; carrying forward the latest available ",
+        "country weights for: ",
+        paste(
+          sprintf("%s (source year %s)",
+                  carried_forward$year,
+                  carried_forward$source_year),
+          collapse = ", "
+        ),
+        "."
+      )
+    }
+    dt <- dt[, .(country, year, country_weight)]
   }
 
   data.table::setorder(dt, country, year)

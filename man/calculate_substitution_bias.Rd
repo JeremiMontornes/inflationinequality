@@ -68,7 +68,7 @@ decile groups, not income-threshold bounds. This option only affects
 original national groups.}
 
 \item{base_year}{year used to rebase the chained index to 100. If \code{NULL},
-the first returned year is used.}
+the package uses \code{2025} as the default presentation base.}
 
 \item{include_total}{whether to include the official all-items HICP index as
 a \code{"Total"} category.}

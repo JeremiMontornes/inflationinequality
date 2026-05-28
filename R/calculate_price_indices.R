@@ -8,7 +8,7 @@
 #'
 #' @inheritParams calculate_inflation
 #' @param base_year year used to rebase the chained index to 100. If `NULL`,
-#'   the first returned year is used.
+#'   the package uses `2025` as the default presentation base.
 #' @param include_total whether to include the official all-items HICP index as
 #'   a `"Total"` category.
 #' @param formula upper-level index formula. `"laspeyres"` uses the package's
@@ -23,6 +23,9 @@
 #' @param custom_country_weights optional data frame with columns `country`,
 #'   `year`, and `weight` (or `country_weight`) used to aggregate national
 #'   indices when `country` contains several countries.
+#'
+#' When `country = "EA20"`, `level` is forced to `2` because euro-area
+#' household-group aggregation is currently supported at COICOP level 2.
 #'
 #' @section France level 3:
 #' For France, `level = 3` automatically uses bundled INSEE 2017 HBS level-3
@@ -89,6 +92,18 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
   }
   formula <- match.arg(formula)
   france_insee_income_groups <- match.arg(france_insee_income_groups)
+  requested_base_year <- base_year
+  base_year <- base_year %||% default_hicp_base_year()
+  calculation_start_year <- if (is.null(start_year)) {
+    NULL
+  } else {
+    min(start_year, base_year, na.rm = TRUE)
+  }
+
+  if (identical(country, "EA20") && !identical(as.numeric(level), 2)) {
+    warning("country = 'EA20' currently supports only level = 2; using level = 2.")
+    level <- 2
+  }
 
   if (!is.null(country) && length(country) == 1 &&
       grepl("^EA[0-9]+$", country) && is.null(custom_cpi)) {
@@ -114,7 +129,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       interpolated_hbs = interpolated_hbs,
       specific_hbs_year = specific_hbs_year,
       france_insee_income_groups = france_insee_income_groups,
-      base_year = base_year,
+      base_year = requested_base_year,
       include_total = include_total,
       formula = formula,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
@@ -143,7 +158,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       interpolated_hbs = interpolated_hbs,
       specific_hbs_year = specific_hbs_year,
       france_insee_income_groups = france_insee_income_groups,
-      base_year = base_year,
+      base_year = requested_base_year,
       include_total = include_total,
       formula = formula,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
@@ -159,7 +174,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     )
   }
 
-  data_start_year <- if (!is.null(start_year)) start_year - 1 else NULL
+  data_start_year <- if (!is.null(calculation_start_year)) calculation_start_year - 1 else NULL
   hicp_level <- if (recode_ecoicop2_to_ecoicop1) min(level + 1, 3) else level
 
   cpi_obj <- if (is.null(custom_cpi)) {
@@ -178,13 +193,13 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
 
   start_year_out <- if (is.null(start_year)) cpi_obj$start_year else start_year
   end_year_out <- if (is.null(end_year)) cpi_obj$end_year else end_year
-  base_year <- if (is.null(base_year)) start_year_out else base_year
+  calculation_start_year <- min(start_year_out, base_year, na.rm = TRUE)
 
   index_weights_obj <- if (is.null(custom_index_weights)) {
     load_index_weights(
       country %||% cpi_obj$country,
       level = hicp_level,
-      start_year = start_year_out,
+      start_year = calculation_start_year,
       end_year = end_year_out
     )
   } else {
@@ -239,7 +254,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     country = country %||% cpi_obj$country,
     category = category %||% custom_hbs$category,
     level = level,
-    start_year = if (is.null(custom_index_weights) && is.null(custom_hbs)) start_year_out else NULL,
+    start_year = if (is.null(custom_index_weights) && is.null(custom_hbs)) calculation_start_year else NULL,
     end_year = if (is.null(custom_index_weights) && is.null(custom_hbs)) end_year_out else NULL,
     custom_index_weights = index_weights(
       data.table::copy(index_weights_obj$dt),
@@ -404,14 +419,30 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
   countries <- toupper(countries)
   formula <- match.arg(formula)
   france_insee_income_groups <- match.arg(france_insee_income_groups)
+  output_start_year <- start_year
+  output_start_month <- start_month
+  output_end_year <- end_year
+  output_end_month <- end_month
+  base_year <- base_year %||% default_hicp_base_year()
+  calculation_start_year <- if (is.null(start_year)) {
+    NULL
+  } else {
+    min(start_year, base_year, na.rm = TRUE)
+  }
+  calculation_start_month <- if (!is.null(start_year) &&
+                                 identical(calculation_start_year, start_year)) {
+    start_month
+  } else {
+    1L
+  }
 
   national_indices <- lapply(countries, function(country_i) {
     calculate_price_indices(
       country = country_i,
       category = category,
       level = level,
-      start_year = start_year,
-      start_month = start_month,
+      start_year = calculation_start_year,
+      start_month = calculation_start_month,
       end_year = end_year,
       end_month = end_month,
       ensure_complete_cpi = ensure_complete_cpi,
@@ -428,6 +459,7 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
   names(national_indices) <- countries
 
   years <- unique(unlist(lapply(national_indices, function(x) unique(x$dt$year))))
+  base_year <- base_year %||% default_hicp_base_year()
   country_weights <- if (is.null(custom_country_weights)) {
     load_country_weights(
       aggregate_geo = aggregate_geo,
@@ -439,14 +471,22 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
     normalize_country_weights(custom_country_weights, countries = countries)
   }
 
-  aggregate_price_indices_by_country(
+  aggregate_indices <- aggregate_price_indices_by_country(
     national_indices,
     country_weights = country_weights,
     aggregate_geo = aggregate_geo,
     category = category,
     level = level,
-    base_year = base_year %||% min(years, na.rm = TRUE),
+    base_year = base_year,
     formula = formula
+  )
+
+  trim_price_indices(
+    aggregate_indices,
+    start_year = output_start_year,
+    start_month = output_start_month,
+    end_year = output_end_year,
+    end_month = output_end_month
   )
 }
 
@@ -455,7 +495,8 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
 #' @description
 #' `aggregate_price_indices_by_country()` combines national `"price_indices"`
 #' objects into a country-group aggregate by taking a weighted mean of national
-#' price-index levels by date and household group. It is used internally when
+#' unchained monthly movements by date and household group, then chain-linking
+#' and rebasing the aggregate. It is used internally when
 #' [calculate_price_indices()] is called with several countries.
 #'
 #' @param price_indices_list named list of `"price_indices"` objects.
@@ -515,13 +556,18 @@ aggregate_price_indices_by_country <- function(price_indices_list,
   aggregate_dt <- dt[
     ,
     .(
-      laspeyres = stats::weighted.mean(laspeyres, country_weight, na.rm = TRUE),
-      chain_laspeyres = stats::weighted.mean(chain_laspeyres, country_weight, na.rm = TRUE),
-      price_index = stats::weighted.mean(price_index, country_weight, na.rm = TRUE)
+      laspeyres = stats::weighted.mean(laspeyres, country_weight, na.rm = TRUE)
     ),
     by = .(category, year, month, date)
   ]
   data.table::setorder(aggregate_dt, category, date)
+  aggregate_dt[, chain_laspeyres := hicp::chain(x = laspeyres, t = date, by = 12),
+               by = category]
+  aggregate_dt[, price_index := rebase_or_first_available(
+    x = chain_laspeyres,
+    t = date,
+    t.ref = as.character(base_year %||% price_indices_list[[1]]$base_year)
+  ), by = category]
   aggregate_dt[, annual_rate := hicp::rates(price_index, t = date, type = "year"),
                by = category]
 
@@ -595,6 +641,35 @@ normalize_country_weights <- function(country_weights, countries = NULL) {
 
 `%||%` <- function(x, y) {
   if (is.null(x)) y else x
+}
+
+default_hicp_base_year <- function() {
+  2025L
+}
+
+trim_price_indices <- function(price_indices_obj,
+                               start_year = NULL, start_month = NULL,
+                               end_year = NULL, end_month = NULL) {
+  dt <- data.table::copy(price_indices_obj$dt)
+  if (!is.null(start_year)) {
+    dt <- dt[
+      year > start_year |
+        (year == start_year & month >= (start_month %||% 1L))
+    ]
+  }
+  if (!is.null(end_year)) {
+    dt <- dt[
+      year < end_year |
+        (year == end_year & month <= (end_month %||% 12L))
+    ]
+  }
+  data.table::setorder(dt, category, date)
+  price_indices_obj$dt <- dt
+  price_indices_obj$start_year <- min(dt$year)
+  price_indices_obj$start_month <- min(dt[year == min(year), month])
+  price_indices_obj$end_year <- max(dt$year)
+  price_indices_obj$end_month <- max(dt[year == max(year), month])
+  price_indices_obj
 }
 
 rebase_or_first_available <- function(x, t, t.ref) {

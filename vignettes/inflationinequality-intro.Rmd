@@ -26,8 +26,6 @@ This vignette introduces the fundamental features of the `inflationinequality` p
 
 ***
 
-## What is the purpose of this package?
-
 Inflation is the general and prolonged increase in prices. Different demographic groups have different spending patterns and, as a result, some are more affected by inflation than others. This package provides methods to calculate and visualize inflation and contributions to inflation by demographic group, using public data. Currently, the package officially supports euro area countries.
 
 ## How is inflation calculated?
@@ -128,6 +126,25 @@ InflationGap^{y,m} = Inflation^{y,m}_{quintile1} - Inflation^{y,m}_{quintile5}
 $$
 
 This formula is implemented in `calculate_inflation_gap()`.
+
+## Price indices
+
+The package can also calculate category-specific price indices with `calculate_price_indices()`. For these indices, official annual HICP item weights are combined with HBS expenditure ratios by demographic group. The resulting category weights are normalized within each country and weight year, then applied to unchained monthly HICP item movements. The category indices are chain-linked and rebased only after the monthly aggregation step, which preserves the additivity of the unchained movements and avoids averaging already chained index levels.
+
+The `base_year` parameter controls the year in which each calculated price index is set to 100. By default, `base_year = NULL` uses the package default presentation base, currently 2025. Users can set `base_year = 2015`, or any other year covered by the calculated series, when they need a different reference base.
+
+For euro-area aggregates such as `EA20`, household groups are first computed within each country, because HBS income quintiles are nationally defined. The country-level unchained category movements are then aggregated with Eurostat HICP country weights before being chain-linked and rebased at the euro-area level. If the latest country weights are not yet available for a partial year, the package carries forward the most recent available country weights and reports a warning.
+
+```{r}
+indices_ea20 <- calculate_price_indices(
+  "EA20",
+  "income",
+  start_year = 2020,
+  end_year = 2026,
+  end_month = 4
+)
+head(indices_ea20$dt)
+```
 
 ## Calculating inflation using `inflationinequality`
 

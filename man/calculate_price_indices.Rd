@@ -71,7 +71,7 @@ decile groups, not income-threshold bounds. This option only affects
 original national groups.}
 
 \item{base_year}{year used to rebase the chained index to 100. If \code{NULL},
-the first returned year is used.}
+the package uses \code{2025} as the default presentation base.}
 
 \item{include_total}{whether to include the official all-items HICP index as
 a \code{"Total"} category.}
@@ -92,6 +92,24 @@ several countries. The default \code{"EA20"} loads Eurostat HICP country weights
 \code{year}, and \code{weight} (or \code{country_weight}) used to aggregate national
 indices when \code{country} contains several countries.}
 }
+\details{
+When \code{country = "EA20"}, \code{level} is forced to \code{2} because euro-area
+household-group aggregation is currently supported at COICOP level 2.
+
+The function does not use individual HBS microdata. Category-specific weights
+are obtained by combining public semi-aggregated HBS expenditure shares with
+official HICP item weights through \code{\link[=calculate_weights]{calculate_weights()}}. For each household
+category and month, it aggregates unchained HICP item movements with a
+Laspeyres formula and then chains the monthly aggregates annually.
+
+When \code{country} contains several country codes, or when \code{country} is a
+country-group code such as \code{"EA20"}, the function first calculates national
+household-group indices and then aggregates unchained national monthly
+movements by date and group with Eurostat HICP country weights. The country
+aggregate is then chain-linked and rebased. This is the recommended workflow
+for euro-area household-group indices because HBS income quintiles are defined
+within each country.
+}
 \value{
 An object of class \code{"price_indices"} containing:
 \itemize{
@@ -109,20 +127,6 @@ An object of class \code{"price_indices"} containing:
 household category. It uses HICP item price indices and HICP item weights from
 Eurostat via the \code{hicp} package, combined with public semi-aggregated HBS data
 loaded by \code{\link[=calculate_weights]{calculate_weights()}}.
-}
-\details{
-The function does not use individual HBS microdata. Category-specific weights
-are obtained by combining public semi-aggregated HBS expenditure shares with
-official HICP item weights through \code{\link[=calculate_weights]{calculate_weights()}}. For each household
-category and month, it aggregates unchained HICP item movements with a
-Laspeyres formula and then chains the monthly aggregates annually.
-
-When \code{country} contains several country codes, or when \code{country} is a
-country-group code such as \code{"EA20"}, the function first calculates national
-household-group indices and then aggregates them by date and group with
-Eurostat HICP country weights. This is the recommended workflow for euro-area
-household-group indices because HBS income quintiles are defined within each
-country.
 }
 \section{France level 3}{
 
