@@ -546,8 +546,8 @@ resolve_hicp_weights_dataset <- function() {
 #' Downloads HBS (Household Budget Survey) data
 #'
 #' @description
-#' `load_hbs()` downloads HBS data from Eurostat's databases via DBnomics from a
-#' specified country.
+#' `load_hbs()` downloads HBS data from Eurostat's official dissemination API
+#' for a specified country.
 #'
 #' @details
 #' Eurostat only provides HBS data at level 1 and level 2 COICOP.
@@ -598,66 +598,100 @@ load_hbs <- function(country, category, level = 2,
     end_year, end_month = 12
   )
   category_input <- category
+  start_year_filter <- start_year
+  end_year_filter <- end_year
 
-    # Determine Eurostat dataset code
-    dataset_code <- hbs_dataset_data[[category]]
-    old_names <- category_data[[category]]$old_names
-    categories <- category_data[[category]]$categories
+  dataset_code <- hbs_dataset_data[[category]]
+  old_names <- category_data[[category]]$old_names
+  categories <- category_data[[category]]$categories
 
-    # Download dataset
-    dt <- rdbnomics::rdb("Eurostat", dataset_code,
-      dimensions = list(freq = "A", geo = country, unit = "PM")
-    ) %>%
-      # Select data in specified time period
-      .[data.table::between(period, dates$start_date, dates$end_date)] %>%
-      # Filter to specified COICOP level
-      select_coicop_level(level) %>%
-      # Rearrange columns
-      # We don't pick series_name since it's annual (redundant) and has no
-      # COICOP code
-      .[, {
-        if (category_input == "income") {
-          category_raw <- if ("quant_inc" %in% names(.SD)) quant_inc else if ("quantile" %in% names(.SD)) quantile else if ("incgrp" %in% names(.SD)) incgrp else rep(NA_character_, .N)
-        } else if (category_input == "age") {
-          category_raw <- if ("age" %in% names(.SD)) age else if ("age_cl" %in% names(.SD)) age_cl else rep(NA_character_, .N)
-        } else {
-          category_raw <- if ("deg_urb" %in% names(.SD)) deg_urb else if ("degree_urb" %in% names(.SD)) degree_urb else rep(NA_character_, .N)
-        }
-        .(series_name, coicop,
-          year = lubridate::year(period),
-          category = category_raw,
-          consumption = value)
-      }] %>%
-      .[, if (all(is.na(category))) {
-        stop(
-          sprintf(
-            "Could not identify the DBnomics category column for category '%s'.",
-            category_input
-          )
+  # Download dataset from the official Eurostat API.
+  dt_raw <- download_hbs_dataset(dataset_code, country, start_year, end_year)
+  dt_total_raw <- download_hbs_dataset("hbs_str_t211", country, start_year, end_year)
+
+  dt <- dt_raw %>%
+    # Select data in specified time period
+    .[data.table::between(
+      year_from_eurostat_time(time),
+      if (is.null(start_year_filter)) -Inf else start_year_filter,
+      if (is.null(end_year_filter)) Inf else end_year_filter
+    )] %>%
+    # Filter to specified COICOP level
+    select_coicop_level(level) %>%
+    # Rearrange columns
+    .[, {
+      if (category_input == "income") {
+        category_raw <- if ("quant_inc" %in% names(.SD)) quant_inc else if ("quantile" %in% names(.SD)) quantile else if ("incgrp" %in% names(.SD)) incgrp else rep(NA_character_, .N)
+      } else if (category_input == "age") {
+        category_raw <- if ("age" %in% names(.SD)) age else if ("age_cl" %in% names(.SD)) age_cl else rep(NA_character_, .N)
+      } else {
+        category_raw <- if ("deg_urb" %in% names(.SD)) deg_urb else if ("degree_urb" %in% names(.SD)) degree_urb else rep(NA_character_, .N)
+      }
+      .(
+        series_name = paste(dataset_code, country, coicop, category_raw, sep = "."),
+        coicop,
+        year = year_from_eurostat_time(time),
+        category = category_raw,
+        consumption = values
+      )
+    }] %>%
+    .[, if (all(is.na(category))) {
+      stop(
+        sprintf(
+          "Could not identify the Eurostat category column for category '%s'.",
+          category_input
         )
-      } else .SD] %>%
-      .[category %in% old_names,
-        category := categories[match(category, old_names)]] %>%
-      .[category %in% categories]
+      )
+    } else .SD] %>%
+    .[category %in% old_names,
+      category := categories[match(category, old_names)]] %>%
+    .[category %in% categories]
 
-    # Download dataset
-    dt_total <-
-      rdbnomics::rdb(
-        "Eurostat", "hbs_str_t211",
-        dimensions = list(freq = "A", geo = country, unit = "PM")
-    ) %>%
-      # Select data in specified time period
-      .[dates$start_date <= period & period <= dates$end_date] %>%
-      # Filter to specified COICOP level
-      select_coicop_level(level) %>%
-      # Rearrange columns
-      # We don't pick series_name since it's annual (redundant) and has no COICOP code
-      .[, .(coicop,
-            year = lubridate::year(period),
-            total_consumption = value
-      )]
+  dt_total <- dt_total_raw %>%
+    # Select data in specified time period
+    .[data.table::between(
+      year_from_eurostat_time(time),
+      if (is.null(start_year_filter)) -Inf else start_year_filter,
+      if (is.null(end_year_filter)) Inf else end_year_filter
+    )] %>%
+    # Filter to specified COICOP level
+    select_coicop_level(level) %>%
+    # Rearrange columns
+    .[, .(
+      coicop,
+      year = year_from_eurostat_time(time),
+      total_consumption = values
+    )]
 
-    return(hbs(dt, dt_total, country, category, categories, level))
+  if (nrow(dt) == 0 || nrow(dt_total) == 0) {
+    stop(sprintf(
+      "No Eurostat HBS data found for country '%s', category '%s' and the requested period.",
+      country,
+      category
+    ))
+  }
+
+  return(hbs(dt, dt_total, country, category, categories, level))
+}
+
+download_hbs_dataset <- function(dataset_code, country, start_year = NULL, end_year = NULL) {
+  date.range <- NULL
+  if (!is.null(start_year) || !is.null(end_year)) {
+    date.range <- c(
+      if (is.null(start_year)) "0001" else as.character(start_year),
+      if (is.null(end_year)) NA_character_ else as.character(end_year)
+    )
+  }
+
+  eurostat_json_data(
+    dataset_code,
+    filters = list(freq = "A", geo = toupper(country), unit = "PM"),
+    date.range = date.range
+  )
+}
+
+year_from_eurostat_time <- function(time) {
+  as.integer(substr(as.character(time), 1, 4))
 }
 
 # Select COICOP level

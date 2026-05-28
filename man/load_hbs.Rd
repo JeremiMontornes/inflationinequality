@@ -23,8 +23,8 @@ level 1 and "012" is level 2. Default value is 2.}
 An object of class \code{"hbs"}.
 }
 \description{
-\code{load_hbs()} downloads HBS data from Eurostat's databases via DBnomics from a
-specified country.
+\code{load_hbs()} downloads HBS data from Eurostat's official dissemination API
+for a specified country.
 }
 \details{
 Eurostat only provides HBS data at level 1 and level 2 COICOP.

@@ -14,8 +14,8 @@ load_cpi(
 )
 }
 \arguments{
-\item{country}{2-digit country code (see ISO 3166-1 alpha-2) or Eurostat
-country aggregate such as \code{"EA20"}.}
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted.}
 
 \item{level}{COICOP level. Possible values are 1-3. For example, "01" is
 level 1 and "012" is level 2. Default value is 2.}

@@ -28,15 +28,15 @@ The default workflow should be preferred whenever it is available:
 
 - HICP price indices are downloaded from Eurostat by `load_cpi()`.
 - HICP item weights are downloaded from Eurostat by `load_index_weights()`.
-- HBS expenditure shares at `level = 1` or `level = 2` are downloaded from Eurostat through DBnomics by `load_hbs()`.
+- HBS expenditure shares at `level = 1` or `level = 2` are downloaded from Eurostat by `load_hbs()`.
 
-Custom data are mainly useful when a national statistical institute provides HBS expenditure data at a finer COICOP level than Eurostat. In practice, this means using `custom_hbs` for `level = 3` calculations when national HBS data are available. For `level = 2`, the recommended workflow is still the harmonised Eurostat HBS data loaded through DBnomics.
+Custom data are mainly useful when a national statistical institute provides HBS expenditure data at a finer COICOP level than Eurostat. In practice, this means using `custom_hbs` for `level = 3` calculations when national HBS data are available. For `level = 2`, the recommended workflow is still the harmonised Eurostat HBS data loaded by `load_hbs()`.
 
 ## Recommended workflows
 
 ### Level 2: Eurostat HICP and Eurostat HBS
 
-For the harmonised `level = 2` workflow, no custom data are needed. The package downloads the HICP data from Eurostat and the HBS data from Eurostat through DBnomics.
+For the harmonised `level = 2` workflow, no custom data are needed. The package downloads the HICP data and the HBS data from Eurostat.
 
 ```{r}
 inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 2)

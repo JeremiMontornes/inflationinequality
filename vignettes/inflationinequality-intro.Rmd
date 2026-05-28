@@ -75,7 +75,7 @@ HBS waves are not available for all countries in the same years. For the HBS-CPI
 
 Eurostat reports HBS income data generally at the 3-digit COICOP level. In package terms, this is `level = 2`, because `"012"` is a 3-digit COICOP code. This is the default level used for income-quintile calculations.
 
-For some countries, national statistical sources can support a finer 4-digit COICOP calculation (`level = 3`). France is currently implemented with bundled INSEE HBS level-3 data for income groups. Belgium and Italy level-3 / 4-digit support is under development, following the type of country-specific national-source approach used in Bruegel's inflation inequality work.
+For some countries, national statistical sources can support a finer 4-digit COICOP calculation (`level = 3`). France is currently implemented with bundled INSEE HBS level-3 data for income groups. Italy level-3 / 4-digit support is under development, following the type of country-specific national-source approach used in Bruegel's inflation inequality work.
 
 For France, INSEE level-3 income data are mean expenditure amounts by decile. They are not decile income thresholds, so `D2 = Q1` would be incorrect. When a quintile alternative is needed at `level = 3`, the package averages adjacent decile means (`D1-D2`, `D3-D4`, ..., `D9-D10`) because each decile represents the same population share:
 
@@ -89,7 +89,46 @@ weights_fr_q <- calculate_weights(
 )
 ```
 
-A live Eurostat check found that `load_hbs(country, "income", level = 3)` returns the same HBS COICOP code set as `level = 2` for Germany, Spain, and Belgium. Italy is different: DBnomics currently exposes some 4-digit Eurostat HBS rows for income quintiles, but no national Italy level-3 source is integrated by default.
+A live Eurostat check found that `load_hbs(country, "income", level = 3)` returns the same HBS COICOP code set as `level = 2` for Germany and Spain. Italy is different: Eurostat currently exposes some 4-digit HBS rows for income quintiles, but no national Italy level-3 source is integrated by default.
+
+### Price-index methodology
+
+The function `calculate_price_indices()` builds monthly price-index levels by household category. It uses the same HICP-HBS weighting logic as the inflation calculations, but it works on index levels rather than directly on year-on-year inflation rates.
+
+The calculation starts from official HICP item indices and annual HICP item weights. For each COICOP item $j$, country $c$, weight year $y$, and household category $g$, the package adjusts the official HICP item weight with the HBS relative-expenditure ratio:
+
+$$
+w^y_{j,c,g} = w^y_{\text{HICP},j,c} \times
+\frac{\text{HBS}^{y'}_{j,c,g}}{\text{HBS}^{y'}_{j,c,\text{total}}}.
+$$
+
+These adjusted weights are then renormalized within each country, household category, and weight year. This means that Q1, Q2, ..., Q5 each receive their own complete basket whose weights sum to the HICP weight total used by the package.
+
+The key methodological point is that the package does not average already chained and rebased index levels. It first converts item indices into unchained monthly movements with `hicp::unchain()`. For each month, the category-specific monthly movement is then calculated as a weighted Laspeyres average of those item movements:
+
+$$
+L^{y,m}_{c,g} = \sum_j \tilde{w}^y_{j,c,g}
+\frac{p^{y,m}_{j,c}}{p^{y,m-1}_{j,c}},
+$$
+
+where $\tilde{w}^y_{j,c,g}$ denotes the normalized category-specific item weight. The resulting monthly movements are chain-linked with `hicp::chain()`. Only after this aggregation step are the indices rebased, by default to `base_year = 2025`, so that the published output is expressed as `2025 = 100`.
+
+This order matters. Aggregating unchained movements preserves the additivity of the monthly Laspeyres calculation and avoids distortions that would arise from averaging index levels that have already been chained and rebased separately.
+
+For euro-area aggregates such as `EA20`, the package first computes household-category indices within each country. This is important because income quintiles are nationally defined in the HBS data. The country-level unchained movements are then aggregated with Eurostat HICP country weights, before the euro-area series is chain-linked and rebased. For the `"Total"` category, the validation against official HICP uses the country-weighted aggregate of each country's all-items HICP-style total; it is not the average of Q1-to-Q5 indices.
+
+If the latest Eurostat country weights are not yet available for a partial year, the package carries forward the most recent available country weights and reports a warning. Users can still change the presentation base with `base_year`, for example `base_year = 2015`, but changing the base year only rescales the index levels; it does not change the underlying monthly movements or inflation rates.
+
+```{r}
+indices_ea20 <- calculate_price_indices(
+  "EA20",
+  "income",
+  start_year = 2020,
+  end_year = 2026,
+  end_month = 4
+)
+head(indices_ea20$dt)
+```
 
 ### Contributions to inflation formula
 
@@ -126,25 +165,6 @@ InflationGap^{y,m} = Inflation^{y,m}_{quintile1} - Inflation^{y,m}_{quintile5}
 $$
 
 This formula is implemented in `calculate_inflation_gap()`.
-
-## Price indices
-
-The package can also calculate category-specific price indices with `calculate_price_indices()`. For these indices, official annual HICP item weights are combined with HBS expenditure ratios by demographic group. The resulting category weights are normalized within each country and weight year, then applied to unchained monthly HICP item movements. The category indices are chain-linked and rebased only after the monthly aggregation step, which preserves the additivity of the unchained movements and avoids averaging already chained index levels.
-
-The `base_year` parameter controls the year in which each calculated price index is set to 100. By default, `base_year = NULL` uses the package default presentation base, currently 2025. Users can set `base_year = 2015`, or any other year covered by the calculated series, when they need a different reference base.
-
-For euro-area aggregates such as `EA20`, household groups are first computed within each country, because HBS income quintiles are nationally defined. The country-level unchained category movements are then aggregated with Eurostat HICP country weights before being chain-linked and rebased at the euro-area level. If the latest country weights are not yet available for a partial year, the package carries forward the most recent available country weights and reports a warning.
-
-```{r}
-indices_ea20 <- calculate_price_indices(
-  "EA20",
-  "income",
-  start_year = 2020,
-  end_year = 2026,
-  end_month = 4
-)
-head(indices_ea20$dt)
-```
 
 ## Calculating inflation using `inflationinequality`
 

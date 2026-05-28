@@ -52,23 +52,412 @@ The introduction vignette walks through the package methodology, core functions,
 
 The table below summarises the main methodological choices currently made by the package and identifies which choices users can override. It is intended as a living reference for handling country-specific cases.
 
-| topic | package_default | user_parameter | user_can_change | notes |
-|:---|:---|:---|:---|:---|
-| Default population groups | income quintiles for category = 'income'; age groups for category = 'age'; rural/town/city for category = 'urban'. | category argument, or custom_hbs with a custom ordered categories vector. | Yes | The ordered categories vector controls which groups are treated as bottom and top. |
-| COICOP level | COICOP 3 digits by default (package level = 2); COICOP 2 to 4 digits are accepted by load and calculation functions. | level argument. | Yes | Eurostat HBS income data are generally available at 3-digit COICOP (package level = 2), which is the package default. |
-| HBS-to-CPI timing | Each CPI weight year is matched to the most recent available HBS wave at or before that year; earliest available HBS is used if no prior wave exists. | specific_hbs_year, interpolated_hbs, or custom_hbs/custom_index_weights. | Yes | This is one of the main places where country-specific metadata can improve defaults. |
-| HBS interpolation | No interpolation by default. | interpolated_hbs = TRUE. | Yes | Useful when HBS waves are sparse and users want smoother weights over time. |
-| Specific HBS wave | No single HBS wave is forced by default. | specific_hbs_year. | Yes | Useful for sensitivity analysis or reproducing a fixed-wave methodology. |
-| Incomplete CPI coverage | Missing CPI series are not synthesised by default. | ensure_complete_cpi = TRUE. | Yes | Synthesised CPI data use parent-category price movements. |
-| Inflation aggregation | Inflation is computed from COICOP contributions using annual HICP weights adjusted by HBS relative expenditure shares. | custom_cpi, custom_index_weights, custom_hbs, level, and date arguments. | Yes |  |
+<small>
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+topic
+</th>
+
+<th style="text-align:left;">
+
+package_default
+</th>
+
+<th style="text-align:left;">
+
+user_parameter
+</th>
+
+<th style="text-align:left;">
+
+user_can_change
+</th>
+
+<th style="text-align:left;">
+
+notes
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Default population groups
+</td>
+
+<td style="text-align:left;">
+
+income quintiles for category = 'income'; age groups for category = 'age'; rural/town/city for category = 'urban'.
+</td>
+
+<td style="text-align:left;">
+
+category argument, or custom_hbs with a custom ordered categories vector.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+The ordered categories vector controls which groups are treated as bottom and top.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+COICOP level
+</td>
+
+<td style="text-align:left;">
+
+COICOP 3 digits by default (package level = 2); COICOP 2 to 4 digits are accepted by load and calculation functions.
+</td>
+
+<td style="text-align:left;">
+
+level argument.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+Eurostat HBS income data are generally available at 3-digit COICOP (package level = 2), which is the package default.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+HBS-to-CPI timing
+</td>
+
+<td style="text-align:left;">
+
+HBS waves are not available for all countries in the same years. For each CPI weight year, the package uses the closest available HBS wave at or before that year; if no earlier wave exists, it uses the earliest available HBS wave.
+</td>
+
+<td style="text-align:left;">
+
+specific_hbs_year, interpolated_hbs, or custom_hbs/custom_index_weights.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+This temporal merge is country-specific because Eurostat HBS waves differ across countries. Users can force a wave with specific_hbs_year, interpolate waves with interpolated_hbs = TRUE, or provide custom_hbs/custom_index_weights.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+HBS interpolation
+</td>
+
+<td style="text-align:left;">
+
+No interpolation by default.
+</td>
+
+<td style="text-align:left;">
+
+interpolated_hbs = TRUE.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+Useful when HBS waves are sparse and users want smoother weights over time.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Specific HBS wave
+</td>
+
+<td style="text-align:left;">
+
+No single HBS wave is forced by default.
+</td>
+
+<td style="text-align:left;">
+
+specific_hbs_year.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+Useful for sensitivity analysis or reproducing a fixed-wave methodology.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Incomplete CPI coverage
+</td>
+
+<td style="text-align:left;">
+
+Missing CPI series are not synthesised by default.
+</td>
+
+<td style="text-align:left;">
+
+ensure_complete_cpi = TRUE.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+Synthesised CPI data use parent-category price movements.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Inflation aggregation
+</td>
+
+<td style="text-align:left;">
+
+Inflation is computed from COICOP contributions using annual HICP weights adjusted by HBS relative expenditure shares.
+</td>
+
+<td style="text-align:left;">
+
+custom_cpi, custom_index_weights, custom_hbs, level, and date arguments.
+</td>
+
+<td style="text-align:left;">
+
+Yes
+</td>
+
+<td style="text-align:left;">
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</small>
 
 ### Country-specific COICOP data caveats
 
-| country | coicop_case | population_group_caveat | housing_caveat | package_status |
-|:---|:---|:---|:---|:---|
-| France | France income level = 3 uses bundled INSEE Budget de famille 2017 data at 4-digit COICOP. Eurostat HBS income data remain the default for harmonised level = 2 comparisons. | INSEE published income-decile IPC series are by 'niveau de vie': household disposable income divided by consumption units. This is not strictly the same grouping concept as the Eurostat HBS income-quintile tables used by load_hbs(). | Large housing-weight gaps can partly reflect the different income grouping concepts. In HICP calculations, CP042 imputed rents are not directly used because they are absent from the HICP basket; observed differences mainly affect CP041 actual rents and related housing items. | Implemented for level = 3 income calculations with france_insee_income_groups = 'decile' or 'quintile'. |
-| Belgium | No Belgium-specific override is implemented yet; Eurostat harmonised HBS income categories are used if available. Belgium is the strongest candidate for a country-specific quartile rule. | Bruegel treats Belgium with bottom/top quartiles rather than quintiles. The package has no automatic Belgium quartile override yet. |  | Under development; use custom_hbs for national quartile workflows. |
-| Italy | If the Eurostat 2010 income HBS wave is available, Italy uses that wave for all CPI weight years; other Eurostat HBS waves are not used by default. | Bruegel warns that I.Stat data used in earlier versions identify expenditure quintiles, not income quintiles; Italy was therefore removed from their final figures. |  | Partly implemented through the fixed 2010 Eurostat income HBS default; national-source level = 3 support is not integrated. |
+Country coverage follows Eurostat HBS metadata (<https://ec.europa.eu/eurostat/cache/metadata/en/hbs_esms.htm>) and the harmonised Eurostat category tables returned by `load_hbs()`. Eurostat HBS income quintiles are household groups ranked by income; the HBS values are consumption expenditure or expenditure shares for households in each quintile, not average income. Within the euro area, the main countries present in 2015 but not listed in the 2020 HBS wave are Ireland and Portugal. Cyprus, France, and Malta 2020 HBS data are converted from their 2015 HBS data to 2020 reference-year prices using the 2020 HICP coefficient.
+
+<small>
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+country
+</th>
+
+<th style="text-align:left;">
+
+coicop_case
+</th>
+
+<th style="text-align:left;">
+
+population_group_caveat
+</th>
+
+<th style="text-align:left;">
+
+housing_caveat
+</th>
+
+<th style="text-align:left;">
+
+package_status
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+France
+</td>
+
+<td style="text-align:left;">
+
+France level = 3 uses bundled INSEE Budget de famille 2017 data at 4-digit COICOP when a national HBS file is bundled for the requested household category. Income, age, and residence-area national HBS are integrated. Eurostat HBS remains the default for harmonised level = 1 and level = 2 comparisons.
+</td>
+
+<td style="text-align:left;">
+
+Population breakdowns can change when switching from harmonised Eurostat HBS to national INSEE/Budget de famille data. Eurostat level = 2 uses harmonised groups such as income quintiles, broad age classes, or degree of urbanisation; national France level = 3 may use INSEE-specific groups such as standard-of-living deciles or national residence/age classes. These concepts should not be compared as if they were identical.
+</td>
+
+<td style="text-align:left;">
+
+Large housing-weight gaps can partly reflect the different income grouping concepts. In HICP calculations, CP042 imputed rents are not directly used because they are absent from the HICP basket; observed differences mainly affect CP041 actual rents and related housing items.
+</td>
+
+<td style="text-align:left;">
+
+Implemented for level = 3 income calculations with france_insee_income_groups = decile or quintile, and for level = 3 age and residence-area calculations using bundled national HBS.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Italy
+</td>
+
+<td style="text-align:left;">
+
+Eurostat HBS metadata reports Italy coverage through the 2020 wave. load_hbs() uses the harmonised Eurostat category tables returned by the official API for the requested household group and period.
+</td>
+
+<td style="text-align:left;">
+
+Bruegel warns that I.Stat data used in earlier versions identify expenditure quintiles, not income quintiles; Italy was therefore removed from their final figures.
+</td>
+
+<td style="text-align:left;">
+
+</td>
+
+<td style="text-align:left;">
+
+Italy follows the standard Eurostat HBS timing rule. If the 2010 harmonised income wave is returned by load_hbs(), calculate_weights() can use it through the existing Italy-specific default; otherwise the closest available Eurostat HBS wave is used.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+HBS 2020 coverage
+</td>
+
+<td style="text-align:left;">
+
+According to Eurostat HBS metadata, 2020 data are disseminated for 27 participating countries. Within the euro area, the main countries present in 2015 but not listed in the 2020 HBS wave are Ireland and Portugal. Cyprus, France and Malta 2020 HBS data are produced by converting their 2015 HBS data to 2020 reference-year prices using the 2020 HICP coefficient.
+</td>
+
+<td style="text-align:left;">
+
+Eurostat HBS income quintiles are household groups ranked by income; HBS table values are consumption expenditure or expenditure shares for households in each quintile, not average income. For missing 2020 waves, calculations use the standard timing rule: the closest available prior HBS wave, unless users provide custom_hbs.
+</td>
+
+<td style="text-align:left;">
+
+</td>
+
+<td style="text-align:left;">
+
+Metadata note; no country-specific override is implemented from this row.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Euro area
+</td>
+
+<td style="text-align:left;">
+
+Euro-area aggregates such as EA20 are built from country-level HICP-HBS calculations. The country composition is variable and follows the aggregate requested by the user and the countries for which the required HICP, HICP-weight and HBS data are available.
+</td>
+
+<td style="text-align:left;">
+
+Household groups such as income quintiles are defined within each country. The euro-area result is therefore a country-weighted average of available country-level group indices, not a pooled euro-area household distribution.
+</td>
+
+<td style="text-align:left;">
+
+</td>
+
+<td style="text-align:left;">
+
+Implemented through country-level calculations aggregated with Eurostat HICP country weights. Countries without the required input data for the requested period/category are excluded from the weighted average.
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</small>
 
 ## COICOP bridge HTML tables
 

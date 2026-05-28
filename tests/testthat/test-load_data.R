@@ -370,6 +370,52 @@ mem_load_hbs <- memoise::memoise(load_hbs)
 # Constant values
 hbs_columns <- c("series_name", "coicop", "year", "category", "consumption")
 
+test_that("load_hbs uses Eurostat JSON API data", {
+  calls <- character()
+  local_mocked_bindings(
+    eurostat_json_data = function(id, filters = list(), date.range = NULL) {
+      calls <<- c(calls, id)
+      expect_equal(filters$freq, "A")
+      expect_equal(filters$geo, "FR")
+      expect_equal(filters$unit, "PM")
+      expect_equal(date.range, c("2015", "2020"))
+
+      if (id == "hbs_str_t223") {
+        return(data.table::data.table(
+          freq = "A",
+          quant_inc = rep(c("QU1", "QU2", "QU3", "QU4", "QU5"), each = 2),
+          coicop = rep(c("CP01", "CP011"), times = 5),
+          unit = "PM",
+          geo = "FR",
+          time = "2015",
+          values = seq(10, 100, by = 10)
+        ))
+      }
+
+      if (id == "hbs_str_t211") {
+        return(data.table::data.table(
+          freq = "A",
+          coicop = c("CP01", "CP011"),
+          unit = "PM",
+          geo = "FR",
+          time = "2015",
+          values = c(100, 120)
+        ))
+      }
+
+      stop("Unexpected dataset: ", id)
+    },
+    .package = "inflationinequality"
+  )
+
+  hbs_income_fr <- load_hbs("FR", "income", start_year = 2015, end_year = 2020)
+  expect_equal(calls, c("hbs_str_t223", "hbs_str_t211"))
+  expect_equal(colnames(hbs_income_fr$dt), hbs_columns)
+  expect_equal(unique(hbs_income_fr$dt$category), hbs_income_fr$categories)
+  expect_equal(sort(unique(hbs_income_fr$dt$coicop)), c("01", "011"))
+  expect_equal(unique(hbs_income_fr$dt$year), 2015L)
+})
+
 test_that("HBS data formatted as data.table", {
   skip_if_no_internet()
   local_mocked_bindings(load_hbs = mem_load_hbs, .package = "inflationinequality")
