@@ -23,53 +23,6 @@ The main workflow is:
 
 `load_*()` -\> `calculate_weights()` -\> `calculate_price_indices()` / `calculate_inflation()` -\> `calculate_contributions()` -\> plots / validation.
 
-## R workflow structure
-
-``` text
-R/load_data.R                         # Download HICP prices, HICP weights, and Eurostat HBS data
-├── load_cpi()                        # Monthly HICP price indices
-├── load_index_weights()              # Annual HICP item weights
-└── load_hbs()                        # HBS expenditure shares by household category
-
-R/calculate_weights.R                 # Match HICP weights with HBS shares
-└── calculate_weights()               # Category-specific COICOP weights
-
-R/calculate_contributions.R           # Compute COICOP contributions to inflation
-└── calculate_contributions()
-
-R/calculate_inflation.R               # Aggregate contributions into inflation indicators
-├── calculate_inflation()
-├── calculate_total_inflation()
-└── calculate_inflation_gap()
-
-R/calculate_price_indices.R           # Build chained HICP price indices in level
-└── calculate_price_indices()         # Uses INSEE HBS level 3 automatically for France income level 3
-
-R/calculate_inflation_burden.R        # Inflation cost burden by household group
-├── load_consumption_to_income()
-├── load_consumption_expenditure()
-└── calculate_inflation_burden()
-
-R/compare_to_official_hicp.R          # Validation against published all-items HICP
-└── compare_to_official_hicp()
-
-R/plot_inflation.R                    # Standard plots
-├── plot_time_series()
-├── plot_grouped_bar()
-├── plot_weight_shares()
-├── plot_group_price_indices()
-├── plot_inflation_burden()
-├── plot_contribution_gap()
-└── plot_inflation_gap()
-
-R/simulate.R                          # Counterfactual CPI scenarios
-└── simulate_cpi()
-
-R/coicop_bridge.R                     # COICOP matching and bridge tables
-├── build_coicop_bridge()
-└── write_coicop_bridge_html()
-```
-
 COICOP bridge HTML tables:
 
 - [France HICP-HBS bridge, income level 2](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level2_2010_2026.html)
