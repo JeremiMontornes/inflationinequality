@@ -13,12 +13,28 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(zip_out_dir, recursive = TRUE, showWarnings = FALSE)
 
 years <- c(2015L, 2020L)
-source_zips <- file.path(istat_dir, sprintf("HBS_%s_IT.zip", years))
-names(source_zips) <- as.character(years)
 
-for (z in source_zips) {
-  file.copy(z, file.path(zip_out_dir, basename(z)), overwrite = TRUE)
+ensure_repo_zip <- function(file_name) {
+  repo_zip <- file.path(zip_out_dir, file_name)
+  if (file.exists(repo_zip)) {
+    return(repo_zip)
+  }
+  source_zip <- file.path(istat_dir, file_name)
+  if (!file.exists(source_zip)) {
+    stop("Missing Istat ZIP: ", source_zip, call. = FALSE)
+  }
+  file.copy(source_zip, repo_zip, overwrite = TRUE)
+  repo_zip
 }
+
+source_zips <- file.path(zip_out_dir, sprintf("HBS_%s_IT.zip", years))
+names(source_zips) <- as.character(years)
+source_zips[] <- vapply(basename(source_zips), ensure_repo_zip, character(1))
+invisible(vapply(
+  sprintf("HBS_%s_RICOSTRUITICOICOP2018_IT.zip", years),
+  ensure_repo_zip,
+  character(1)
+))
 
 zip_member <- function(zip_file, pattern = "MICRODATI/.*\\.txt$") {
   members <- utils::unzip(zip_file, list = TRUE)
@@ -40,14 +56,15 @@ fread_zip_member <- function(zip_file, member, select = NULL, ...) {
 
 as_num <- function(x) suppressWarnings(as.numeric(x))
 
-age_group <- function(age) {
-  out <- fifelse(age < 30, "Less than 30 years",
-    fifelse(age < 45, "From 30 to 44 years",
-      fifelse(age < 60, "From 45 to 59 years", "60 years or over")
+age_group <- function(age_code) {
+  code <- as.integer(as.character(age_code))
+  fifelse(code == 1L, "Under 18 years",
+    fifelse(code == 2L, "18--34 years",
+      fifelse(code == 3L, "35--64 years",
+        fifelse(code == 4L, "65 years or over", NA_character_)
+      )
     )
   )
-  out[!is.finite(age)] <- NA_character_
-  out
 }
 
 read_age_year <- function(year, zip_file) {
@@ -73,8 +90,21 @@ read_age_year <- function(year, zip_file) {
   dt <- fread_zip_member(zip_file, member, select = select)
   dt[, weight := as_num(w_anno)]
   dt[!is.finite(weight) | weight <= 0, weight := 1]
-  dt[, category := age_group(as_num(c_c_etacalc_1))]
+  dt[, category := age_group(c_c_etacalc_1)]
   dt <- dt[!is.na(category)]
+  dt[, household_consumption := rowSums(.SD, na.rm = TRUE), .SDcols = unname(expense_map)]
+  dt[, household_consumption_w := household_consumption * weight]
+
+  group_total_shares <- dt[, .(
+    share_total = 100 * sum(household_consumption_w, na.rm = TRUE) /
+      sum(dt$household_consumption_w, na.rm = TRUE)
+  ), by = category]
+  group_total_shares[, `:=`(
+    Dimension = "Age",
+    Group = category,
+    year = as.numeric(year)
+  )]
+  group_total_shares <- group_total_shares[, .(Dimension, Group, year, share_total)]
 
   long <- melt(
     dt,
@@ -108,7 +138,7 @@ read_age_year <- function(year, zip_file) {
   )]
   dt_total <- dt_total[, .(series_name, coicop, year, total_consumption)]
 
-  list(dt = dt_hbs, dt_total = dt_total)
+  list(dt = dt_hbs, dt_total = dt_total, group_total_shares = group_total_shares)
 }
 
 age_parts <- lapply(names(source_zips), function(year) {
@@ -116,10 +146,10 @@ age_parts <- lapply(names(source_zips), function(year) {
 })
 
 age_categories <- c(
-  "Less than 30 years",
-  "From 30 to 44 years",
-  "From 45 to 59 years",
-  "60 years or over"
+  "Under 18 years",
+  "18--34 years",
+  "35--64 years",
+  "65 years or over"
 )
 
 hbs_age <- hbs(
@@ -170,7 +200,38 @@ fwrite(
   file.path(out_dir, "IT_age_hbs_eurostat_2015_2020_level2_diagnostics.csv")
 )
 
+income_anchor <- data.table(
+  Dimension = "Income",
+  Group = c(
+    "First quintile", "Second quintile", "Third quintile",
+    "Fourth quintile", "Fifth quintile"
+  ),
+  share_total = c(14.6, 17.8, 20.0, 22.8, 24.7)
+)[
+  ,
+  .(year = c(2005, 2015, 2020), share_total),
+  by = .(Dimension, Group)
+]
+urban_blank <- data.table(
+  Dimension = "Residence area",
+  Group = rep(c("Rural areas", "Towns and suburbs", "Cities"), each = 3L),
+  year = rep(c(2005, 2015, 2020), times = 3L),
+  share_total = as.numeric(NA)
+)
+group_shares <- rbindlist(
+  list(
+    income_anchor,
+    rbindlist(lapply(age_parts, `[[`, "group_total_shares"), use.names = TRUE),
+    urban_blank
+  ),
+  use.names = TRUE
+)
+fwrite(
+  group_shares,
+  file.path(out_dir, "IT_hbs_all_products_group_shares_2005_2015_2020.csv")
+)
+
 message("Wrote: ", normalizePath(age_path, winslash = "/", mustWork = FALSE))
 message("Wrote: ", normalizePath(age_level2_path, winslash = "/", mustWork = FALSE))
 message("Wrote: ", normalizePath(urban_path, winslash = "/", mustWork = FALSE))
-message("Copied original Istat ZIPs to: ", normalizePath(zip_out_dir, winslash = "/", mustWork = FALSE))
+message("Istat ZIPs available in: ", normalizePath(zip_out_dir, winslash = "/", mustWork = FALSE))

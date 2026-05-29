@@ -131,7 +131,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     if (is.null(country) || is.null(category)) {
       stop("Either both 'country' and 'category', or 'custom_hbs' must be provided.")
     }
-    if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
+    italy_hbs <- load_italy_level2_hbs_if_available(country, category, level)
+    if (!is.null(italy_hbs)) {
+      italy_hbs
+    } else if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
       load_france_insee_hbs_level3(category = category, income_groups = france_insee_income_groups)
     } else {
       load_hbs(
@@ -276,6 +279,36 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                         start_year = min(dt_weighted_consumption$weight_year),
                         end_year = max(dt_weighted_consumption$weight_year)),
                    class = "weights"))
+}
+
+load_italy_level2_hbs_if_available <- function(country, category, level) {
+  if (!identical(toupper(country), "IT") ||
+      !category %in% c("income", "age") ||
+      !identical(as.integer(level), 2L)) {
+    return(NULL)
+  }
+
+  file_name <- if (identical(category, "income")) {
+    "IT_income_hbs_latent_probabilities_2015_2020_level2.rds"
+  } else {
+    "IT_age_hbs_eurostat_2015_2020_level2.rds"
+  }
+  subdir <- if (identical(category, "income")) {
+    "italy_latent_income_hbs"
+  } else {
+    "italy_hbs"
+  }
+
+  candidates <- c(
+    system.file("extdata", file_name, package = "inflationinequality"),
+    file.path("inst", "extdata", file_name),
+    file.path("data-raw", subdir, file_name)
+  )
+  candidates <- candidates[nzchar(candidates) & file.exists(candidates)]
+  if (length(candidates) == 0L) {
+    return(NULL)
+  }
+  readRDS(candidates[[1L]])
 }
 
 merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
