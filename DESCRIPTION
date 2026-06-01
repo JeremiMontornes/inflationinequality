@@ -1,6 +1,6 @@
 Package: inflationinequality
 Title: Calculate Inflation Inequality Indicators
-Version: 0.0.2
+Version: 0.1.0
 Authors@R: c(
     person(given = "Jeremi",
            family = "Montornes",
