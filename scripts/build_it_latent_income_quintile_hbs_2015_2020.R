@@ -41,8 +41,8 @@ cfg <- list(
   ridge = 0.01,
   seed = 20260528L,
   zips = c(
-    "2015" = ensure_repo_zip("HBS_2015_RICOSTRUITICOICOP2018_IT.zip"),
-    "2020" = ensure_repo_zip("HBS_2020_RICOSTRUITICOICOP2018_IT.zip")
+    "2015" = ensure_repo_zip("HBS_2015_IT.zip"),
+    "2020" = ensure_repo_zip("HBS_2020_IT.zip")
   )
 )
 
@@ -103,7 +103,11 @@ quintile_probabilities <- function(score, w, tau = 85) {
 }
 
 division_cols <- function(names_vec) {
-  cols <- c(sprintf("d_%02d_rico", 1:12), "d_04_str_rico")
+  cols <- c(
+    sprintf("d_%02d_rico", 1:12), "d_04_str_rico",
+    "d_01", "d_02", "d_03", "d_04_str", "d_05", "d_06_aggr_1",
+    "d_07", "d_08", "d_09", "d_10", "d_11", "d_12"
+  )
   intersect(cols, names_vec)
 }
 
@@ -137,7 +141,7 @@ build_household_features <- function(dt) {
   internet <- as_num(coalesce_col(dt, c("Internet"), 0))
   econ_resources <- as_num(coalesce_col(dt, c("Risecon"), NA))
   econ_situation <- as_num(coalesce_col(dt, c("Sitecon"), NA))
-  poverty <- as_num(coalesce_col(dt, c("povassc_rico", "poveri_rico"), NA))
+  poverty <- as_num(coalesce_col(dt, c("povassc_rico", "poveri_rico", "povassc", "poveri"), NA))
   x <- data.table(
     consumption_level = standardize(log1p(total_consumption / ncomp)),
     age_ref = standardize(age_ref),
@@ -167,15 +171,16 @@ read_istat_hbs_year <- function(year, zip_file) {
   nms <- available_names(zip_file)
   div_cols <- division_cols(nms)
   needed <- unique(c(
-    "w_anno_rico", "c_Ncmp_altro", "c_c_etacalc_1", "c_titstu_1",
+    "w_anno_rico", "w_anno", "c_Ncmp_altro", "c_c_etacalc_1", "c_titstu_1",
     "c_cond_1", "c_pospro_1", "c_profess1dig_1", "Titoccup",
     "Propabit", "tipabitaz_new", "c_Superf", "c_Stanze", "Possauto",
     "Numauto_topcod", "Posspc", "Numpc_topcod", "Internet", "Risecon",
-    "Sitecon", "povassc_rico", "poveri_rico", "rgn", "rip", div_cols
+    "Sitecon", "povassc_rico", "poveri_rico", "povassc", "poveri",
+    "rgn", "rip", div_cols
   ))
   needed <- intersect(needed, nms)
   dt <- fread_zip_member(zip_file, zip_member(zip_file), select = needed)
-  dt[, weight := as_num(coalesce_col(.SD, c("w_anno_rico"), 1))]
+  dt[, weight := as_num(coalesce_col(.SD, c("w_anno_rico", "w_anno"), 1))]
   dt[!is.finite(weight) | weight <= 0, weight := 1]
   attr(dt, "division_cols") <- div_cols
   dt[, source_year := year]
@@ -195,9 +200,12 @@ target_2005_division_shares <- function() {
 prepare_expenditure_matrix <- function(dt) {
   div_cols <- attr(dt, "division_cols")
   div_cols <- div_cols[div_cols %in% names(dt)]
-  div_cols <- div_cols[grepl("^d_[0-9]{2}(_str)?_rico$", div_cols)]
+  div_cols <- div_cols[
+    grepl("^d_[0-9]{2}(_str)?_rico$", div_cols) |
+      grepl("^d_[0-9]{2}(_str|_aggr_1)?$", div_cols)
+  ]
   div_cols <- div_cols[!grepl("^d_13", div_cols)]
-  div_codes <- substr(sub("^d_", "", div_cols), 1L, 2L)
+  div_codes <- substr(sub("^d_", "", sub("_rico$", "", div_cols)), 1L, 2L)
   keep <- !duplicated(div_codes)
   div_cols <- div_cols[keep]
   div_codes <- div_codes[keep]

@@ -30,11 +30,6 @@ ensure_repo_zip <- function(file_name) {
 source_zips <- file.path(zip_out_dir, sprintf("HBS_%s_IT.zip", years))
 names(source_zips) <- as.character(years)
 source_zips[] <- vapply(basename(source_zips), ensure_repo_zip, character(1))
-invisible(vapply(
-  sprintf("HBS_%s_RICOSTRUITICOICOP2018_IT.zip", years),
-  ensure_repo_zip,
-  character(1)
-))
 
 zip_member <- function(zip_file, pattern = "MICRODATI/.*\\.txt$") {
   members <- utils::unzip(zip_file, list = TRUE)
