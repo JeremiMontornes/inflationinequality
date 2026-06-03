@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, eval = TRUE}
 library(inflationinequality)
-options(rdbnomics.use_readLines = TRUE)
 ```
 
 This vignette demonstrates the more advanced features in `inflationinequality`.

@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, eval = TRUE}
 library(inflationinequality)
-options(rdbnomics.use_readLines = TRUE)
 ```
 
 The package also provides a method to simulate counterfactual indices by synthesizing CPI price data according to specific parameters.

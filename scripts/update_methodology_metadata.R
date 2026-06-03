@@ -60,9 +60,11 @@ country_coicop_special_cases <- data.frame(
       "candidate for a country-specific quartile rule."
     ),
     paste(
-      "If the Eurostat 2010 income HBS wave is available, Italy uses that",
-      "wave for all CPI weight years; other Eurostat HBS waves are not used",
-      "by default."
+      "Eurostat disseminates Italy HBS all-households consumption totals for",
+      "recent waves, but not the income-quintile consumption ventilation needed",
+      "for the package calculations. The Italy income-quintile baskets are",
+      "therefore reconstructed from Istat HBS microdata using the package",
+      "data-construction scripts."
     )
   ),
   population_group_caveat = c(
@@ -77,9 +79,9 @@ country_coicop_special_cases <- data.frame(
       "The package has no automatic Belgium quartile override yet."
     ),
     paste(
-      "Bruegel warns that I.Stat data used in earlier versions identify",
-      "expenditure quintiles, not income quintiles; Italy was therefore",
-      "removed from their final figures."
+      "The reconstructed Italy income groups are estimated ventilations, not",
+      "directly disseminated Eurostat income-quintile HBS tables. Metadata and",
+      "diagnostics are provided by the Italy HBS object construction workflow."
     )
   ),
   housing_caveat = c(
@@ -115,8 +117,10 @@ country_coicop_special_cases <- data.frame(
     ),
     "Under development; use custom_hbs for national quartile workflows.",
     paste(
-      "Partly implemented through the fixed 2010 Eurostat income HBS default;",
-      "national-source level = 3 support is not integrated."
+      "Italy support uses reconstructed income-quintile HBS objects built from",
+      "Istat microdata and Eurostat all-households totals; users should treat",
+      "these as estimated inputs and can provide custom_hbs for alternative",
+      "Italy workflows."
     )
   ),
   stringsAsFactors = FALSE

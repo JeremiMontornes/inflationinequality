@@ -300,7 +300,7 @@ Yes
 
 ### Country-specific COICOP data caveats
 
-Country coverage follows Eurostat HBS metadata (<https://ec.europa.eu/eurostat/cache/metadata/en/hbs_esms.htm>) and the harmonised Eurostat category tables returned by `load_hbs()`. Eurostat HBS income quintiles are household groups ranked by income; the HBS values are consumption expenditure or expenditure shares for households in each quintile, not average income. Within the euro area, the main countries present in 2015 but not listed in the 2020 HBS wave are Ireland and Portugal. Cyprus, France, and Malta 2020 HBS data are converted from their 2015 HBS data to 2020 reference-year prices using the 2020 HICP coefficient.
+Country coverage follows the Eurostat Statistics Explained article on [Household budget survey - statistics on consumption expenditure](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Household_budget_survey_-_statistics_on_consumption_expenditure&stable=1) and the harmonised Eurostat category tables returned by `load_hbs()`. Eurostat HBS income quintiles are household groups ranked by income; the HBS values are consumption expenditure or expenditure shares for households in each quintile, not average income. Ireland and Portugal responded to the 2020 HBS wave, with fieldwork in 2022-2023. Cyprus, France, and Malta 2020 HBS statistics are compiled from 2015-2017 data adjusted to the 2020 reference-year price level.
 
 <small>
 <table>
@@ -378,40 +378,12 @@ Italy
 
 <td style="text-align:left;">
 
-Eurostat HBS metadata reports Italy coverage through the 2020 wave. load_hbs() uses the harmonised Eurostat category tables returned by the official API for the requested household group and period.
+Eurostat disseminates Italy HBS all-households consumption totals for recent waves, but not the income-quintile consumption ventilation needed for the package calculations. The Italy income-quintile baskets are therefore reconstructed from Istat HBS microdata using the package data-construction scripts.
 </td>
 
 <td style="text-align:left;">
 
-Bruegel warns that I.Stat data used in earlier versions identify expenditure quintiles, not income quintiles; Italy was therefore removed from their final figures.
-</td>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:left;">
-
-Italy follows the standard Eurostat HBS timing rule. If the 2010 harmonised income wave is returned by load_hbs(), calculate_weights() can use it through the existing Italy-specific default; otherwise the closest available Eurostat HBS wave is used.
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-HBS 2020 coverage
-</td>
-
-<td style="text-align:left;">
-
-According to Eurostat HBS metadata, 2020 data are disseminated for 27 participating countries. Within the euro area, the main countries present in 2015 but not listed in the 2020 HBS wave are Ireland and Portugal. Cyprus, France and Malta 2020 HBS data are produced by converting their 2015 HBS data to 2020 reference-year prices using the 2020 HICP coefficient.
-</td>
-
-<td style="text-align:left;">
-
-Eurostat HBS income quintiles are household groups ranked by income; HBS table values are consumption expenditure or expenditure shares for households in each quintile, not average income. For missing 2020 waves, calculations use the standard timing rule: the closest available prior HBS wave, unless users provide custom_hbs.
+The reconstructed Italy income groups are estimated ventilations, not directly disseminated Eurostat income-quintile HBS tables. Metadata and diagnostics are provided by the Italy HBS object construction workflow.
 </td>
 
 <td style="text-align:left;">
@@ -420,7 +392,7 @@ Eurostat HBS income quintiles are household groups ranked by income; HBS table v
 
 <td style="text-align:left;">
 
-Metadata note; no country-specific override is implemented from this row.
+Italy support uses reconstructed income-quintile HBS objects built from Istat microdata and Eurostat all-households totals; users should treat these as estimated inputs and can provide custom_hbs for alternative Italy workflows.
 </td>
 
 </tr>

@@ -10,6 +10,10 @@ has_internet <- function() {
 
 #' Custom skip function
 skip_if_no_internet <- function() {
+  testthat::skip_on_cran()
+  if (identical(Sys.getenv("INFLATIONINEQUALITY_SKIP_NETWORK_TESTS"), "true")) {
+    skip("Network tests disabled")
+  }
   if (!has_internet()) {
     skip("No internet connection")
   }
@@ -242,4 +246,39 @@ test_that("simulate_cpi handles overlapping date ranges for different COICOPs", 
                     cpi_obj$dt[coicop == "01" & ((year == 2022 & month >= 6) | (year == 2023 & month <= 6)), value]))
   expect_true(all(result$dt[coicop == "02" & ((year == 2022 & month >= 9) | (year == 2023 & month <= 3)), value] >
                     cpi_obj$dt[coicop == "02" & ((year == 2022 & month >= 9) | (year == 2023 & month <= 3)), value]))
+})
+
+test_that("simulate_cpi can recode ECOICOP v2 item codes to v1-style codes", {
+  dates <- seq(as.Date("2021-12-01"), as.Date("2022-12-01"), by = "month")
+  dt <- data.table::data.table(
+    series_name = "CPI",
+    coicop = "0741",
+    value = 100,
+    year = as.integer(format(dates, "%Y")),
+    month = as.integer(format(dates, "%m"))
+  )
+  dt_basket <- data.table::data.table(
+    series_name = "CPI",
+    value = 100,
+    year = as.integer(format(dates, "%Y")),
+    month = as.integer(format(dates, "%m"))
+  )
+  cpi_obj <- cpi(dt, dt_basket, "FR", 3)
+  simulations <- data.table::data.table(
+    coicop = "081",
+    shock = 10,
+    start_year = 2022,
+    start_month = 6,
+    end_year = 2022,
+    end_month = 12
+  )
+
+  result <- simulate_cpi(
+    cpi_obj,
+    simulations,
+    recode_ecoicop2_to_ecoicop1 = TRUE
+  )
+
+  expect_equal(unique(result$dt$coicop), "081")
+  expect_true(all(result$dt[coicop == "081" & year == 2022 & month >= 6, value] > 100))
 })

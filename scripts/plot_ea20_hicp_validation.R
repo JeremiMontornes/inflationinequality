@@ -1,7 +1,6 @@
 library(data.table)
 library(ggplot2)
 
-options(rdbnomics.use_readLines = TRUE)
 devtools::load_all(".")
 
 cache_file <- file.path(tempdir(), "ea20_hicp_validation_indices_2015_2026_04.rds")

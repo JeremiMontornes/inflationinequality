@@ -1,6 +1,3 @@
-# BdF-specific
-options(rdbnomics.use_readLines = TRUE)
-
 hbs_dataset_data <- list(
   income = "hbs_str_t223",
   age = "hbs_str_t225",
@@ -705,26 +702,6 @@ select_coicop_level <- function(.dt, level) {
     .[grepl("^CP", coicop), coicop := sub("^CP", "", coicop)] %>%
     # Select specified COICOP level
     .[nchar(coicop) <= level + 1, ]
-}
-
-produce_coicop_mask <- function(dataset_code, prefix, suffix, level) {
-  dimensions <- rdbnomics::rdb_dimensions("Eurostat", dataset_code,
-                                          mask = paste0(prefix, "..", suffix)
-  )
-  coicop_codes <- dimensions[[1]][[1]]$coicop$coicop
-  selected <-
-    coicop_codes[
-      grepl("^CP\\d+", coicop_codes)
-      & nchar(coicop_codes) <= level + 3
-      & coicop_codes != "CP00" # Ignore CP00
-    ]
-
-  paste(selected, collapse = "+")
-}
-
-produce_filtered_mask <- function(dataset_code, prefix, suffix, level) {
-  coicop_mask <- produce_coicop_mask(dataset_code, prefix, suffix, level)
-  paste0(prefix, ".", coicop_mask, ".", suffix)
 }
 
 get_start_end_dates <- function(start_year = NULL, start_month = NULL,

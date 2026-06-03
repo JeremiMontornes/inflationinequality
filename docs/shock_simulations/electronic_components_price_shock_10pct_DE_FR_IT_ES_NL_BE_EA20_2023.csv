@@ -1,0 +1,8 @@
+country,inflation_effet,inflation_effet_direct,inflation_effet_indirect,inflation_gap_revenu_effet,inflation_gap_revenu_effet_direct,inflation_gap_revenu_effet_indirect,inflation_gap_age_effet,inflation_gap_age_effet_direct,inflation_gap_age_effet_indirect,inflation_gap_area_effet,inflation_gap_area_effet_direct,inflation_gap_area_effet_indirect
+DE,0.2,0.1,0.1,0,0,0,0,0,0,0,0,0
+FR,0.2,0.1,0.1,0,0,0,0,0,0,0,0,0
+IT,0.2,0.1,0.1,0,0,0,0,0,0,0,0,0
+ES,0.1,0,0.1,0,0,0,0,0,0,0,0,0
+NL,0.2,0.1,0.1,0,0,0,0,0,0,0,0,0
+BE,0.2,0,0.1,0,0,0,0,0,0,0,0,0
+EA20,0.2,0.1,0.1,0,0,0,0,0,0,0,0,0

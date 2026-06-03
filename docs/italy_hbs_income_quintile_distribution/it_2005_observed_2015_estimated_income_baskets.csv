@@ -1,0 +1,121 @@
+year,source,category,coicop_div,consumption,total_consumption,share,coicop_label,panel
+2005,2005 observed,First quintile,01,572,2005.000003,28.5286782615531,Food and non-alcoholic beverages,2005 observed
+2005,2005 observed,First quintile,02,45,2005.000003,2.24438902407323,Alcoholic beverages and tobacco,2005 observed
+2005,2005 observed,First quintile,03,94,2005.000003,4.68827929473076,Clothing and footwear,2005 observed
+2005,2005 observed,First quintile,04,720,2005.000003,35.9102243851717,"Housing, water, electricity, gas",2005 observed
+2005,2005 observed,First quintile,05,58,2005.000003,2.89276807547217,Furnishings and household equipment,2005 observed
+2005,2005 observed,First quintile,06,58.000001,2005.000003,2.89276812534748,Health,2005 observed
+2005,2005 observed,First quintile,07,157.000001,2005.000003,7.83042397830859,Transport,2005 observed
+2005,2005 observed,First quintile,08,62,2005.000003,3.09226932205646,Communication,2005 observed
+2005,2005 observed,First quintile,09,62.000001,2005.000003,3.09226937193177,Recreation and culture,2005 observed
+2005,2005 observed,First quintile,10,2,2005.000003,0.0997506232921437,Education,2005 observed
+2005,2005 observed,First quintile,11,34,2005.000003,1.69576059596644,Restaurants and hotels,2005 observed
+2005,2005 observed,First quintile,12,141,2005.000003,7.03241894209613,Miscellaneous goods and services,2005 observed
+2005,2005 observed,Second quintile,01,478,1996.000002,23.9478957675873,Food and non-alcoholic beverages,2005 observed
+2005,2005 observed,Second quintile,02,40,1996.000002,2.00400801402404,Alcoholic beverages and tobacco,2005 observed
+2005,2005 observed,Second quintile,03,121,1996.000002,6.06212424242272,Clothing and footwear,2005 observed
+2005,2005 observed,Second quintile,04,694,1996.000002,34.7695390433171,"Housing, water, electricity, gas",2005 observed
+2005,2005 observed,Second quintile,05,70,1996.000002,3.50701402454207,Furnishings and household equipment,2005 observed
+2005,2005 observed,Second quintile,06,63.000001,1996.000002,3.15631267218806,Health,2005 observed
+2005,2005 observed,Second quintile,07,179,1996.000002,8.96793586275758,Transport,2005 observed
+2005,2005 observed,Second quintile,08,54,1996.000002,2.70541081893245,Communication,2005 observed
+2005,2005 observed,Second quintile,09,82.000001,1996.000002,4.10821647884948,Recreation and culture,2005 observed
+2005,2005 observed,Second quintile,10,4,1996.000002,0.200400801402404,Education,2005 observed
+2005,2005 observed,Second quintile,11,60,1996.000002,3.00601202103606,Restaurants and hotels,2005 observed
+2005,2005 observed,Second quintile,12,151,1996.000002,7.56513025294075,Miscellaneous goods and services,2005 observed
+2005,2005 observed,Third quintile,01,430,1992.000002,21.5863453598531,Food and non-alcoholic beverages,2005 observed
+2005,2005 observed,Third quintile,02,39,1992.000002,1.95783132333551,Alcoholic beverages and tobacco,2005 observed
+2005,2005 observed,Third quintile,03,138,1992.000002,6.92771083641796,Clothing and footwear,2005 observed
+2005,2005 observed,Third quintile,04,648,1992.000002,32.530120449267,"Housing, water, electricity, gas",2005 observed
+2005,2005 observed,Third quintile,05,80,1992.000002,4.01606425299592,Furnishings and household equipment,2005 observed
+2005,2005 observed,Third quintile,06,70.000001,1992.000002,3.51405627157223,Health,2005 observed
+2005,2005 observed,Third quintile,07,192,1992.000002,9.63855420719021,Transport,2005 observed
+2005,2005 observed,Third quintile,08,47,1992.000002,2.3594377486351,Communication,2005 observed
+2005,2005 observed,Third quintile,09,106.000001,1992.000002,5.3212851854204,Recreation and culture,2005 observed
+2005,2005 observed,Third quintile,10,6,1992.000002,0.301204818974694,Education,2005 observed
+2005,2005 observed,Third quintile,11,78,1992.000002,3.91566264667102,Restaurants and hotels,2005 observed
+2005,2005 observed,Third quintile,12,158,1992.000002,7.93172689966694,Miscellaneous goods and services,2005 observed
+2005,2005 observed,Fourth quintile,01,379,1981.000002,19.1317516212703,Food and non-alcoholic beverages,2005 observed
+2005,2005 observed,Fourth quintile,02,36,1981.000002,1.81726400624204,Alcoholic beverages and tobacco,2005 observed
+2005,2005 observed,Fourth quintile,03,150,1981.000002,7.57193335934182,Clothing and footwear,2005 observed
+2005,2005 observed,Fourth quintile,04,601,1981.000002,30.3382129930962,"Housing, water, electricity, gas",2005 observed
+2005,2005 observed,Fourth quintile,05,97,1981.000002,4.89651690570771,Furnishings and household equipment,2005 observed
+2005,2005 observed,Fourth quintile,06,80.000001,1981.000002,4.03836450879519,Health,2005 observed
+2005,2005 observed,Fourth quintile,07,196,1981.000002,9.8939929228733,Transport,2005 observed
+2005,2005 observed,Fourth quintile,08,44,1981.000002,2.2211004520736,Communication,2005 observed
+2005,2005 observed,Fourth quintile,09,122.000001,1981.000002,6.1585058494109,Recreation and culture,2005 observed
+2005,2005 observed,Fourth quintile,10,8,1981.000002,0.403836445831564,Education,2005 observed
+2005,2005 observed,Fourth quintile,11,106,1981.000002,5.35083290726822,Restaurants and hotels,2005 observed
+2005,2005 observed,Fourth quintile,12,162,1981.000002,8.17768802808916,Miscellaneous goods and services,2005 observed
+2005,2005 observed,Fifth quintile,01,270,1969.000001,13.7125444318372,Food and non-alcoholic beverages,2005 observed
+2005,2005 observed,Fifth quintile,02,28,1969.000001,1.42204164478312,Alcoholic beverages and tobacco,2005 observed
+2005,2005 observed,Fifth quintile,03,152,1969.000001,7.71965464310835,Clothing and footwear,2005 observed
+2005,2005 observed,Fifth quintile,04,454,1969.000001,23.0573895261263,"Housing, water, electricity, gas",2005 observed
+2005,2005 observed,Fifth quintile,05,174,1969.000001,8.83697307829509,Furnishings and household equipment,2005 observed
+2005,2005 observed,Fifth quintile,06,92,1969.000001,4.67242254714453,Health,2005 observed
+2005,2005 observed,Fifth quintile,07,325,1969.000001,16.505840519804,Transport,2005 observed
+2005,2005 observed,Fifth quintile,08,33,1969.000001,1.6759776527801,Communication,2005 observed
+2005,2005 observed,Fifth quintile,09,142.000001,1969.000001,7.21178267790158,Recreation and culture,2005 observed
+2005,2005 observed,Fifth quintile,10,9,1969.000001,0.457084814394574,Education,2005 observed
+2005,2005 observed,Fifth quintile,11,134,1969.000001,6.80548501431921,Restaurants and hotels,2005 observed
+2005,2005 observed,Fifth quintile,12,156,1969.000001,7.92280344950594,Miscellaneous goods and services,2005 observed
+2015,2015 estimated from 2005 income intensities,First quintile,01,479.617204073049,1987.09215543859,24.1366361776607,Food and non-alcoholic beverages,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,02,42.8784194528875,1987.09215543859,2.15784755304534,Alcoholic beverages and tobacco,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,03,67.4394947735192,1987.09215543859,3.39387856717868,Clothing and footwear,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,04,809.895592215957,1987.09215543859,40.7578274615652,"Housing, water, electricity, gas",2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,05,53.9872253869038,1987.09215543859,2.71689590435668,Furnishings and household equipment,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,06,72.3138284459039,1987.09215543859,3.63917839683399,Health,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,07,154.294658218197,1987.09215543859,7.76484662756577,Transport,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,08,65.5998677248677,1987.09215543859,3.30129971804899,Communication,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,09,61.9774765119851,1987.09215543859,3.11900363263754,Recreation and culture,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,10,2.06896551724138,1987.09215543859,0.104120259927488,Education,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,11,44.7447023097043,1987.09215543859,2.2517678501845,Restaurants and hotels,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,First quintile,12,132.274720808373,1987.09215543859,6.65669785099511,Miscellaneous goods and services,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,01,400.776689887712,1994.71504786902,20.0919269304088,Food and non-alcoholic beverages,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,02,38.2509769865393,1994.71504786902,1.91761610398454,Alcoholic beverages and tobacco,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,03,86.8185540069686,1994.71504786902,4.35242888951572,Clothing and footwear,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,04,787.701873360078,1994.71504786902,39.4894435774969,"Housing, water, electricity, gas",2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,05,63.5407968154753,1994.71504786902,3.18545733554057,Furnishings and household equipment,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,06,79.0780102100857,1994.71504786902,3.96437627993862,Health,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,07,176.408296378645,1994.71504786902,8.84378430729263,Transport,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,08,57.1739417989418,1994.71504786902,2.86627114283925,Communication,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,09,81.6771610485039,1994.71504786902,4.09467814140975,Recreation and culture,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,10,4.13793103448276,1994.71504786902,0.207444719430144,Education,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,11,76.5243605089329,1994.71504786902,3.83635550304214,Restaurants and hotels,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Second quintile,12,142.626455832656,1994.71504786902,7.15021706910096,Miscellaneous goods and services,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,01,360.504051842662,1996.84044556406,18.0537234531439,Food and non-alcoholic beverages,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,02,37.3751628310899,1996.84044556406,1.87171503432425,Alcoholic beverages and tobacco,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,03,99.0188327526132,1996.84044556406,4.9587753980335,Clothing and footwear,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,04,738.43631760318,1996.84044556406,36.9802364151628,"Housing, water, electricity, gas",2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,05,74.0131198425911,1996.84044556406,3.70651145448348,Furnishings and household equipment,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,06,88.4607539324521,1996.84044556406,4.43003616683374,Health,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,07,189.166215512109,1996.84044556406,9.47327644190791,Transport,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,08,49.7896825396825,1996.84044556406,2.49342318011883,Communication,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,09,105.85130039378,1996.84044556406,5.30093932286508,Recreation and culture,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,10,6.20689655172414,1996.84044556406,0.31083587902642,Education,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,11,97.5193398944895,1996.84044556406,4.88368212448454,Restaurants and hotels,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Third quintile,12,150.498771867689,1996.84044556406,7.53684512961556,Miscellaneous goods and services,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,01,317.749910402816,1989.44292552873,15.9718032784664,Food and non-alcoholic beverages,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,02,34.5809813287017,1989.44292552873,1.7382243483819,Alcoholic beverages and tobacco,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,03,107.637613240418,1989.44292552873,5.41043987033764,Clothing and footwear,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,04,686.023604485404,1989.44292552873,34.4832010852023,"Housing, water, electricity, gas",2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,05,87.9493766237846,1989.44292552873,4.42080421082753,Furnishings and household equipment,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,06,102.211867683566,1989.44292552873,5.13771299352059,Health,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,07,194.159055915861,1989.44292552873,9.75946851374286,Transport,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,08,47.005291005291,1989.44292552873,2.36273634202391,Communication,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,09,121.272973463146,1989.44292552873,6.0958257161821,Recreation and culture,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,10,8.27586206896552,1989.44292552873,0.41598891643328,Education,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,11,125.454071906725,1989.44292552873,6.30598999835009,Restaurants and hotels,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fourth quintile,12,157.122317404053,1989.44292552873,7.89780472653143,Miscellaneous goods and services,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,01,226.35214379376,1991.90942559959,11.3635761187096,Food and non-alcoholic beverages,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,02,26.9144594007816,1991.90942559959,1.35118891727117,Alcoholic beverages and tobacco,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,03,109.085505226481,1991.90942559959,5.47642898941775,Clothing and footwear,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,04,517.942612335382,1991.90942559959,26.0023174587606,"Housing, water, electricity, gas",2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,05,145.509481331245,1991.90942559959,7.30502499065412,Furnishings and household equipment,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,06,117.935539727993,1991.90942559959,5.92072803172223,Health,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,07,355.971773975187,1991.90942559959,17.8708815471383,Transport,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,08,35.4312169312169,1991.90942559959,1.77875642716795,Communication,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,09,144.221088582585,1991.90942559959,7.24034369881916,Recreation and culture,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,10,9.31034482758621,1991.90942559959,0.467408041145428,Education,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,11,145.757525380148,1991.90942559959,7.31747756734837,Restaurants and hotels,2015 estimated from 2005 income intensities
+2015,2015 estimated from 2005 income intensities,Fifth quintile,12,157.477734087229,1991.90942559959,7.90586821184531,Miscellaneous goods and services,2015 estimated from 2005 income intensities

@@ -177,10 +177,9 @@ load_income_quintile_indicator <- function(country, dataset, value_col, unit,
   }
 
   country <- toupper(country)
-  dt <- rdbnomics::rdb(
-    "Eurostat",
+  dt <- eurostat_json_data(
     dataset,
-    dimensions = list(freq = "A", geo = country, unit = unit)
+    filters = list(freq = "A", geo = country, unit = unit)
   )
   dt <- data.table::as.data.table(dt)
   if (nrow(dt) == 0) {
@@ -195,8 +194,8 @@ load_income_quintile_indicator <- function(country, dataset, value_col, unit,
         "Total",
         category_data$income$categories[match(quant_inc, category_data$income$old_names)]
       ),
-      year = lubridate::year(period),
-      value = value
+      year = year_from_eurostat_time(time),
+      value = values
     )
   ]
 

@@ -10,6 +10,10 @@ has_internet <- function() {
 
 #' Custom skip function
 skip_if_no_internet <- function() {
+  testthat::skip_on_cran()
+  if (identical(Sys.getenv("INFLATIONINEQUALITY_SKIP_NETWORK_TESTS"), "true")) {
+    skip("Network tests disabled")
+  }
   if (!has_internet()) {
     skip("No internet connection")
   }

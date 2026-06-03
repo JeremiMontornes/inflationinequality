@@ -1,0 +1,61 @@
+year,category,coicop_div,consumption,total_consumption,share,coicop_label
+2005,First quintile,01,572,2005.000003,28.5286782615531,Food and non-alcoholic beverages
+2005,First quintile,02,45,2005.000003,2.24438902407323,Alcoholic beverages and tobacco
+2005,First quintile,03,94,2005.000003,4.68827929473076,Clothing and footwear
+2005,First quintile,04,720,2005.000003,35.9102243851717,"Housing, water, electricity, gas"
+2005,First quintile,05,58,2005.000003,2.89276807547217,Furnishings and household equipment
+2005,First quintile,06,58.000001,2005.000003,2.89276812534748,Health
+2005,First quintile,07,157.000001,2005.000003,7.83042397830859,Transport
+2005,First quintile,08,62,2005.000003,3.09226932205646,Communication
+2005,First quintile,09,62.000001,2005.000003,3.09226937193177,Recreation and culture
+2005,First quintile,10,2,2005.000003,0.0997506232921437,Education
+2005,First quintile,11,34,2005.000003,1.69576059596644,Restaurants and hotels
+2005,First quintile,12,141,2005.000003,7.03241894209613,Miscellaneous goods and services
+2005,Second quintile,01,478,1996.000002,23.9478957675873,Food and non-alcoholic beverages
+2005,Second quintile,02,40,1996.000002,2.00400801402404,Alcoholic beverages and tobacco
+2005,Second quintile,03,121,1996.000002,6.06212424242272,Clothing and footwear
+2005,Second quintile,04,694,1996.000002,34.7695390433171,"Housing, water, electricity, gas"
+2005,Second quintile,05,70,1996.000002,3.50701402454207,Furnishings and household equipment
+2005,Second quintile,06,63.000001,1996.000002,3.15631267218806,Health
+2005,Second quintile,07,179,1996.000002,8.96793586275758,Transport
+2005,Second quintile,08,54,1996.000002,2.70541081893245,Communication
+2005,Second quintile,09,82.000001,1996.000002,4.10821647884948,Recreation and culture
+2005,Second quintile,10,4,1996.000002,0.200400801402404,Education
+2005,Second quintile,11,60,1996.000002,3.00601202103606,Restaurants and hotels
+2005,Second quintile,12,151,1996.000002,7.56513025294075,Miscellaneous goods and services
+2005,Third quintile,01,430,1992.000002,21.5863453598531,Food and non-alcoholic beverages
+2005,Third quintile,02,39,1992.000002,1.95783132333551,Alcoholic beverages and tobacco
+2005,Third quintile,03,138,1992.000002,6.92771083641796,Clothing and footwear
+2005,Third quintile,04,648,1992.000002,32.530120449267,"Housing, water, electricity, gas"
+2005,Third quintile,05,80,1992.000002,4.01606425299592,Furnishings and household equipment
+2005,Third quintile,06,70.000001,1992.000002,3.51405627157223,Health
+2005,Third quintile,07,192,1992.000002,9.63855420719021,Transport
+2005,Third quintile,08,47,1992.000002,2.3594377486351,Communication
+2005,Third quintile,09,106.000001,1992.000002,5.3212851854204,Recreation and culture
+2005,Third quintile,10,6,1992.000002,0.301204818974694,Education
+2005,Third quintile,11,78,1992.000002,3.91566264667102,Restaurants and hotels
+2005,Third quintile,12,158,1992.000002,7.93172689966694,Miscellaneous goods and services
+2005,Fourth quintile,01,379,1981.000002,19.1317516212703,Food and non-alcoholic beverages
+2005,Fourth quintile,02,36,1981.000002,1.81726400624204,Alcoholic beverages and tobacco
+2005,Fourth quintile,03,150,1981.000002,7.57193335934182,Clothing and footwear
+2005,Fourth quintile,04,601,1981.000002,30.3382129930962,"Housing, water, electricity, gas"
+2005,Fourth quintile,05,97,1981.000002,4.89651690570771,Furnishings and household equipment
+2005,Fourth quintile,06,80.000001,1981.000002,4.03836450879519,Health
+2005,Fourth quintile,07,196,1981.000002,9.8939929228733,Transport
+2005,Fourth quintile,08,44,1981.000002,2.2211004520736,Communication
+2005,Fourth quintile,09,122.000001,1981.000002,6.1585058494109,Recreation and culture
+2005,Fourth quintile,10,8,1981.000002,0.403836445831564,Education
+2005,Fourth quintile,11,106,1981.000002,5.35083290726822,Restaurants and hotels
+2005,Fourth quintile,12,162,1981.000002,8.17768802808916,Miscellaneous goods and services
+2005,Fifth quintile,01,270,1969.000001,13.7125444318372,Food and non-alcoholic beverages
+2005,Fifth quintile,02,28,1969.000001,1.42204164478312,Alcoholic beverages and tobacco
+2005,Fifth quintile,03,152,1969.000001,7.71965464310835,Clothing and footwear
+2005,Fifth quintile,04,454,1969.000001,23.0573895261263,"Housing, water, electricity, gas"
+2005,Fifth quintile,05,174,1969.000001,8.83697307829509,Furnishings and household equipment
+2005,Fifth quintile,06,92,1969.000001,4.67242254714453,Health
+2005,Fifth quintile,07,325,1969.000001,16.505840519804,Transport
+2005,Fifth quintile,08,33,1969.000001,1.6759776527801,Communication
+2005,Fifth quintile,09,142.000001,1969.000001,7.21178267790158,Recreation and culture
+2005,Fifth quintile,10,9,1969.000001,0.457084814394574,Education
+2005,Fifth quintile,11,134,1969.000001,6.80548501431921,Restaurants and hotels
+2005,Fifth quintile,12,156,1969.000001,7.92280344950594,Miscellaneous goods and services

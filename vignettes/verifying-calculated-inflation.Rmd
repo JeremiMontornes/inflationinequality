@@ -21,7 +21,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE, eval = TRUE}
 library(inflationinequality)
-options(rdbnomics.use_readLines = TRUE)
 ```
 
 This vignette shows how to validate the package calculations against published
@@ -61,7 +60,7 @@ comparison$plot
 ```
 
 ```{r hicp-rate-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
-knitr::include_graphics("../docs/france_hicp_validation_mean_vs_published.png")
+knitr::include_graphics("figures/france_hicp_validation_mean_vs_published.png")
 ```
 
 For index levels, use `calculate_price_indices()` first. The published HICP is
@@ -83,7 +82,7 @@ level_comparison$plot
 ```
 
 ```{r hicp-level-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
-knitr::include_graphics("../docs/france_hicp_validation_level_mean_vs_published.png")
+knitr::include_graphics("figures/france_hicp_validation_level_mean_vs_published.png")
 ```
 
 These diagnostics should not be interpreted as an exact identity check. The
@@ -170,7 +169,7 @@ ea20_comparison[
 ```
 
 ```{r ea20-hicp-level-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
-knitr::include_graphics("../docs/ea20_hicp_validation_total_vs_official_2015_2026_04.png")
+knitr::include_graphics("figures/ea20_hicp_validation_total_vs_official_2015_2026_04.png")
 ```
 
 ## France INSEE level-3 validation
@@ -254,5 +253,5 @@ The official INSEE BDM idBank series are:
 - D9: `010054300`
 
 ```{r insee-decile-index-figure, echo = FALSE, eval = TRUE, out.width = "100%"}
-knitr::include_graphics("../man/figures/france-insee-decile-official-vs-recalculated-index-level-D1-D2-D8-D9-2010-2023.png")
+knitr::include_graphics("figures/france_insee_decile_index_validation.png")
 ```

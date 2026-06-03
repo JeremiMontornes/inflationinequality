@@ -351,7 +351,7 @@ available:</p>
 <li>HICP item weights are downloaded from Eurostat by
 <code>load_index_weights()</code>.</li>
 <li>HBS expenditure shares at <code>level = 1</code> or
-<code>level = 2</code> are downloaded from Eurostat through DBnomics by
+<code>level = 2</code> are downloaded from Eurostat by
 <code>load_hbs()</code>.</li>
 </ul>
 <p>Custom data are mainly useful when a national statistical institute
@@ -359,14 +359,14 @@ provides HBS expenditure data at a finer COICOP level than Eurostat. In
 practice, this means using <code>custom_hbs</code> for
 <code>level = 3</code> calculations when national HBS data are
 available. For <code>level = 2</code>, the recommended workflow is still
-the harmonised Eurostat HBS data loaded through DBnomics.</p>
+the harmonised Eurostat HBS data loaded by <code>load_hbs()</code>.</p>
 <div id="recommended-workflows" class="section level2">
 <h2>Recommended workflows</h2>
 <div id="level-2-eurostat-hicp-and-eurostat-hbs" class="section level3">
 <h3>Level 2: Eurostat HICP and Eurostat HBS</h3>
 <p>For the harmonised <code>level = 2</code> workflow, no custom data
 are needed. The package downloads the HICP data from Eurostat and the
-HBS data from Eurostat through DBnomics.</p>
+HBS data from Eurostat.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>inflation <span class="ot">&lt;-</span> <span class="fu">calculate_inflation</span>(<span class="st">&quot;FR&quot;</span>, <span class="st">&quot;income&quot;</span>, <span class="at">start_year =</span> <span class="dv">2019</span>, <span class="at">level =</span> <span class="dv">2</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">plot_time_series</span>(inflation)</span></code></pre></div>
 <p>This is the preferred workflow for cross-country comparisons because

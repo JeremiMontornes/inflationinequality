@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE, eval = TRUE}
 library(inflationinequality)
-options(rdbnomics.use_readLines = TRUE)
 ```
 
 This vignette explains when and how to use national HBS data with `inflationinequality`.

@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE, eval = TRUE}
 library(inflationinequality)
-options(rdbnomics.use_readLines = TRUE)
 ```
 
 This vignette explains how to calculate an inflation burden indicator with `inflationinequality`.
@@ -51,8 +50,8 @@ The default Eurostat workflow uses:
 
 The Eurostat references are:
 
-- [Eurostat `icw_sr_10`](https://db.nomics.world/Eurostat/icw_sr_10): aggregate propensity to consume by income quintile, expressed as a percentage of disposable income.
-- [Eurostat `hbs_exp_t133`](https://db.nomics.world/Eurostat/hbs_exp_t133): mean consumption expenditure by income quintile, available in PPS per household or PPS per adult equivalent.
+- [Eurostat `icw_sr_10`](https://ec.europa.eu/eurostat/databrowser/view/icw_sr_10/default/table): aggregate propensity to consume by income quintile, expressed as a percentage of disposable income.
+- [Eurostat `hbs_exp_t133`](https://ec.europa.eu/eurostat/databrowser/view/hbs_exp_t133/default/table): mean consumption expenditure by income quintile, available in PPS per household or PPS per adult equivalent.
 
 For the Lowe/TÃ¶rnqvist comparison and the notion of upper-level substitution bias, see the BLS article [Examining U.S. inflation across households grouped by equivalized income](https://www.bls.gov/opub/mlr/2024/article/examining-us-inflation-across-households-grouped-by-equivalized-income.htm).
 
