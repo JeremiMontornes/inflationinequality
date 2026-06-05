@@ -78,4 +78,22 @@ test_that("calculate_aggregation_bias returns gap comparison table", {
   expect_equal(result$fine_level, 2)
   expect_true(is.finite(result$aggregation_bias))
   expect_equal(result$aggregation_bias, result$coarse_gap - result$fine_gap)
+
+  cumulative_result <- suppressWarnings(calculate_aggregation_bias(
+    "DE", "income",
+    coarse_level = 1,
+    fine_level = 2,
+    start_year = 2021,
+    end_year = 2022,
+    end_month = 3,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    growth = "cumulative",
+    recode_ecoicop2_to_ecoicop1 = FALSE
+  ))
+
+  expect_true(is.finite(cumulative_result$aggregation_bias))
+  expect_equal(cumulative_result$aggregation_bias,
+               cumulative_result$coarse_gap - cumulative_result$fine_gap)
 })

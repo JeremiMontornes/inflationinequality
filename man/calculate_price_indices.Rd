@@ -127,13 +127,14 @@ Eurostat HICP country weights. This is the recommended workflow for euro-area
 household-group indices because HBS income quintiles are defined within each
 country.
 }
-\section{France level 3}{
+\section{National level 3 HBS}{
 
 For France, \code{level = 3} automatically uses bundled INSEE 2017 HBS level-3
 data for income, age, and residence-area groups when \code{custom_hbs} is not
-supplied. Eurostat public HBS data are generally not available at this
-granularity, so the national HBS source is required for a genuine 4-digit
-COICOP calculation.
+supplied. For Spain, \code{level = 3} uses compact INE EPF 2020 microdata-derived
+HBS objects when available. Eurostat public HBS data are generally not
+available at this granularity, so national HBS sources are required for a
+genuine 4-digit COICOP calculation.
 }
 
 \examples{

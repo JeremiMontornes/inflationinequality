@@ -53,3 +53,31 @@
 #' <https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Household_budget_survey_-_statistics_on_consumption_expenditure&stable=1>,
 #' <https://www.bruegel.org/dataset/inflation-inequality-european-union-and-its-drivers>.
 "country_coicop_special_cases"
+
+#' ECOICOP v2 to ECOICOP v1 bridge
+#'
+#' Operational bridge used by the package to map ECOICOP v2 HICP item codes
+#' back to ECOICOP v1-style COICOP codes before matching recent HICP data to
+#' HBS expenditure weights. The table is used by
+#' `recode_coicop_ecoicop2_to_ecoicop1()` and documents manual corrections and
+#' ambiguous operational choices.
+#'
+#' @format A data frame with the following columns:
+#' \describe{
+#'   \item{country}{Scope of the rule. `"EA"` denotes the general euro-area
+#'   operational bridge used for all countries unless a country-specific rule is
+#'   added later.}
+#'   \item{coicop_v2}{Input ECOICOP v2 code.}
+#'   \item{label_v2}{ECOICOP v2 label when explicitly documented.}
+#'   \item{coicop_v2_level}{Package-style COICOP level of `coicop_v2`.}
+#'   \item{coicop_v1}{Output ECOICOP v1-style code.}
+#'   \item{label_v1}{ECOICOP v1 label when explicitly documented.}
+#'   \item{coicop_v1_level}{Package-style COICOP level of `coicop_v1`.}
+#'   \item{mapping_type}{Rule status: exact, correspondence, rolled_up,
+#'   manual_choice, or manual_correction.}
+#'   \item{source}{Source or construction note.}
+#'   \item{note}{Short explanation for manual corrections or ambiguous cases.}
+#' }
+#' @source Package authors, based on ECOICOP v2 / COICOP 2018 to ECOICOP v1
+#' correspondence checks and package HICP-HBS matching requirements.
+"ecoicop_v2_to_v1_bridge"

@@ -27,22 +27,26 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
                                 custom_hbs = NULL,
                                 interpolated_hbs = FALSE,
                                 specific_hbs_year = NULL,
+                                france_insee_income_groups = c("decile", "quintile"),
                                 recode_ecoicop2_to_ecoicop1 = FALSE) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
+  france_insee_income_groups <- match.arg(france_insee_income_groups)
   hicp_level <- if (recode_ecoicop2_to_ecoicop1) min(level + 1, 3) else level
 
   inputs <- load_coicop_bridge_inputs(
     country = country,
     category = category,
-    level = hicp_level,
+    index_level = hicp_level,
+    hbs_level = level,
     start_year = start_year,
     end_year = end_year,
     custom_index_weights = custom_index_weights,
     custom_hbs = custom_hbs,
     interpolated_hbs = interpolated_hbs,
-    specific_hbs_year = specific_hbs_year
+    specific_hbs_year = specific_hbs_year,
+    france_insee_income_groups = france_insee_income_groups
   )
 
   index_weights <- inputs$index_weights
@@ -151,6 +155,134 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
   ][order(weight_year, hicp_coicop, category)]
 }
 
+#' Check HBS and HICP COICOP coverage
+#'
+#' @description
+#' `check_hbs_cpi_coverage()` compares the COICOP codes available in HBS
+#' expenditure data and official HICP item weights. It can apply the package's
+#' ECOICOP v2-to-v1 recoding before the comparison, so the diagnostic follows
+#' the same matching logic used by [calculate_price_indices()].
+#'
+#' @inheritParams build_coicop_bridge
+#'
+#' @returns A list of class `"hbs_cpi_coverage"` with:
+#' - `summary`: one-row `data.table` with counts and coverage rates.
+#' - `codes`: one-row-per-code `data.table` showing HICP/HBS availability and
+#'   whether the HICP code is rolled up to a higher HBS level.
+#' - `hbs_only`: COICOP codes present in HBS but absent from HICP weights.
+#' - `hicp_only`: COICOP codes present in HICP weights but absent from HBS.
+#' - `rolled_up`: HICP codes that are matched through a higher-level HBS code.
+#'
+#' @export
+check_hbs_cpi_coverage <- function(country = NULL, category = NULL, level = 2,
+                                   start_year = NULL, end_year = NULL,
+                                   custom_index_weights = NULL,
+                                   custom_hbs = NULL,
+                                   interpolated_hbs = FALSE,
+                                   specific_hbs_year = NULL,
+                                   france_insee_income_groups = c("decile", "quintile"),
+                                   recode_ecoicop2_to_ecoicop1 = TRUE) {
+  if (!is.null(country)) {
+    country <- toupper(country)
+  }
+  france_insee_income_groups <- match.arg(france_insee_income_groups)
+  hicp_level <- if (recode_ecoicop2_to_ecoicop1) min(level + 1, 3) else level
+
+  inputs <- load_coicop_bridge_inputs(
+    country = country,
+    category = category,
+    index_level = hicp_level,
+    hbs_level = level,
+    start_year = start_year,
+    end_year = end_year,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    interpolated_hbs = interpolated_hbs,
+    specific_hbs_year = specific_hbs_year,
+    france_insee_income_groups = france_insee_income_groups
+  )
+
+  index_weights <- inputs$index_weights
+  hbs <- inputs$hbs
+  if (recode_ecoicop2_to_ecoicop1) {
+    index_weights <- recode_index_weights_ecoicop2_to_ecoicop1(
+      index_weights,
+      target_level = level
+    )
+  }
+
+  weight_dt <- data.table::copy(index_weights$dt)
+  if ("year" %in% names(weight_dt)) {
+    data.table::setnames(weight_dt, "year", "weight_year")
+  } else if (!"weight_year" %in% names(weight_dt)) {
+    stop("Index weights must contain either 'year' or 'weight_year'.")
+  }
+
+  hbs_dt <- data.table::copy(hbs$dt)
+  if (!is.null(inputs$specific_hbs_year)) {
+    hbs_dt <- hbs_dt[year == inputs$specific_hbs_year]
+  }
+
+  weight_coicops <- sort(unique(weight_dt[nchar(coicop) == level + 1, coicop]))
+  hbs_coicops <- sort(unique(hbs_dt[nchar(coicop) == level + 1, coicop]))
+  hbs_only <- setdiff(hbs_coicops, weight_coicops)
+  hicp_only <- setdiff(weight_coicops, hbs_coicops)
+  higher_coicops <- unique(substr(hicp_only, 1, level))
+
+  codes <- data.table::data.table(
+    coicop = sort(unique(c(weight_coicops, hbs_coicops)))
+  )
+  codes[, in_hicp := coicop %in% weight_coicops]
+  codes[, in_hbs := coicop %in% hbs_coicops]
+  codes[, hbs_match_coicop := data.table::fifelse(
+    in_hicp & !in_hbs & substr(coicop, 1, level) %in% higher_coicops,
+    substr(coicop, 1, level),
+    coicop
+  )]
+  codes[, hbs_match_available := hbs_match_coicop %in% unique(hbs_dt$coicop)]
+  codes[, status := data.table::fcase(
+    in_hicp & in_hbs, "matched",
+    in_hicp & !in_hbs & hbs_match_available, "rolled_up_to_higher_level",
+    in_hicp & !in_hbs, "hicp_only",
+    !in_hicp & in_hbs, "hbs_only"
+  )]
+
+  rolled_up <- codes[status == "rolled_up_to_higher_level", coicop]
+  summary <- data.table::data.table(
+    country = country %||local% index_weights$country %||local% hbs$country,
+    category = category %||local% hbs$category,
+    level = level,
+    recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
+    n_hicp = length(weight_coicops),
+    n_hbs = length(hbs_coicops),
+    n_matched = codes[status == "matched", .N],
+    n_rolled_up = length(rolled_up),
+    n_hicp_only = length(setdiff(hicp_only, rolled_up)),
+    n_hbs_only = length(hbs_only),
+    hicp_direct_match_rate = if (length(weight_coicops) > 0) {
+      codes[in_hicp & in_hbs, .N] / length(weight_coicops)
+    } else {
+      NA_real_
+    },
+    hicp_covered_after_rollup_rate = if (length(weight_coicops) > 0) {
+      codes[in_hicp & hbs_match_available, .N] / length(weight_coicops)
+    } else {
+      NA_real_
+    }
+  )
+
+  structure(
+    list(
+      summary = summary,
+      codes = codes[],
+      hbs_only = hbs_only,
+      hicp_only = hicp_only,
+      rolled_up = rolled_up
+    ),
+    class = "hbs_cpi_coverage"
+  )
+}
+
 #' Write a COICOP bridge table to HTML
 #'
 #' @param bridge A `data.table` returned by [build_coicop_bridge()].
@@ -230,14 +362,16 @@ write_coicop_bridge_html <- function(bridge, file, title = "COICOP HICP-HBS brid
   invisible(file)
 }
 
-load_coicop_bridge_inputs <- function(country, category, level, start_year, end_year,
+load_coicop_bridge_inputs <- function(country, category, index_level, hbs_level,
+                                      start_year, end_year,
                                       custom_index_weights, custom_hbs,
-                                      interpolated_hbs, specific_hbs_year) {
+                                      interpolated_hbs, specific_hbs_year,
+                                      france_insee_income_groups = "decile") {
   index_weights <- if (is.null(custom_index_weights)) {
     if (is.null(country)) {
       stop("Either 'country' or 'custom_index_weights' must be provided.")
     }
-    load_index_weights(country, level = level, start_year = start_year, end_year = end_year)
+    load_index_weights(country, level = index_level, start_year = start_year, end_year = end_year)
   } else {
     custom_index_weights
   }
@@ -246,7 +380,19 @@ load_coicop_bridge_inputs <- function(country, category, level, start_year, end_
     if (is.null(country) || is.null(category)) {
       stop("Either both 'country' and 'category', or 'custom_hbs' must be provided.")
     }
-    load_hbs(country, category, level = level)
+    italy_hbs <- load_italy_level2_hbs_if_available(country, category, hbs_level)
+    if (!is.null(italy_hbs)) {
+      italy_hbs
+    } else if (use_spain_epf_2020_level3_hbs(country, category, hbs_level, custom_hbs)) {
+      load_spain_epf_2020_hbs_level3(category = category)
+    } else if (use_france_insee_level3_hbs(country, category, hbs_level, custom_hbs)) {
+      load_france_insee_hbs_level3(
+        category = category,
+        income_groups = france_insee_income_groups
+      )
+    } else {
+      load_hbs(country, category, level = hbs_level)
+    }
   } else {
     custom_hbs
   }

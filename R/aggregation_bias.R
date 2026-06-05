@@ -1,12 +1,12 @@
 #' Calculate aggregation bias in the inflation gap
 #'
 #' @description
-#' `calculate_aggregation_bias()` compares the annualized inflation gap between
-#' the lowest and highest household groups at two COICOP aggregation levels. The
-#' gap is defined as bottom-group annualized price-index growth minus top-group
-#' annualized price-index growth. Aggregation bias is defined as the gap at the
-#' upper COICOP level, meaning the more aggregated calculation, minus the gap at
-#' the lower COICOP level, meaning the more detailed calculation.
+#' `calculate_aggregation_bias()` compares the inflation gap between the lowest
+#' and highest household groups at two COICOP aggregation levels. The gap is
+#' defined as bottom-group price-index growth minus top-group price-index growth.
+#' Aggregation bias is defined as the gap at the upper COICOP level, meaning the
+#' more aggregated calculation, minus the gap at the lower COICOP level, meaning
+#' the more detailed calculation.
 #'
 #' @inheritParams calculate_price_indices
 #' @param coarse_level COICOP level used for the coarser calculation. If
@@ -14,6 +14,9 @@
 #' @param fine_level COICOP level used for the finer calculation. If `NULL`, the
 #'   function uses level 3 when an integrated country-specific level 3 source is
 #'   available, and level 2 otherwise.
+#' @param growth Growth measure used for each group: `"annualized"` returns an
+#'   annualized rate over the available period; `"cumulative"` returns total
+#'   growth over the available period.
 #'
 #' @return A one-row `data.table` with columns:
 #'   `country`, `category_type`, `coarse_level`, `fine_level`,
@@ -41,8 +44,10 @@ calculate_aggregation_bias <- function(country = NULL, category = NULL,
                                        specific_hbs_year = NULL,
                                        france_insee_income_groups = c("decile", "quintile"),
                                        base_year = NULL,
+                                       growth = c("annualized", "cumulative"),
                                        recode_ecoicop2_to_ecoicop1 = TRUE) {
   france_insee_income_groups <- match.arg(france_insee_income_groups)
+  growth <- match.arg(growth)
 
   if (is.null(coarse_level)) {
     if (is.null(fine_level)) {
@@ -99,8 +104,8 @@ calculate_aggregation_bias <- function(country = NULL, category = NULL,
     recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
   )
 
-  coarse_gap <- annualized_group_gap(coarse_indices$dt, coarse_indices$categories)
-  fine_gap <- annualized_group_gap(fine_indices$dt, fine_indices$categories)
+  coarse_gap <- group_growth_gap(coarse_indices$dt, coarse_indices$categories, growth)
+  fine_gap <- group_growth_gap(fine_indices$dt, fine_indices$categories, growth)
 
   data.table::data.table(
     country = country,
@@ -122,7 +127,16 @@ default_fine_aggregation_level <- function(country, category) {
 }
 
 annualized_group_gap <- function(dt, categories) {
-  growth <- annualized_price_index_growth(dt)
+  group_growth_gap(dt, categories, "annualized")
+}
+
+group_growth_gap <- function(dt, categories, growth = c("annualized", "cumulative")) {
+  growth <- match.arg(growth)
+  growth <- if (growth == "annualized") {
+    annualized_price_index_growth(dt)
+  } else {
+    cumulative_price_index_growth(dt)
+  }
   bottom <- categories[1]
   top <- categories[length(categories)]
 
@@ -133,4 +147,23 @@ annualized_group_gap <- function(dt, categories) {
   }
 
   bottom_growth - top_growth
+}
+
+cumulative_price_index_growth <- function(dt) {
+  dt <- data.table::copy(dt)
+  data.table::setorder(dt, category, date)
+  dt[
+    ,
+    {
+      first_row <- .SD[which(!is.na(price_index))[1]]
+      last_row <- .SD[rev(which(!is.na(price_index)))[1]]
+      growth <- if (nrow(first_row) == 1 && nrow(last_row) == 1) {
+        (last_row$price_index / first_row$price_index - 1) * 100
+      } else {
+        NA_real_
+      }
+      .(growth = growth)
+    },
+    by = category
+  ]
 }

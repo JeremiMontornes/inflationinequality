@@ -11,8 +11,6 @@ A data frame with the following columns:
 \item{coicop_case}{Country-specific COICOP or data-source case.}
 \item{population_group_caveat}{Caveat about the demographic or income
 grouping concept.}
-\item{housing_caveat}{Caveat about housing items such as CP041 actual
-rents and CP042 imputed rents.}
 \item{bruegel_comparison}{Closest corresponding choice or warning in
 Bruegel's inflation inequality dataset.}
 \item{package_status}{Current implementation status in this package.}
@@ -20,9 +18,9 @@ Bruegel's inflation inequality dataset.}
 }
 \source{
 Package authors, based on package defaults, INSEE's definition of
-"niveau de vie", Eurostat HBS metadata, and Bruegel's dataset documentation:
+"niveau de vie", Eurostat Statistics Explained HBS documentation, and Bruegel's dataset documentation:
 \url{https://www.insee.fr/fr/metadonnees/definition/c1890},
-\url{https://ec.europa.eu/eurostat/cache/metadata/en/hbs_esms.htm},
+\url{https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Household_budget_survey_-_statistics_on_consumption_expenditure&stable=1},
 \url{https://www.bruegel.org/dataset/inflation-inequality-european-union-and-its-drivers}.
 }
 \usage{
@@ -30,6 +28,6 @@ country_coicop_special_cases
 }
 \description{
 A compact reference table describing country-specific caveats for matching
-HBS income groups, national COICOP sources, and HICP-HBS housing items.
+HBS income groups and national COICOP sources.
 }
 \keyword{datasets}

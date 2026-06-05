@@ -21,6 +21,7 @@ calculate_aggregation_bias(
   specific_hbs_year = NULL,
   france_insee_income_groups = c("decile", "quintile"),
   base_year = NULL,
+  growth = c("annualized", "cumulative"),
   recode_ecoicop2_to_ecoicop1 = TRUE
 )
 }
@@ -74,6 +75,10 @@ original national groups.}
 \item{base_year}{year used to rebase the chained index to 100. If \code{NULL},
 the package uses \code{2025} as the default presentation base.}
 
+\item{growth}{Growth measure used for each group: \code{"annualized"} returns an
+annualized rate over the available period; \code{"cumulative"} returns total
+growth over the available period.}
+
 \item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
 codes back to ECOICOP v1-style codes before matching them to HBS weights.}
 }
@@ -83,12 +88,12 @@ A one-row \code{data.table} with columns:
 \code{coarse_gap}, \code{fine_gap}, and \code{aggregation_bias}.
 }
 \description{
-\code{calculate_aggregation_bias()} compares the annualized inflation gap between
-the lowest and highest household groups at two COICOP aggregation levels. The
-gap is defined as bottom-group annualized price-index growth minus top-group
-annualized price-index growth. Aggregation bias is defined as the gap at the
-upper COICOP level, meaning the more aggregated calculation, minus the gap at
-the lower COICOP level, meaning the more detailed calculation.
+\code{calculate_aggregation_bias()} compares the inflation gap between the lowest
+and highest household groups at two COICOP aggregation levels. The gap is
+defined as bottom-group price-index growth minus top-group price-index growth.
+Aggregation bias is defined as the gap at the upper COICOP level, meaning the
+more aggregated calculation, minus the gap at the lower COICOP level, meaning
+the more detailed calculation.
 }
 \examples{
 \dontrun{

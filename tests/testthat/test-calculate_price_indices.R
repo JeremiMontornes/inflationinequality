@@ -1,3 +1,63 @@
+test_that("ECOICOP v2 division 13 maps to COICOP v1 division 12 at level 1", {
+  codes <- c("13", "131", "132", "133", "139", "1311", "1321", "1330", "1390")
+  recoded <- inflationinequality:::recode_coicop_ecoicop2_to_ecoicop1(codes)
+  level1 <- inflationinequality:::coicop_to_level(recoded, 1)
+
+  expect_equal(level1, rep("12", length(codes)))
+})
+
+test_that("ECOICOP v2 level-2 transport and communication mappings survive level-1 truncation", {
+  codes <- c("074", "0741", "0749", "082", "0821", "083", "0831", "084", "0841")
+  recoded <- inflationinequality:::recode_coicop_ecoicop2_to_ecoicop1(codes)
+  level1 <- inflationinequality:::coicop_to_level(recoded, 1)
+
+  expect_equal(
+    level1,
+    c("08", "08", "08", "09", "08", "08", "08", "09", "09")
+  )
+})
+
+test_that("ECOICOP v2 bridge applies audited manual corrections", {
+  codes <- c(
+    "0219", "022", "0220", "023", "0230", "024", "0240",
+    "082", "0820", "0943", "0944", "0947", "0952", "09520",
+    "1313", "13131", "13132"
+  )
+  recoded <- inflationinequality:::recode_coicop_ecoicop2_to_ecoicop1(codes)
+
+  expect_equal(
+    recoded,
+    c(
+      "021", "021", "021", "022", "022", "023", "023",
+      "0913", "0913", "0931", "0932", "0943", "0914", "0914",
+      "1211", "1211", "1211"
+    )
+  )
+})
+
+test_that("ECOICOP v2 bridge table documents manual corrections", {
+  bridge <- data.table::as.data.table(ecoicop_v2_to_v1_bridge)
+  sensitive_codes <- c("0220", "082", "0943", "0944", "0947", "0952", "1313")
+  sensitive_rows <- bridge[coicop_v2 %in% sensitive_codes]
+
+  expect_true(all(sensitive_codes %in% bridge$coicop_v2))
+  expect_true(all(
+    sensitive_rows$mapping_type %in%
+      c("manual_choice", "manual_correction")
+  ))
+  expect_true(all(nzchar(sensitive_rows$note)))
+})
+
+test_that("ECOICOP v2 bridge leaves unmapped codes unchanged", {
+  codes <- c("0111", "9999", NA_character_)
+  recoded <- inflationinequality:::recode_coicop_ecoicop2_to_ecoicop1(codes)
+
+  expect_equal(
+    recoded,
+    c("0111", "9999", NA_character_)
+  )
+})
+
 test_that("calculate_price_indices returns chained indices by category", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 8),
