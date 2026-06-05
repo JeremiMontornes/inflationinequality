@@ -29,7 +29,8 @@ Let us visualize inflation inequality across income quintiles in France since 20
 library(inflationinequality)
 inflation <- calculate_inflation("FR", "income", start_year = 2019, level = 3,
                                  france_insee_income_groups = "quintile")
-plot_time_series(inflation)
+plot_time_series(inflation) +
+  ggplot2::labs(title = "Inflation inquality (HICP, in %)")
 ```
 
 <img src="man/figures/README-example-1.svg" alt="" width="100%" />
@@ -301,13 +302,137 @@ Yes
 Country coverage follows the Eurostat Statistics Explained article on [Household budget survey - statistics on consumption expenditure](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Household_budget_survey_-_statistics_on_consumption_expenditure&stable=1) and the harmonised Eurostat category tables returned by `load_hbs()`. Eurostat HBS income quintiles are household groups ranked by income; the HBS values are consumption expenditure or expenditure shares for households in each quintile, not average income. Ireland and Portugal responded to the 2020 HBS wave, with fieldwork in 2022-2023. Cyprus, France, and Malta 2020 HBS statistics are compiled from 2015-2017 data adjusted to the 2020 reference-year price level.
 
 <small>
+<table>
 
-| country | coicop_case | population_group_caveat | package_status |
-|---|---|---|---|
-| France | Level = 3 uses bundled INSEE Budget de famille 2017 HBS at 4-digit COICOP for income, age, and residence-area groups. | National groups may differ from harmonised Eurostat groups; income can be used as deciles or adjacent-decile quintiles. | Implemented for level = 3 income, age, and urban calculations. |
-| Italy | Income level = 2 uses reconstructed income-quintile baskets from Istat microdata and Eurostat all-households totals. | Italy income groups are estimated ventilations, not directly disseminated Eurostat income-quintile HBS tables. | Implemented for level = 2 income calculations. |
-| Spain | Level = 3 uses compact INE EPF 2020 microdata-derived HBS objects for income, age, and residence-area groups. | Spain groups use equivalised income, reference-person age, and density of residence from EPF microdata. | Implemented for level = 3 income, age, and urban calculations. |
-| Euro area | Euro-area aggregates are built from country-level HICP-HBS calculations and Eurostat HICP country weights. | Household groups are defined within each country; euro-area results are not a pooled household distribution. | Implemented through country-level calculations; unavailable inputs are excluded. |
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+country
+</th>
+
+<th style="text-align:left;">
+
+coicop_case
+</th>
+
+<th style="text-align:left;">
+
+population_group_caveat
+</th>
+
+<th style="text-align:left;">
+
+package_status
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+France
+</td>
+
+<td style="text-align:left;">
+
+Level = 3 uses bundled INSEE Budget de famille 2017 national HBS at 4-digit COICOP for income, age, and residence-area groups.
+</td>
+
+<td style="text-align:left;">
+
+National groups may differ from harmonised Eurostat groups; income can be used as deciles or adjacent-decile quintiles.
+</td>
+
+<td style="text-align:left;">
+
+Implemented for level = 3 income, age, and urban calculations.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Italy
+</td>
+
+<td style="text-align:left;">
+
+Income level = 2 uses reconstructed income-quintile baskets from Istat microdata and Eurostat all-households totals.
+</td>
+
+<td style="text-align:left;">
+
+Italy income groups are estimated ventilations, not directly disseminated Eurostat income-quintile HBS tables.
+</td>
+
+<td style="text-align:left;">
+
+Implemented for level = 2 income calculations.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Spain
+</td>
+
+<td style="text-align:left;">
+
+Level = 3 uses compact INE EPF 2020 microdata-derived HBS objects for income, age, and residence-area groups.
+</td>
+
+<td style="text-align:left;">
+
+Spain groups use equivalised income, reference-person age, and density of residence from EPF microdata.
+</td>
+
+<td style="text-align:left;">
+
+Implemented for level = 3 income, age, and urban calculations.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Euro area
+</td>
+
+<td style="text-align:left;">
+
+Euro-area aggregates are built from country-level HICP-HBS calculations and Eurostat HICP country weights.
+</td>
+
+<td style="text-align:left;">
+
+Household groups are defined within each country; euro-area results are not a pooled household distribution.
+</td>
+
+<td style="text-align:left;">
+
+Implemented through country-level calculations; unavailable inputs are excluded.
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 </small>
 
