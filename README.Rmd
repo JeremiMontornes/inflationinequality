@@ -93,7 +93,7 @@ load("data/methodology_metadata.rda")
 load("data/country_coicop_special_cases.rda")
 cat("<small>\n")
 country_coicop_special_cases |>
-  dplyr::select(country, coicop_case, population_group_caveat, housing_caveat, package_status) |>
+  dplyr::select(country, coicop_case, population_group_caveat, package_status) |>
   knitr::kable(format = "html", row.names = FALSE) |>
   print()
 cat("\n</small>\n")

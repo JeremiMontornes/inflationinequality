@@ -334,6 +334,19 @@ test_that("France INSEE level 3 HBS is available for age groups", {
   expect_true("0111" %in% hbs_age$dt$coicop)
 })
 
+test_that("Spain EPF 2020 level 3 HBS is available for income, age, and urban groups", {
+  for (category in c("income", "age", "urban")) {
+    hbs_es <- inflationinequality:::load_spain_epf_2020_hbs_level3(category)
+
+    expect_s3_class(hbs_es, "hbs")
+    expect_equal(hbs_es$country, "ES")
+    expect_equal(hbs_es$category, category)
+    expect_equal(hbs_es$level, 3)
+    expect_true("0451" %in% hbs_es$dt$coicop)
+    expect_true(inflationinequality:::use_spain_epf_2020_level3_hbs("ES", category, 3, NULL))
+  }
+})
+
 test_that("calculate_price_indices uses INSEE HBS for France age level 3", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 8),

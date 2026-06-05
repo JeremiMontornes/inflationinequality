@@ -1,0 +1,2 @@
+source,n_households,weighted_households,households_with_electricity,weighted_households_with_electricity_pct,mean_electricity_expenditure,mean_total_consumption,mean_equivalent_variation_eur,output_rds
+"INE EPF 2020 microdata, author calculations",19033,18679815.261366,18757,98.2729766152012,1212.95031571649,41022.7811272083,363.885094714946,C:\Users\jerem\Documents\GitHub\inflationinequality/data-raw/spain_epf/ES_epf_2020_energy_policy_microdata_results.rds

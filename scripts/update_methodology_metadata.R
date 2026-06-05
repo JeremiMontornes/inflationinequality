@@ -47,81 +47,54 @@ methodology_metadata[
 )
 
 country_coicop_special_cases <- data.frame(
-  country = c("France", "Belgium", "Italy"),
+  country = c("France", "Italy", "Spain", "Euro area"),
   coicop_case = c(
     paste(
-      "France income level = 3 uses bundled INSEE Budget de famille 2017",
-      "data at 4-digit COICOP. Eurostat HBS income data remain the default",
-      "for harmonised level = 2 comparisons."
+      "Level = 3 uses bundled INSEE Budget de famille 2017 national HBS",
+      "at 4-digit COICOP for income, age, and residence-area groups."
     ),
     paste(
-      "No Belgium-specific override is implemented yet; Eurostat harmonised",
-      "HBS income categories are used if available. Belgium is the strongest",
-      "candidate for a country-specific quartile rule."
+      "Income level = 2 uses reconstructed income-quintile baskets from",
+      "Istat microdata and Eurostat all-households totals."
     ),
     paste(
-      "Eurostat disseminates Italy HBS all-households consumption totals for",
-      "recent waves, but not the income-quintile consumption ventilation needed",
-      "for the package calculations. The Italy income-quintile baskets are",
-      "therefore reconstructed from Istat HBS microdata using the package",
-      "data-construction scripts."
+      "Level = 3 uses compact INE EPF 2020 microdata-derived HBS objects",
+      "for income, age, and residence-area groups."
+    ),
+    paste(
+      "Euro-area aggregates are built from country-level HICP-HBS",
+      "calculations and Eurostat HICP country weights."
     )
   ),
   population_group_caveat = c(
     paste(
-      "INSEE published income-decile IPC series are by 'niveau de vie':",
-      "household disposable income divided by consumption units. This is not",
-      "strictly the same grouping concept as the Eurostat HBS income-quintile",
-      "tables used by load_hbs()."
+      "National groups may differ from harmonised Eurostat groups;",
+      "income can be used as deciles or adjacent-decile quintiles."
     ),
     paste(
-      "Bruegel treats Belgium with bottom/top quartiles rather than quintiles.",
-      "The package has no automatic Belgium quartile override yet."
+      "Italy income groups are estimated ventilations, not directly",
+      "disseminated Eurostat income-quintile HBS tables."
     ),
     paste(
-      "The reconstructed Italy income groups are estimated ventilations, not",
-      "directly disseminated Eurostat income-quintile HBS tables. Metadata and",
-      "diagnostics are provided by the Italy HBS object construction workflow."
+      "Spain groups use equivalised income, reference-person age, and",
+      "density of residence from EPF microdata."
+    ),
+    paste(
+      "Household groups are defined within each country; euro-area results",
+      "are not a pooled household distribution."
     )
-  ),
-  housing_caveat = c(
-    paste(
-      "Large housing-weight gaps can partly reflect the different income",
-      "grouping concepts. In HICP calculations, CP042 imputed rents are not",
-      "directly used because they are absent from the HICP basket; observed",
-      "differences mainly affect CP041 actual rents and related housing items."
-    ),
-    "",
-    ""
   ),
   bruegel_comparison = c(
-    paste(
-      "Bruegel uses country-specific national sources where they support",
-      "finer COICOP detail; France is the implemented national-source level",
-      "3 case in this package."
-    ),
-    paste(
-      "Belgium is treated with bottom/top quartiles and national HBS waves;",
-      "2018 weights are used for 2019-2020 and 2020 weights for 2021-2022."
-    ),
-    paste(
-      "Bruegel warns that I.Stat data used in earlier versions are expenditure",
-      "quintiles, not income quintiles, and reports removing Italy from the",
-      "final figures."
-    )
+    "National-source level-3 workflow implemented.",
+    "Estimated input; users can replace it with custom_hbs.",
+    "National microdata input; users can replace it with custom_hbs.",
+    ""
   ),
   package_status = c(
-    paste(
-      "Implemented for level = 3 income calculations with",
-      "france_insee_income_groups = 'decile' or 'quintile'."
-    ),
-    "Under development; use custom_hbs for national quartile workflows.",
-    paste(
-      "Italy support uses reconstructed income-quintile HBS objects built from",
-      "Istat microdata and Eurostat all-households totals; users should treat",
-      "these as estimated inputs and can provide custom_hbs for alternative",
-      "Italy workflows."
-    )
+    "Implemented for level = 3 income, age, and urban calculations.",
+    "Implemented for level = 2 income calculations.",
+    "Implemented for level = 3 income, age, and urban calculations.",
+    "Implemented through country-level calculations; unavailable inputs are excluded."
   ),
   stringsAsFactors = FALSE
 )

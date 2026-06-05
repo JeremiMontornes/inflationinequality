@@ -1,0 +1,13 @@
+source,scope,scenario,policy_label,aggregate_consumption_change_pct,household_consumption_change_pct,total_cost_billion,public_spending_overcompensation_pct,public_spending_top_10_pct,households_overcompensated_pct,mean_overcompensation_consumption_pct,households_undercompensated_pct,mean_undercompensation_consumption_pct
+micro_epf,all,A1,Prix regule,2,6,20,0,11.5513205887295,0,0,0,0
+micro_epf,all,B1,Transfert forfaitaire,0,0,20,32.5044890985319,9.99817424547926,65.0751247199062,2.04140536485002,34.9248752800938,0.530508017313986
+micro_epf,all,C1,Transfert en fonction de la consommation passee,0,0,20,0,11.5513205887295,0,0,0,0
+grouped_decile,all,A1,Prix regule,2,6,20,0,11.5477054044818,0,0,0,0
+grouped_decile,all,B1,Transfert forfaitaire,0,0,20,3.10857672792955,10,50,0.0638169464883575,50,0.0423379838041931
+grouped_decile,all,C1,Transfert en fonction de la consommation passee,0,0,20,0,11.5477054044818,0,0,0,0
+micro_epf,below_median,A2,Prix regule,0.948379849686081,2.84513954905824,9.48379849686081,0,0,0,0,0,0
+micro_epf,below_median,B2,Transfert forfaitaire,0,0,9.48379849686081,33.7012682740743,0,66.668996369968,2.71160459481252,33.3310036300321,0.608574184236225
+micro_epf,below_median,C2,Transfert en fonction de la consommation passee,0,0,9.48379849686081,0,0,0,0,0,0
+grouped_decile,below_median,A2,Prix regule,0.948219426660402,2.84465827998121,9.48219426660402,0,0,0,0,0,0
+grouped_decile,below_median,B2,Transfert forfaitaire,0,0,9.48219426660403,1.62651133187644,0,60,0.0267703574429057,40,0.0426865792415648
+grouped_decile,below_median,C2,Transfert en fonction de la consommation passee,0,0,9.48219426660402,0,0,0,0,0,0

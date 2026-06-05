@@ -1,0 +1,4 @@
+scenario,policy_label,aggregate_consumption_change_pct,household_consumption_change_pct,total_cost_billion,public_spending_overcompensation_pct,public_spending_top_10_pct,households_overcompensated_pct,mean_overcompensation_consumption_pct,households_undercompensated_pct,mean_undercompensation_consumption_pct
+A2,Prix regule,0.87541906933083,2.62625720799249,8.7541906933083,0,0,0,0,0,0
+B2,Transfert forfaitaire,0,0,8.7541906933083,2.80024509803923,0,60,0.0550551556339153,40,0.0594028857631277
+C2,Transfert en fonction de la consommation passee,0,0,8.7541906933083,0,0,0,0,0,0

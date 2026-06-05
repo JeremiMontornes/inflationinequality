@@ -303,131 +303,13 @@ Yes
 Country coverage follows the Eurostat Statistics Explained article on [Household budget survey - statistics on consumption expenditure](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Household_budget_survey_-_statistics_on_consumption_expenditure&stable=1) and the harmonised Eurostat category tables returned by `load_hbs()`. Eurostat HBS income quintiles are household groups ranked by income; the HBS values are consumption expenditure or expenditure shares for households in each quintile, not average income. Ireland and Portugal responded to the 2020 HBS wave, with fieldwork in 2022-2023. Cyprus, France, and Malta 2020 HBS statistics are compiled from 2015-2017 data adjusted to the 2020 reference-year price level.
 
 <small>
-<table>
 
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-country
-</th>
-
-<th style="text-align:left;">
-
-coicop_case
-</th>
-
-<th style="text-align:left;">
-
-population_group_caveat
-</th>
-
-<th style="text-align:left;">
-
-housing_caveat
-</th>
-
-<th style="text-align:left;">
-
-package_status
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-France
-</td>
-
-<td style="text-align:left;">
-
-France level = 3 uses bundled INSEE Budget de famille 2017 data at 4-digit COICOP when a national HBS file is bundled for the requested household category. Income, age, and residence-area national HBS are integrated. Eurostat HBS remains the default for harmonised level = 1 and level = 2 comparisons.
-</td>
-
-<td style="text-align:left;">
-
-Population breakdowns can change when switching from harmonised Eurostat HBS to national INSEE/Budget de famille data. Eurostat level = 2 uses harmonised groups such as income quintiles, broad age classes, or degree of urbanisation; national France level = 3 may use INSEE-specific groups such as standard-of-living deciles or national residence/age classes. These concepts should not be compared as if they were identical.
-</td>
-
-<td style="text-align:left;">
-
-Large housing-weight gaps can partly reflect the different income grouping concepts. In HICP calculations, CP042 imputed rents are not directly used because they are absent from the HICP basket; observed differences mainly affect CP041 actual rents and related housing items.
-</td>
-
-<td style="text-align:left;">
-
-Implemented for level = 3 income calculations with france_insee_income_groups = decile or quintile, and for level = 3 age and residence-area calculations using bundled national HBS.
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Italy
-</td>
-
-<td style="text-align:left;">
-
-Eurostat disseminates Italy HBS all-households consumption totals for recent waves, but not the income-quintile consumption ventilation needed for the package calculations. The Italy income-quintile baskets are therefore reconstructed from Istat HBS microdata using the package data-construction scripts.
-</td>
-
-<td style="text-align:left;">
-
-The reconstructed Italy income groups are estimated ventilations, not directly disseminated Eurostat income-quintile HBS tables. Metadata and diagnostics are provided by the Italy HBS object construction workflow.
-</td>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:left;">
-
-Italy support uses reconstructed income-quintile HBS objects built from Istat microdata and Eurostat all-households totals; users should treat these as estimated inputs and can provide custom_hbs for alternative Italy workflows.
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Euro area
-</td>
-
-<td style="text-align:left;">
-
-Euro-area aggregates such as EA20 are built from country-level HICP-HBS calculations. The country composition is variable and follows the aggregate requested by the user and the countries for which the required HICP, HICP-weight and HBS data are available.
-</td>
-
-<td style="text-align:left;">
-
-Household groups such as income quintiles are defined within each country. The euro-area result is therefore a country-weighted average of available country-level group indices, not a pooled euro-area household distribution.
-</td>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:left;">
-
-Implemented through country-level calculations aggregated with Eurostat HICP country weights. Countries without the required input data for the requested period/category are excluded from the weighted average.
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
+| country | coicop_case | population_group_caveat | package_status |
+|---|---|---|---|
+| France | Level = 3 uses bundled INSEE Budget de famille 2017 HBS at 4-digit COICOP for income, age, and residence-area groups. | National groups may differ from harmonised Eurostat groups; income can be used as deciles or adjacent-decile quintiles. | Implemented for level = 3 income, age, and urban calculations. |
+| Italy | Income level = 2 uses reconstructed income-quintile baskets from Istat microdata and Eurostat all-households totals. | Italy income groups are estimated ventilations, not directly disseminated Eurostat income-quintile HBS tables. | Implemented for level = 2 income calculations. |
+| Spain | Level = 3 uses compact INE EPF 2020 microdata-derived HBS objects for income, age, and residence-area groups. | Spain groups use equivalised income, reference-person age, and density of residence from EPF microdata. | Implemented for level = 3 income, age, and urban calculations. |
+| Euro area | Euro-area aggregates are built from country-level HICP-HBS calculations and Eurostat HICP country weights. | Household groups are defined within each country; euro-area results are not a pooled household distribution. | Implemented through country-level calculations; unavailable inputs are excluded. |
 
 </small>
 

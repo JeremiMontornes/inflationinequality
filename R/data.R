@@ -35,7 +35,7 @@
 #' Country-specific COICOP data caveats
 #'
 #' A compact reference table describing country-specific caveats for matching
-#' HBS income groups, national COICOP sources, and HICP-HBS housing items.
+#' HBS income groups and national COICOP sources.
 #'
 #' @format A data frame with the following columns:
 #' \describe{
@@ -43,8 +43,6 @@
 #'   \item{coicop_case}{Country-specific COICOP or data-source case.}
 #'   \item{population_group_caveat}{Caveat about the demographic or income
 #'   grouping concept.}
-#'   \item{housing_caveat}{Caveat about housing items such as CP041 actual
-#'   rents and CP042 imputed rents.}
 #'   \item{bruegel_comparison}{Closest corresponding choice or warning in
 #'   Bruegel's inflation inequality dataset.}
 #'   \item{package_status}{Current implementation status in this package.}

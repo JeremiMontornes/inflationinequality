@@ -1,0 +1,4 @@
+source,category,n_categories,n_households,n_expense_rows,n_coicop4,output_rds
+"INE EPF 2020 microdata, author calculations",income,10,19170,1568629,115,C:\Users\jerem\Documents\GitHub\inflationinequality/data-raw/spain_epf/ES_income_epf_2020_level3.rds
+"INE EPF 2020 microdata, author calculations",age,4,19170,1568629,115,C:\Users\jerem\Documents\GitHub\inflationinequality/data-raw/spain_epf/ES_age_epf_2020_level3.rds
+"INE EPF 2020 microdata, author calculations",urban,3,19170,1568629,115,C:\Users\jerem\Documents\GitHub\inflationinequality/data-raw/spain_epf/ES_urban_epf_2020_level3.rds

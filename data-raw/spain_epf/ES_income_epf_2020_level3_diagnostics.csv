@@ -1,0 +1,2 @@
+source,n_households,n_expense_rows,n_coicop4,electricity_coicop,electricity_decile_rows,output_rds
+"INE EPF 2020 microdata, author calculations",19033,1561703,115,0451,10,C:\Users\jerem\Documents\GitHub\inflationinequality/data-raw/spain_epf/ES_income_epf_2020_level3.rds

@@ -134,6 +134,8 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     italy_hbs <- load_italy_level2_hbs_if_available(country, category, level)
     if (!is.null(italy_hbs)) {
       italy_hbs
+    } else if (use_spain_epf_2020_level3_hbs(country, category, level, custom_hbs)) {
+      load_spain_epf_2020_hbs_level3(category = category)
     } else if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
       load_france_insee_hbs_level3(category = category, income_groups = france_insee_income_groups)
     } else {

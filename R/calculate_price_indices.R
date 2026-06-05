@@ -27,12 +27,13 @@
 #' When `country = "EA20"`, `level` is forced to `2` because euro-area
 #' household-group aggregation is currently supported at COICOP level 2.
 #'
-#' @section France level 3:
+#' @section National level 3 HBS:
 #' For France, `level = 3` automatically uses bundled INSEE 2017 HBS level-3
 #' data for income, age, and residence-area groups when `custom_hbs` is not
-#' supplied. Eurostat public HBS data are generally not available at this
-#' granularity, so the national HBS source is required for a genuine 4-digit
-#' COICOP calculation.
+#' supplied. For Spain, `level = 3` uses compact INE EPF 2020 microdata-derived
+#' HBS objects when available. Eurostat public HBS data are generally not
+#' available at this granularity, so national HBS sources are required for a
+#' genuine 4-digit COICOP calculation.
 #'
 #' @returns An object of class `"price_indices"` containing:
 #' - `dt`: a `data.table` with columns `year`, `month`, `date`, `category`,
@@ -172,6 +173,9 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       category = category,
       income_groups = france_insee_income_groups
     )
+  }
+  if (use_spain_epf_2020_level3_hbs(country, category, level, custom_hbs)) {
+    custom_hbs <- load_spain_epf_2020_hbs_level3(category = category)
   }
 
   data_start_year <- if (!is.null(calculation_start_year)) calculation_start_year - 1 else NULL
