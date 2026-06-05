@@ -9,8 +9,6 @@
 
 `inflationinequality` provides methods to calculate and visualize inflation inequality indicators.
 
-Package version: `0.0.2`
-
 ## Features
 
 - Calculate and visualize inflation and contributions to inflation by households categories
