@@ -1,8 +1,8 @@
 ---
-title: "Verifications"
+title: "Validation tests"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Verifications}
+  %\VignetteIndexEntry{Validation tests}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,6 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  echo = FALSE,
   eval = FALSE,
   warning = FALSE,
   message = FALSE,
@@ -34,24 +35,91 @@ The validation has two complementary goals:
    official INSEE series by standard-of-living decile.
 
 The examples below are reproducible. Some of them download data from Eurostat or
-INSEE, so the vignette displays precomputed figures and keeps the full
-regeneration code visible.
+INSEE, so the vignette displays validation outputs and precomputed figures while
+keeping the regeneration code in the source `.Rmd` file.
 
 ***
 
-## All-items HICP validation
+## RAS aggregation identity
+
+The examples below use `weighting_method = "ras"` for income quintiles. This
+calibrates the group-specific expenditure matrix so that each quintile basket
+sums to 100 percent and the simple average of the five quintile baskets
+reproduces the matched official HICP item weights.
+
+The exact validation test is performed at the linear aggregation step. The
+package first unchains item-level HICP indices, aggregates these elementary
+monthly movements with group-specific weights, and then chain-links the
+resulting series. Under RAS calibration, the simple average of the five
+quintile-specific unchained Laspeyres movements is exactly equal to the
+corresponding `"Total"` movement computed on the same matched COICOP field.
+
+```{r ras-identity-code}
+indices_ras <- calculate_price_indices(
+  "FR",
+  "income",
+  level = 2,
+  start_year = 2019,
+  end_year = 2026,
+  end_month = 4,
+  base_year = 2015,
+  include_total = TRUE,
+  weighting_method = "ras"
+)
+
+quintile_mean <- indices_ras$dt[
+  category != "Total",
+  .(mean_quintile_laspeyres = mean(laspeyres)),
+  by = .(year, month, date)
+]
+
+total_laspeyres <- indices_ras$dt[
+  category == "Total",
+  .(year, month, date, total_laspeyres = laspeyres)
+]
+
+ras_identity <- merge(
+  quintile_mean,
+  total_laspeyres,
+  by = c("year", "month", "date")
+)
+ras_identity[, difference := mean_quintile_laspeyres - total_laspeyres]
+
+ras_identity[
+  ,
+  .(
+    max_abs_difference = max(abs(difference), na.rm = TRUE),
+    april_2026_difference = difference[year == 2026 & month == 4]
+  )
+]
+```
+
+| Statistic | Difference |
+|---|---:|
+| Maximum absolute difference | \(9.565682 \times 10^{-13}\) |
+| April 2026 difference | \(2.708944 \times 10^{-14}\) |
+
+The maximum absolute difference is of the order of \(10^{-12}\), i.e. numerical
+rounding error. This is the no-gap validation implied by the RAS constraint.
+
+## Published all-items HICP diagnostic
 
 The helper `compare_to_official_hicp()` compares a package calculation with the
 published all-items HICP basket. With an `inflation` object it validates
 year-on-year rates. With a `price_indices` object it validates index levels.
+This is an external diagnostic, not the RAS identity itself: the official
+published all-items series may use a broader product field, a different
+ECOICOP version, and a direct chain-linked aggregate.
 
 ```{r hicp-rate-code}
 inflation <- calculate_inflation(
   "FR",
   "income",
+  level = 2,
   start_year = 2019,
   end_year = 2026,
-  end_month = 3
+  end_month = 4,
+  weighting_method = "ras"
 )
 
 comparison <- compare_to_official_hicp(inflation)
@@ -70,10 +138,12 @@ rebased to the same base year before comparison.
 indices <- calculate_price_indices(
   "FR",
   "income",
+  level = 2,
   start_year = 2010,
   end_year = 2026,
-  end_month = 3,
-  base_year = 2010
+  end_month = 4,
+  base_year = 2015,
+  weighting_method = "ras"
 )
 
 level_comparison <- compare_to_official_hicp(indices)
@@ -85,10 +155,9 @@ level_comparison$plot
 knitr::include_graphics("figures/france_hicp_validation_level_mean_vs_published.png")
 ```
 
-These diagnostics should not be interpreted as an exact identity check. The
-package calculates group-specific baskets from HBS expenditure patterns and then
-averages the group indices, while the official all-items HICP uses the official
-national aggregate basket directly. Small differences are therefore expected.
+Differences in these figures should therefore be interpreted as residual
+differences between the package reconstruction and the published aggregate, not
+as a failure of the RAS aggregation identity shown above.
 
 ### Euro-area aggregate validation
 
@@ -104,8 +173,8 @@ within-country quintile averages.
 The comparison covers January 2015 to April 2026. Both the recalculated `EA20`
 total and the official Eurostat all-items HICP are expressed with base
 2025 = 100. Over the 136 monthly observations, the mean difference is
--0.036 index point, the mean absolute difference is 0.085 index point, the RMSE
-is 0.104 index point, and the maximum absolute difference is 0.352 index point.
+0.031 index point, the mean absolute difference is 0.162 index point, the RMSE
+is 0.205 index point, and the maximum absolute difference is 0.571 index point.
 This shows that the euro-area aggregation used by the package is very close to
 the published EA20 HICP, while still leaving small differences due to COICOP
 coverage, ECOICOP mapping, and the use of annual country weights.

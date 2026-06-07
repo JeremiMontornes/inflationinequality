@@ -79,8 +79,10 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
                                 interpolated_hbs = FALSE,
                                 specific_hbs_year = NULL,
                                 france_insee_income_groups = c("decile", "quintile"),
+                                weighting_method = c("relative_expenditure", "ras"),
                                 recode_ecoicop2_to_ecoicop1 = NULL) {
   france_insee_income_groups <- match.arg(france_insee_income_groups)
+  weighting_method <- match.arg(weighting_method)
 
   contributions <- calculate_contributions(country, category,
     level = level,
@@ -93,6 +95,7 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
     interpolated_hbs = interpolated_hbs,
     specific_hbs_year = specific_hbs_year,
     france_insee_income_groups = france_insee_income_groups,
+    weighting_method = weighting_method,
     recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
   )
   dt_inflation <-
@@ -105,6 +108,7 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
                         country = country,
                         category = category,
                         categories = contributions$categories,
+                        weighting_method = weighting_method,
                         level = contributions$level,
                         start_year = contributions$start_year,
                         start_month = 1,

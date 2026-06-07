@@ -42,7 +42,8 @@ mock_calculate_weights <- function(country, category, level, start_year, end_yea
                                    custom_hbs,
                                    interpolated_hbs,
                                    specific_hbs_year,
-                                   france_insee_income_groups = "decile") {
+                                   france_insee_income_groups = "decile",
+                                   weighting_method = "relative_expenditure") {
   weights_fr2 <- if (category == "income") {
     if (!is.null(start_year) &&
         start_year == 2016 &&

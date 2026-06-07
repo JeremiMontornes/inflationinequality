@@ -150,14 +150,94 @@ make_hbs <- function(category_name, group_col, categories) {
   )
 }
 
+add_parent_coicop_rows <- function(hbs_obj) {
+  dt <- copy(hbs_obj$dt)
+  dt_total <- copy(hbs_obj$dt_total)
+
+  parent_lengths <- function(code) {
+    if (nchar(code) <= 2L) {
+      integer()
+    } else {
+      seq.int(2L, nchar(code) - 1L)
+    }
+  }
+
+  dt_parents <- rbindlist(lapply(sort(unique(dt$coicop)), function(code) {
+    lengths <- parent_lengths(code)
+    if (length(lengths) == 0L) {
+      return(NULL)
+    }
+    rows <- dt[coicop == code]
+    rbindlist(lapply(lengths, function(last) {
+      out <- copy(rows)
+      out[, coicop := substr(code, 1L, last)]
+      out
+    }), use.names = TRUE)
+  }), use.names = TRUE, fill = TRUE)
+
+  if (nrow(dt_parents) > 0L) {
+    dt_parents <- dt_parents[
+      ,
+      .(
+        series_name = paste("ES EPF 2020 parent", unique(coicop), unique(category), sep = "."),
+        consumption = sum(consumption, na.rm = TRUE)
+      ),
+      by = .(coicop, year, category)
+    ]
+    dt <- rbindlist(
+      list(dt, dt_parents[!dt, on = .(coicop, year, category)]),
+      use.names = TRUE,
+      fill = TRUE
+    )
+  }
+
+  total_parents <- rbindlist(lapply(sort(unique(dt_total$coicop)), function(code) {
+    lengths <- parent_lengths(code)
+    if (length(lengths) == 0L) {
+      return(NULL)
+    }
+    rows <- dt_total[coicop == code]
+    rbindlist(lapply(lengths, function(last) {
+      out <- copy(rows)
+      out[, coicop := substr(code, 1L, last)]
+      out
+    }), use.names = TRUE)
+  }), use.names = TRUE, fill = TRUE)
+
+  if (nrow(total_parents) > 0L) {
+    total_parents <- total_parents[
+      ,
+      .(
+        series_name = paste("ES EPF 2020 parent", unique(coicop), "Total", sep = "."),
+        total_consumption = sum(total_consumption, na.rm = TRUE)
+      ),
+      by = .(coicop, year)
+    ]
+    dt_total <- rbindlist(
+      list(dt_total, total_parents[!dt_total, on = .(coicop, year)]),
+      use.names = TRUE,
+      fill = TRUE
+    )
+  }
+
+  hbs(
+    dt = dt,
+    dt_total = dt_total,
+    country = hbs_obj$country,
+    category = hbs_obj$category,
+    categories = hbs_obj$categories,
+    level = hbs_obj$level
+  )
+}
+
 objects <- list(
-  income = make_hbs("income", "income_group", paste0("Decile ", 1:10)),
-  age = make_hbs(
+  income = add_parent_coicop_rows(make_hbs("income", "income_group", paste0("Decile ", 1:10))),
+  age = add_parent_coicop_rows(make_hbs(
     "age",
     "age_group",
     c("Less than 30 years", "From 30 to 44 years", "From 45 to 59 years", "60 years or over")
-  ),
-  urban = make_hbs("urban", "urban_group", c("Rural areas", "Towns and suburbs", "Cities"))
+  )),
+  urban = add_parent_coicop_rows(make_hbs("urban", "urban_group", c("Rural areas", "Towns and suburbs", "Cities")))
 )
 
 diagnostics <- rbindlist(lapply(names(objects), function(category_name) {

@@ -110,12 +110,23 @@ p <- ggplot(comparison, aes(x = date)) +
     legend.position = "bottom",
     plot.title = element_text(face = "bold"),
     panel.grid.minor = element_blank()
-  )
+  ) +
+  coord_cartesian(ylim = c(70, NA))
 
 out_dir <- file.path("docs")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 ggsave(
   filename = file.path(out_dir, "ea20_hicp_validation_total_vs_official_2015_2026_04.png"),
+  plot = p,
+  width = 9,
+  height = 5.4,
+  dpi = 160
+)
+
+vignette_out_dir <- file.path("vignettes", "figures")
+dir.create(vignette_out_dir, showWarnings = FALSE, recursive = TRUE)
+ggsave(
+  filename = file.path(vignette_out_dir, "ea20_hicp_validation_total_vs_official_2015_2026_04.png"),
   plot = p,
   width = 9,
   height = 5.4,

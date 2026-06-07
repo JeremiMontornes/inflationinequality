@@ -14,7 +14,8 @@ calculate_weights(
   custom_hbs = NULL,
   interpolated_hbs = FALSE,
   specific_hbs_year = NULL,
-  france_insee_income_groups = c("decile", "quintile")
+  france_insee_income_groups = c("decile", "quintile"),
+  weighting_method = c("relative_expenditure", "ras")
 )
 }
 \arguments{
@@ -50,6 +51,11 @@ because the source values are mean expenditures for equal-population
 decile groups, not income-threshold bounds. This option only affects
 \code{category = "income"}; France \code{age} and \code{urban} level-3 HBS data keep their
 original national groups.}
+
+\item{weighting_method}{weighting formula. \code{"relative_expenditure"} keeps the
+historical package formula. \code{"ras"} applies iterative proportional fitting
+for income quintiles or deciles, so the population-weighted average of group
+weights matches the HICP item weights while each group basket sums to 100.}
 }
 \value{
 An object of class \code{"weights"} is a list containing the following

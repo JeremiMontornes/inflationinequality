@@ -415,7 +415,7 @@ Euro area
 
 <td style="text-align:left;">
 
-Euro-area aggregates are built from country-level HICP-HBS calculations and Eurostat HICP country weights.
+Euro-area aggregates are built from country-level HICP-HBS calculations and Eurostat HICP country weights. Country-level calculations use COICOP level = 2, except for Lithuania (LT) where HBS data are only available at level = 1.
 </td>
 
 <td style="text-align:left;">
@@ -438,8 +438,5 @@ Implemented through country-level calculations; unavailable inputs are excluded.
 
 ## COICOP bridge HTML tables
 
-- [France HICP-HBS bridge, income level 2](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level2_2010_2026.html)
-- [France HICP-HBS bridge audit, income level 2](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level2_2010_2026_audit.html)
-- [France HICP-HBS bridge, INSEE income level 3](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026.html)
-- [France HICP-HBS bridge audit, INSEE income level 3](https://jeremimontornes.github.io/inflationinequality/france_coicop_hicp_hbs_bridge_income_level3_insee_2010_2026_audit.html)
-- [France ECOICOP v2 to COICOP v1 level 3 audit](https://jeremimontornes.github.io/inflationinequality/france_hicp_ecoicopv2_to_coicopv1_level3_audit.html)
+- [Euro area HICP-HBS bridge audit, ECOICOP v1, level 2](https://jeremimontornes.github.io/inflationinequality/euro_area_hicp_hbs_bridge_level2_ecoicopv1_audit.html)
+- [Euro area HICP-HBS bridge audit, ECOICOP v1, level 3](https://jeremimontornes.github.io/inflationinequality/euro_area_hicp_hbs_bridge_level3_ecoicopv1_audit.html)

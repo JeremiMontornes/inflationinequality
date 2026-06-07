@@ -79,3 +79,52 @@ test_that("write_coicop_bridge_html writes an html table", {
   expect_true(file.exists(out))
   expect_match(paste(readLines(out), collapse = "\n"), "COICOP HICP-HBS bridge")
 })
+
+test_that("coverage is measured from HICP codes, not HBS-only codes", {
+  index_weights_dt <- data.table::data.table(
+    coicop = c("01", "02"),
+    weight = c(600, 400),
+    year = 2022
+  )
+  custom_index_weights <- index_weights(
+    index_weights_dt,
+    country = "FR",
+    level = 1,
+    base_total = 1000
+  )
+
+  hbs_dt <- data.table::data.table(
+    series_name = "HBS",
+    coicop = rep(c("01", "02", "03"), each = 2),
+    year = 2020,
+    category = rep(c("Low", "High"), 3),
+    consumption = c(100, 100, 50, 50, 25, 25)
+  )
+  hbs_total <- data.table::data.table(
+    series_name = "HBS",
+    coicop = c("01", "02", "03"),
+    year = 2020,
+    total_consumption = c(200, 100, 50)
+  )
+  custom_hbs <- hbs(
+    hbs_dt,
+    hbs_total,
+    country = "FR",
+    category = "income",
+    categories = c("Low", "High"),
+    level = 1
+  )
+
+  coverage <- check_hbs_cpi_coverage(
+    country = "FR",
+    category = "income",
+    level = 1,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    recode_ecoicop2_to_ecoicop1 = FALSE
+  )
+
+  expect_equal(coverage$summary$n_hicp, 2)
+  expect_equal(coverage$summary$n_hbs_only, 1)
+  expect_equal(coverage$summary$hicp_covered_after_rollup_rate, 1)
+})

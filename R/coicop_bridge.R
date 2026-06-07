@@ -69,6 +69,33 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
     weight_dt,
     on = .(coicop, weight_year)
   ]
+  if (is_spain_epf_level3_bridge(country_value, category_type_value, level)) {
+    weight_dt <- prepare_index_weights_tree(index_weights)
+    weight_dt[, hicp_coicopv2 := coicop]
+    weight_dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+    weight_dt[, coicop := coicop_to_level(coicop, 3)]
+    weight_dt <- weight_dt[
+      ,
+      .(
+        weight = sum(weight, na.rm = TRUE),
+        hicp_coicopv2 = paste(sort(unique(hicp_coicopv2)), collapse = ", ")
+      ),
+      by = .(coicop, weight_year)
+    ]
+  } else if (is_france_tf106_level3_bridge(country_value, category_type_value, level)) {
+    weight_dt <- prepare_index_weights_tree(index_weights)
+    weight_dt[, hicp_coicopv2 := coicop]
+    weight_dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+    weight_dt[, coicop := coicop_to_level(coicop, 3)]
+    weight_dt <- weight_dt[
+      ,
+      .(
+        weight = sum(weight, na.rm = TRUE),
+        hicp_coicopv2 = paste(sort(unique(hicp_coicopv2)), collapse = ", ")
+      ),
+      by = .(coicop, weight_year)
+    ]
+  }
 
   hbs_dt <- data.table::copy(hbs$dt)
   hbs_total <- data.table::copy(hbs$dt_total)
@@ -77,24 +104,37 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
     hbs_dt <- hbs_dt[year == specific_hbs_year]
   }
 
-  weight_coicops <- weight_dt[nchar(coicop) == index_weights$level + 1, unique(coicop)]
-  hbs_coicops <- hbs_dt[nchar(coicop) == hbs$level + 1, unique(coicop)]
-  missing_coicops <- setdiff(weight_coicops, hbs_coicops)
-  higher_coicops <- unique(substr(missing_coicops, 1, index_weights$level))
+
+  weight_coicops <- if (is_spain_epf_level3_bridge(country_value, category_type_value, level) ||
+      is_france_tf106_level3_bridge(country_value, category_type_value, level)) {
+    weight_dt[, unique(coicop)]
+  } else {
+    weight_dt[nchar(coicop) == index_weights$level + 1, unique(coicop)]
+  }
+  hbs_available <- unique(hbs_dt$coicop)
 
   mapping <- data.table::data.table(hicp_coicop = weight_coicops)
-  mapping[, hbs_coicop := data.table::fifelse(
-    substr(hicp_coicop, 1, index_weights$level) %in% higher_coicops,
-    substr(hicp_coicop, 1, index_weights$level),
-    hicp_coicop
-  )]
+  if (is_spain_epf_level3_bridge(country_value, category_type_value, level)) {
+    mapping[, hbs_coicop := closest_available_hbs_coicop(hicp_coicop, hbs_available)]
+  } else if (is_france_tf106_level3_bridge(country_value, category_type_value, level)) {
+    mapping[, tf106_coicop := closest_available_hbs_coicop(hicp_coicop, france_tf106_level3_codes())]
+    mapping[, hbs_coicop := closest_available_hbs_coicop(tf106_coicop, hbs_available)]
+  } else {
+    hbs_coicops <- hbs_dt[nchar(coicop) == hbs$level + 1, unique(coicop)]
+    missing_coicops <- setdiff(weight_coicops, hbs_coicops)
+    higher_coicops <- unique(substr(missing_coicops, 1, index_weights$level))
+    mapping[, hbs_coicop := data.table::fifelse(
+      substr(hicp_coicop, 1, index_weights$level) %in% higher_coicops,
+      substr(hicp_coicop, 1, index_weights$level),
+      hicp_coicop
+    )]
+  }
   mapping[, mapping_status := data.table::fifelse(
     hicp_coicop == hbs_coicop,
     "exact",
     "rolled_up_to_higher_level"
   )]
 
-  hbs_available <- unique(hbs_dt$coicop)
   mapping[, hbs_code_available := hbs_coicop %in% hbs_available]
 
   bridge_raw <- mapping[
@@ -211,7 +251,20 @@ check_hbs_cpi_coverage <- function(country = NULL, category = NULL, level = 2,
     )
   }
 
-  weight_dt <- data.table::copy(index_weights$dt)
+  spain_epf_case <- is_spain_epf_level3_bridge(country, category, level)
+  france_tf106_case <- is_france_tf106_level3_bridge(country, category, level)
+  if (spain_epf_case || france_tf106_case) {
+    weight_dt <- prepare_index_weights_tree(index_weights)
+    weight_dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+    weight_dt[, coicop := coicop_to_level(coicop, 3)]
+    weight_dt <- weight_dt[
+      ,
+      .(weight = sum(weight, na.rm = TRUE)),
+      by = .(coicop, weight_year)
+    ]
+  } else {
+    weight_dt <- data.table::copy(index_weights$dt)
+  }
   if ("year" %in% names(weight_dt)) {
     data.table::setnames(weight_dt, "year", "weight_year")
   } else if (!"weight_year" %in% names(weight_dt)) {
@@ -222,27 +275,52 @@ check_hbs_cpi_coverage <- function(country = NULL, category = NULL, level = 2,
   if (!is.null(inputs$specific_hbs_year)) {
     hbs_dt <- hbs_dt[year == inputs$specific_hbs_year]
   }
+  hbs_dt <- hbs_dt[data.table::copy(hbs$dt_total), on = .(coicop, year)]
 
-  weight_coicops <- sort(unique(weight_dt[nchar(coicop) == level + 1, coicop]))
+  weight_coicops <- if (spain_epf_case || france_tf106_case) {
+    sort(unique(weight_dt$coicop))
+  } else {
+    sort(unique(weight_dt[nchar(coicop) == level + 1, coicop]))
+  }
   hbs_coicops <- sort(unique(hbs_dt[nchar(coicop) == level + 1, coicop]))
   hbs_only <- setdiff(hbs_coicops, weight_coicops)
   hicp_only <- setdiff(weight_coicops, hbs_coicops)
-  higher_coicops <- unique(substr(hicp_only, 1, level))
 
   codes <- data.table::data.table(
     coicop = sort(unique(c(weight_coicops, hbs_coicops)))
   )
   codes[, in_hicp := coicop %in% weight_coicops]
   codes[, in_hbs := coicop %in% hbs_coicops]
-  codes[, hbs_match_coicop := data.table::fifelse(
-    in_hicp & !in_hbs & substr(coicop, 1, level) %in% higher_coicops,
-    substr(coicop, 1, level),
-    coicop
-  )]
-  codes[, hbs_match_available := hbs_match_coicop %in% unique(hbs_dt$coicop)]
+  hbs_available <- unique(hbs_dt$coicop)
+  if (is_spain_epf_level3_bridge(country, category, level)) {
+    codes[, hbs_match_coicop := data.table::fifelse(
+      in_hicp,
+      closest_available_hbs_coicop(coicop, hbs_available),
+      coicop
+    )]
+  } else if (is_france_tf106_level3_bridge(country, category, level)) {
+    codes[, tf106_match_coicop := data.table::fifelse(
+      in_hicp,
+      closest_available_hbs_coicop(coicop, france_tf106_level3_codes()),
+      coicop
+    )]
+    codes[, hbs_match_coicop := data.table::fifelse(
+      in_hicp,
+      closest_available_hbs_coicop(tf106_match_coicop, hbs_available),
+      coicop
+    )]
+  } else {
+    higher_coicops <- unique(substr(hicp_only, 1, level))
+    codes[, hbs_match_coicop := data.table::fifelse(
+      in_hicp & !in_hbs & substr(coicop, 1, level) %in% higher_coicops,
+      substr(coicop, 1, level),
+      coicop
+    )]
+  }
+  codes[, hbs_match_available := hbs_match_coicop %in% hbs_available]
   codes[, status := data.table::fcase(
     in_hicp & in_hbs, "matched",
-    in_hicp & !in_hbs & hbs_match_available, "rolled_up_to_higher_level",
+    in_hicp & !in_hbs & hbs_match_coicop %in% hbs_available, "rolled_up_to_higher_level",
     in_hicp & !in_hbs, "hicp_only",
     !in_hicp & in_hbs, "hbs_only"
   )]
@@ -433,6 +511,18 @@ build_hicp_coicopv2_map <- function(index_weights, target_level, recode_ecoicop2
   ]
 }
 
+
+is_france_tf106_level3_bridge <- function(country, category, level) {
+  identical(toupper(country %||local% ""), "FR") &&
+    isTRUE(category %in% c("income", "age", "urban")) &&
+    identical(as.integer(level), 3L)
+}
+
+is_spain_epf_level3_bridge <- function(country, category, level) {
+  identical(toupper(country %||local% ""), "ES") &&
+    isTRUE(category %in% c("income", "age", "urban")) &&
+    identical(as.integer(level), 3L)
+}
 data_table_to_html <- function(dt) {
   header <- paste0("<tr>", paste0("<th>", html_escape(names(dt)), "</th>", collapse = ""), "</tr>")
   rows <- apply(dt, 1, function(row) {

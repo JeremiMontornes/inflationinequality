@@ -44,6 +44,10 @@
 #'   decile groups, not income-threshold bounds. This option only affects
 #'   `category = "income"`; France `age` and `urban` level-3 HBS data keep their
 #'   original national groups.
+#' @param weighting_method weighting formula. `"relative_expenditure"` keeps the
+#'   historical package formula. `"ras"` applies iterative proportional fitting
+#'   for income quintiles or deciles, so the population-weighted average of group
+#'   weights matches the HICP item weights while each group basket sums to 100.
 #'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
@@ -95,11 +99,13 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               custom_hbs = NULL,
                               interpolated_hbs = FALSE,
                               specific_hbs_year = NULL,
-                              france_insee_income_groups = c("decile", "quintile")) {
+                              france_insee_income_groups = c("decile", "quintile"),
+                              weighting_method = c("relative_expenditure", "ras")) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
   france_insee_income_groups <- match.arg(france_insee_income_groups)
+  weighting_method <- match.arg(weighting_method)
 
   # Load index weights
   index_weights <- if (is.null(custom_index_weights)) {
@@ -185,8 +191,13 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     specific_hbs_year = specific_hbs_year
   )
 
-  dt_weighted_consumption <-
+  dt_weighted_consumption <- if (use_spain_epf_2020_level3_hbs(country, category, level, custom_hbs)) {
+    merge_spain_epf_level3_index_and_hbs(index_weights, hbs, specific_hbs_year)
+  } else if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
+    merge_france_tf106_level3_index_and_hbs(index_weights, hbs, specific_hbs_year)
+  } else {
     merge_index_and_hbs(index_weights, hbs, specific_hbs_year)
+  }
 
   dt_weighted_consumption <- dt_weighted_consumption[,
     {
@@ -227,27 +238,38 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
   dt_sums <- dt_weighted_consumption[, .(weight_sum = sum(weight)), by = .(weight_year, category)]
   dt_avg <- dt_sums[, .(weight_sum_avg = mean(weight_sum) * 100 / index_weights$base_total), by = .(weight_year)]
 
-  ### Equation (1)
-  dt_weighted_consumption[, hbs_multiplier := data.table::fifelse(
-    consumption == 1e-6 & total_consumption == 1e-6,
-    1e-6,
-    consumption / total_consumption
-  )]
+  if (identical(weighting_method, "relative_expenditure")) {
+    ### Equation (1)
+    dt_weighted_consumption[, hbs_multiplier := data.table::fifelse(
+      consumption == 1e-6 & total_consumption == 1e-6,
+      1e-6,
+      consumption / total_consumption
+    )]
 
-  dt_weighted_consumption[, unnormalized_weighted_consumption := weight * hbs_multiplier]
-  ###
+    dt_weighted_consumption[, unnormalized_weighted_consumption := weight * hbs_multiplier]
+    ###
 
-  # Normalised weights
-  dt_weighted_consumption[, weighted_consumption := unnormalized_weighted_consumption * 100 / sum(unnormalized_weighted_consumption), by = .(weight_year, category)]
+    # Normalised weights
+    dt_weighted_consumption[, weighted_consumption := unnormalized_weighted_consumption * 100 / sum(unnormalized_weighted_consumption), by = .(weight_year, category)]
+  } else {
+    dt_weighted_consumption <- apply_ras_income_weights(
+      dt_weighted_consumption,
+      hbs_category = hbs$category,
+      categories = hbs$categories
+    )
+  }
 
   # Remove intermediate columns to reduce memory usage
-  dt_weighted_consumption[, `:=`(
-    weight = NULL,
-    consumption = NULL,
-    hbs_multiplier = NULL,
-    total_consumption = NULL,
-    unnormalized_weighted_consumption = NULL
-  )]
+  intermediate_cols <- intersect(
+    c(
+      "weight", "consumption", "hbs_multiplier", "total_consumption",
+      "unnormalized_weighted_consumption", "seed"
+    ),
+    names(dt_weighted_consumption)
+  )
+  if (length(intermediate_cols) > 0L) {
+    dt_weighted_consumption[, (intermediate_cols) := NULL]
+  }
 
   # Stop if there are abnormally large weights
   abnormal_weighted_consumption <-
@@ -277,21 +299,135 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                         country = country,
                         category = category,
                         categories = hbs$categories,
+                        weighting_method = weighting_method,
                         level = level,
                         start_year = min(dt_weighted_consumption$weight_year),
                         end_year = max(dt_weighted_consumption$weight_year)),
                    class = "weights"))
 }
 
+apply_ras_income_weights <- function(dt, hbs_category, categories, tolerance = 1e-10,
+                                     max_iter = 1000L) {
+  if (!identical(hbs_category, "income")) {
+    stop(
+      "weighting_method = 'ras' is currently implemented only for income ",
+      "quintiles or deciles.",
+      call. = FALSE
+    )
+  }
+  n_categories <- length(categories)
+  if (!n_categories %in% c(5L, 10L)) {
+    stop(
+      "weighting_method = 'ras' is currently implemented only for income ",
+      "quintiles or deciles.",
+      call. = FALSE
+    )
+  }
+  if (!all(categories %in% unique(dt$category))) {
+    stop(
+      "Cannot apply RAS because not all income categories are present in the ",
+      "HBS-HICP matched data.",
+      call. = FALSE
+    )
+  }
+
+  category_share <- data.table::data.table(
+    category = categories,
+    category_share = rep(1 / n_categories, n_categories)
+  )
+  dt <- category_share[dt, on = .(category)]
+  dt[, hbs_multiplier := data.table::fifelse(
+    consumption == 1e-6 & total_consumption == 1e-6,
+    1e-6,
+    consumption / total_consumption
+  )]
+  dt[, seed := pmax(category_share * weight * hbs_multiplier, 1e-12)]
+
+  dt <- dt[
+    ,
+    ras_calibrate_group(
+      .SD,
+      categories = categories,
+      tolerance = tolerance,
+      max_iter = max_iter
+    ),
+    by = .(weight_year)
+  ]
+  dt[, category_share := NULL]
+  dt[]
+}
+
+ras_calibrate_group <- function(dt, categories, tolerance, max_iter) {
+  categories <- categories[categories %in% unique(dt$category)]
+  coicops <- sort(unique(dt$coicop))
+
+  wide <- dcast_ras_seed(dt, categories, coicops)
+  row_targets <- rep(100 / length(categories), length(categories))
+  col_targets <- dt[
+    ,
+    .(target = weight[1L]),
+    by = coicop
+  ][match(coicops, coicop), target]
+  col_targets <- col_targets * 100 / sum(col_targets)
+
+  calibrated <- ras_ipf(wide, row_targets, col_targets,
+                        tolerance = tolerance, max_iter = max_iter)
+
+  calibrated_dt <- data.table::as.data.table(as.table(calibrated))
+  data.table::setnames(calibrated_dt, c("category", "coicop", "weighted_mass"))
+  calibrated_dt[, `:=`(
+    category = as.character(category),
+    coicop = as.character(coicop)
+  )]
+
+  out <- calibrated_dt[dt, on = .(category, coicop)]
+  out[, weighted_consumption := weighted_mass / category_share]
+  out[, weighted_mass := NULL]
+  out[]
+}
+
+dcast_ras_seed <- function(dt, categories, coicops) {
+  seed_dt <- dt[, .(seed = sum(seed, na.rm = TRUE)), by = .(category, coicop)]
+  seed_dt[, category := factor(category, levels = categories)]
+  seed_dt[, coicop := factor(coicop, levels = coicops)]
+  wide <- data.table::dcast(seed_dt, category ~ coicop, value.var = "seed", fill = 1e-12)
+  mat <- as.matrix(wide[, -1])
+  rownames(mat) <- as.character(wide$category)
+  storage.mode(mat) <- "numeric"
+  mat
+}
+
+ras_ipf <- function(seed, row_targets, col_targets, tolerance, max_iter) {
+  mat <- seed
+  for (iter in seq_len(max_iter)) {
+    row_sums <- rowSums(mat)
+    mat <- mat * (row_targets / row_sums)
+
+    col_sums <- colSums(mat)
+    mat <- sweep(mat, 2L, col_sums / col_targets, "/")
+
+    err <- max(
+      abs(rowSums(mat) - row_targets),
+      abs(colSums(mat) - col_targets)
+    )
+    if (is.finite(err) && err < tolerance) {
+      return(mat)
+    }
+  }
+  stop("RAS calibration did not converge.", call. = FALSE)
+}
+
 load_italy_level2_hbs_if_available <- function(country, category, level) {
   if (!identical(toupper(country), "IT") ||
-      !category %in% c("income", "age") ||
+      !category %in% c("income", "age", "urban") ||
       !identical(as.integer(level), 2L)) {
     return(NULL)
   }
 
   file_name <- if (identical(category, "income")) {
     "IT_income_hbs_latent_probabilities_2015_2020_level2.rds"
+  } else if (identical(category, "urban")) {
+    "IT_urban_hbs_eurostat_2015_2020_level2.rds"
   } else {
     "IT_age_hbs_eurostat_2015_2020_level2.rds"
   }
@@ -372,4 +508,156 @@ merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
     ]
 
   return(dt_weighted_consumption)
+}
+
+merge_france_tf106_level3_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
+  dt_index_weights <- prepare_index_weights_tree(index_weights)
+  dt_index_weights[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+  dt_index_weights[, coicop := coicop_to_level(coicop, 3)]
+  dt_index_weights <- dt_index_weights[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop, weight_year)
+  ]
+  dt_hbs <- hbs$dt[hbs$dt_total, on = .(coicop, year)]
+
+  if (!is.null(specific_hbs_year)) {
+    dt_hbs <- dt_hbs[year == specific_hbs_year, ]
+  }
+
+  tf106_codes <- france_tf106_level3_codes()
+  hbs_coicops <- unique(dt_hbs$coicop)
+  dt_index_weights[, tf106_coicop := closest_available_hbs_coicop(coicop, tf106_codes)]
+  dt_index_weights[, hbs_coicop := closest_available_hbs_coicop(tf106_coicop, hbs_coicops)]
+
+  missing_hbs_match <- dt_index_weights[is.na(hbs_coicop), unique(coicop)]
+  if (length(missing_hbs_match) > 0) {
+    stop(
+      "French level-3 HICP codes found in CPI weights but not in TF106/HBS, ",
+      "even after rolling up to an available TF106 parent: ",
+      paste(missing_hbs_match, collapse = ", ")
+    )
+  }
+
+  dt_index_weights <- dt_index_weights[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop = hbs_coicop, weight_year)
+  ]
+
+  dt_hbs[dt_index_weights, on = .(coicop), allow.cartesian = TRUE] %>%
+    .[!is.na(category)
+      & !is.na(weight_year)
+      & !is.na(weight)
+      & !is.na(year)
+      & !is.na(consumption)
+    ]
+}
+
+merge_spain_epf_level3_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
+  dt_index_weights <- prepare_index_weights_tree(index_weights)
+  dt_index_weights[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+  dt_index_weights[, coicop := coicop_to_level(coicop, 3)]
+  dt_index_weights <- dt_index_weights[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop, weight_year)
+  ]
+  dt_hbs <- hbs$dt[hbs$dt_total, on = .(coicop, year)]
+
+  if (!is.null(specific_hbs_year)) {
+    dt_hbs <- dt_hbs[year == specific_hbs_year, ]
+  }
+
+  hbs_coicops <- unique(dt_hbs$coicop)
+  dt_index_weights[, hbs_coicop := closest_available_hbs_coicop(coicop, hbs_coicops)]
+
+  missing_hbs_match <- dt_index_weights[is.na(hbs_coicop), unique(coicop)]
+  if (length(missing_hbs_match) > 0) {
+    stop(
+      "Spain level-3 HICP codes found in CPI weights but not in EPF HBS, ",
+      "even after rolling up to an available parent: ",
+      paste(missing_hbs_match, collapse = ", ")
+    )
+  }
+
+  dt_index_weights <- dt_index_weights[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop = hbs_coicop, weight_year)
+  ]
+
+  dt_hbs[dt_index_weights, on = .(coicop), allow.cartesian = TRUE] %>%
+    .[!is.na(category)
+      & !is.na(weight_year)
+      & !is.na(weight)
+      & !is.na(year)
+      & !is.na(consumption)
+    ]
+}
+
+prepare_index_weights_tree <- function(index_weights) {
+  dt <- data.table::copy(index_weights$dt)
+  if ("year" %in% names(dt)) {
+    data.table::setnames(dt, "year", "weight_year")
+  } else if (!"weight_year" %in% names(dt)) {
+    stop("Index weights must contain either 'year' or 'weight_year'.")
+  }
+
+  dt <- dt[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop, weight_year)
+  ]
+  dt <- dt[!is.na(coicop) & !is.na(weight_year) & !is.na(weight)]
+  if (nrow(dt) == 0) {
+    return(dt)
+  }
+
+  tree_keep <- hicp::tree(
+    id = dt$coicop,
+    by = dt$weight_year,
+    w = dt$weight,
+    flag = TRUE,
+    settings = list(
+      coicop.prefix = "",
+      all.items.code = "00",
+      max.lvl = index_weights$level + 1L,
+      w.tol = 1 / 100,
+      chatty = FALSE
+    )
+  )
+  dt[tree_keep]
+}
+
+france_tf106_level3_codes <- function() {
+  path <- system.file("extdata", "TF106_3digit.xlsx", package = "inflationinequality", mustWork = FALSE)
+  if (!nzchar(path)) {
+    path <- file.path("vignettes", "TF106_3digit.xlsx")
+  }
+  if (!file.exists(path)) {
+    stop("France level-3 mapping requires TF106_3digit.xlsx, but it could not be found.")
+  }
+  if (!requireNamespace("readxl", quietly = TRUE)) {
+    stop("Package 'readxl' is required to read TF106_3digit.xlsx.", call. = FALSE)
+  }
+  dt <- data.table::as.data.table(readxl::read_excel(path, sheet = "TF106", col_types = "text"))
+  sort(unique(stats::na.omit(as.character(dt[[1L]]))))
+}
+
+closest_available_hbs_coicop <- function(coicop, hbs_coicops) {
+  vapply(coicop, function(code) {
+    if (is.na(code)) {
+      return(NA_character_)
+    }
+    candidates <- vapply(seq.int(nchar(code), 2L), function(last) {
+      substr(code, 1L, last)
+    }, character(1L))
+    match_index <- match(candidates, hbs_coicops, nomatch = 0L)
+    if (!any(match_index > 0L)) {
+      NA_character_
+    } else {
+      candidates[which(match_index > 0L)[[1L]]]
+    }
+  }, character(1L), USE.NAMES = FALSE)
 }

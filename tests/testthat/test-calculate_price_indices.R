@@ -253,7 +253,7 @@ test_that("calculate_price_indices uses fast euro-area total when no EA HBS is s
     year = c(2021, 2022, 2022, 2022),
     month = c(12, 1, 2, 3)
   )
-  mock_cpi <- cpi(cpi_dt, cpi_basket, country = "EA", level = 3)
+  mock_cpi <- cpi(cpi_dt, cpi_basket, country = "EA", level = 2)
 
   index_weights_dt <- data.table::data.table(
     coicop = c("011", "012"),
@@ -263,7 +263,7 @@ test_that("calculate_price_indices uses fast euro-area total when no EA HBS is s
   mock_index_weights <- index_weights(
     index_weights_dt,
     country = "EA",
-    level = 3,
+    level = 2,
     base_total = 1000
   )
 

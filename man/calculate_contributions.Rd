@@ -19,6 +19,7 @@ calculate_contributions(
   interpolated_hbs = FALSE,
   specific_hbs_year = NULL,
   france_insee_income_groups = c("decile", "quintile"),
+  weighting_method = c("relative_expenditure", "ras"),
   recode_ecoicop2_to_ecoicop1 = NULL
 )
 }
@@ -64,6 +65,11 @@ because the source values are mean expenditures for equal-population
 decile groups, not income-threshold bounds. This option only affects
 \code{category = "income"}; France \code{age} and \code{urban} level-3 HBS data keep their
 original national groups.}
+
+\item{weighting_method}{weighting formula. \code{"relative_expenditure"} keeps the
+historical package formula. \code{"ras"} applies iterative proportional fitting
+for income quintiles or deciles, so the population-weighted average of group
+weights matches the HICP item weights while each group basket sums to 100.}
 
 \item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
 codes back to ECOICOP v1-style codes before matching them to HBS weights.

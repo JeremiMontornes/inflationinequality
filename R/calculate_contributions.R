@@ -114,11 +114,13 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     interpolated_hbs = FALSE,
                                     specific_hbs_year = NULL,
                                     france_insee_income_groups = c("decile", "quintile"),
+                                    weighting_method = c("relative_expenditure", "ras"),
                                     recode_ecoicop2_to_ecoicop1 = NULL) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
   france_insee_income_groups <- match.arg(france_insee_income_groups)
+  weighting_method <- match.arg(weighting_method)
   if (is.null(recode_ecoicop2_to_ecoicop1)) {
     recode_ecoicop2_to_ecoicop1 <- use_france_insee_level3_hbs(
       country, category, level, custom_hbs
@@ -203,7 +205,8 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       custom_hbs = custom_hbs,
       interpolated_hbs = interpolated_hbs,
       specific_hbs_year = specific_hbs_year,
-      france_insee_income_groups = france_insee_income_groups)
+      france_insee_income_groups = france_insee_income_groups,
+      weighting_method = weighting_method)
 
   # Definitely set start_year and end_year for the ticker
   start_year <- if (is.null(start_year) || start_year < cpi$start_year) {
@@ -408,6 +411,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                         country = country,
                         category = category,
                         categories = weights$categories,
+                        weighting_method = weighting_method,
                         level = level,
                         start_year = min(contrib2$year),
                         start_month = 1,

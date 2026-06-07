@@ -80,7 +80,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
                                     formula = c("laspeyres", "toernqvist"),
                                     recode_ecoicop2_to_ecoicop1 = TRUE,
                                     aggregate_geo = "EA20",
-                                    custom_country_weights = NULL) {
+                                    custom_country_weights = NULL,
+                                    weighting_method = c("relative_expenditure", "ras")) {
   if (is.null(country) && is.null(custom_cpi)) {
     stop("Either 'country' or 'custom_cpi' must be provided.")
   }
@@ -92,6 +93,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     country <- toupper(country)
   }
   formula <- match.arg(formula)
+  weighting_method <- match.arg(weighting_method)
   france_insee_income_groups <- match.arg(france_insee_income_groups)
   requested_base_year <- base_year
   base_year <- base_year %||% default_hicp_base_year()
@@ -135,7 +137,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       formula = formula,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
       aggregate_geo = aggregate_geo,
-      custom_country_weights = custom_country_weights
+      custom_country_weights = custom_country_weights,
+      weighting_method = weighting_method
     ))
   }
 
@@ -164,7 +167,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       formula = formula,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
       aggregate_geo = aggregate_geo,
-      custom_country_weights = custom_country_weights
+      custom_country_weights = custom_country_weights,
+      weighting_method = weighting_method
     ))
   }
 
@@ -269,7 +273,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     custom_hbs = custom_hbs,
     interpolated_hbs = interpolated_hbs,
     specific_hbs_year = specific_hbs_year,
-    france_insee_income_groups = france_insee_income_groups
+    france_insee_income_groups = france_insee_income_groups,
+    weighting_method = weighting_method
   )
 
   weights_dt <- data.table::copy(weights$dt)
@@ -398,9 +403,10 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       start_month = min(index_dt[year == min(year), month]),
       end_year = max(index_dt$year),
       end_month = max(index_dt[year == max(year), month]),
-      base_year = base_year,
-      formula = formula
-    ),
+        base_year = base_year,
+        formula = formula,
+        weighting_method = weighting_method
+      ),
     class = "price_indices"
   )
 }
@@ -419,9 +425,11 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
                                                       formula = c("laspeyres", "toernqvist"),
                                                       recode_ecoicop2_to_ecoicop1 = TRUE,
                                                       aggregate_geo = "EA20",
-                                                      custom_country_weights = NULL) {
+                                                      custom_country_weights = NULL,
+                                                      weighting_method = c("relative_expenditure", "ras")) {
   countries <- toupper(countries)
   formula <- match.arg(formula)
+  weighting_method <- match.arg(weighting_method)
   france_insee_income_groups <- match.arg(france_insee_income_groups)
   output_start_year <- start_year
   output_start_month <- start_month
@@ -457,7 +465,8 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
       include_total = include_total,
       formula = formula,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
-      aggregate_geo = aggregate_geo
+      aggregate_geo = aggregate_geo,
+      weighting_method = weighting_method
     )
   })
   names(national_indices) <- countries
@@ -827,6 +836,7 @@ aggregate_france_insee_deciles_to_quintiles <- function(hbs_obj) {
 recode_cpi_ecoicop2_to_ecoicop1 <- function(cpi_obj, target_level) {
   cpi_new <- cpi_obj
   cpi_new$dt <- data.table::copy(cpi_new$dt)
+  cpi_new$dt <- cpi_new$dt[nchar(coicop) == cpi_obj$level + 1L]
   cpi_new$dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
   cpi_new$dt[, coicop := coicop_to_level(coicop, target_level)]
   cpi_new$dt <- cpi_new$dt[
@@ -846,6 +856,9 @@ recode_index_weights_ecoicop2_to_ecoicop1 <- function(index_weights_obj, target_
   index_weights_new <- index_weights_obj
   index_weights_new$dt <- data.table::copy(index_weights_new$dt)
   weight_year_col <- if ("weight_year" %in% names(index_weights_new$dt)) "weight_year" else "year"
+  index_weights_new$dt <- index_weights_new$dt[
+    nchar(coicop) == index_weights_obj$level + 1L
+  ]
   index_weights_new$dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
   index_weights_new$dt[, coicop := coicop_to_level(coicop, target_level)]
   index_weights_new$dt <- index_weights_new$dt[

@@ -175,6 +175,56 @@ hbs_age_level2 <- load_hbs(
   end_year = max(years)
 )
 
+add_proxy_coicop_rows <- function(hbs_obj, mapping) {
+  dt <- copy(hbs_obj$dt)
+  dt_total <- copy(hbs_obj$dt_total)
+
+  for (i in seq_len(nrow(mapping))) {
+    child <- mapping$child[[i]]
+    parent <- mapping$parent[[i]]
+
+    if (!child %in% dt$coicop && parent %in% dt$coicop) {
+      child_dt <- copy(dt[coicop == parent])
+      child_dt[, coicop := child]
+      if ("series_name" %in% names(child_dt)) {
+        child_dt[, series_name := paste0(series_name, " (proxy from ", parent, ")")]
+      } else {
+        child_dt[, series_name := paste0("Italy HBS proxy from ", parent)]
+      }
+      dt <- rbindlist(list(dt, child_dt), use.names = TRUE, fill = TRUE)
+    }
+
+    if (!child %in% dt_total$coicop && parent %in% dt_total$coicop) {
+      child_total <- copy(dt_total[coicop == parent])
+      child_total[, coicop := child]
+      if ("series_name" %in% names(child_total)) {
+        child_total[, series_name := paste0(series_name, " (proxy from ", parent, ")")]
+      } else {
+        child_total[, series_name := paste0("Italy HBS total proxy from ", parent)]
+      }
+      dt_total <- rbindlist(list(dt_total, child_total), use.names = TRUE, fill = TRUE)
+    }
+  }
+
+  hbs(
+    dt = dt,
+    dt_total = dt_total,
+    country = hbs_obj$country,
+    category = hbs_obj$category,
+    categories = hbs_obj$categories,
+    level = hbs_obj$level
+  )
+}
+
+it_level2_proxy_map <- data.table(
+  child = c("013", "023", "064", "074", "097", "098", "103", "122",
+            "13", "131", "132", "133", "139"),
+  parent = c("01", "02", "06", "07", "09", "09", "10", "12",
+             "12", "12", "12", "12", "12")
+)
+hbs_age_level2 <- add_proxy_coicop_rows(hbs_age_level2, it_level2_proxy_map)
+hbs_urban <- add_proxy_coicop_rows(hbs_urban, it_level2_proxy_map)
+
 age_path <- file.path(out_dir, "IT_age_hbs_istat_original_2015_2020_level1.rds")
 age_level2_path <- file.path(out_dir, "IT_age_hbs_eurostat_2015_2020_level2.rds")
 urban_path <- file.path(out_dir, "IT_urban_hbs_eurostat_2015_2020_level2.rds")

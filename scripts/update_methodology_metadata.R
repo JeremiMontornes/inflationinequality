@@ -63,7 +63,9 @@ country_coicop_special_cases <- data.frame(
     ),
     paste(
       "Euro-area aggregates are built from country-level HICP-HBS",
-      "calculations and Eurostat HICP country weights."
+      "calculations and Eurostat HICP country weights. Country-level",
+      "calculations use COICOP level = 2, except for Lithuania (LT)",
+      "where HBS data are only available at level = 1."
     )
   ),
   population_group_caveat = c(

@@ -24,7 +24,8 @@ calculate_price_indices(
   formula = c("laspeyres", "toernqvist"),
   recode_ecoicop2_to_ecoicop1 = TRUE,
   aggregate_geo = "EA20",
-  custom_country_weights = NULL
+  custom_country_weights = NULL,
+  weighting_method = c("relative_expenditure", "ras")
 )
 }
 \arguments{
@@ -94,6 +95,11 @@ indices when \code{country} contains several countries.
 
 When \code{country = "EA20"}, \code{level} is forced to \code{2} because euro-area
 household-group aggregation is currently supported at COICOP level 2.}
+
+\item{weighting_method}{weighting formula. \code{"relative_expenditure"} keeps the
+historical package formula. \code{"ras"} applies iterative proportional fitting
+for income quintiles or deciles, so the population-weighted average of group
+weights matches the HICP item weights while each group basket sums to 100.}
 }
 \value{
 An object of class \code{"price_indices"} containing:

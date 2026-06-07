@@ -81,13 +81,125 @@ test_that("calculate_weights normalizes weights correctly", {
   expect_true(all(abs(weight_sums$total_weight - 100) < 1e-6))
 })
 
-test_that("calculate_weights uses Italy 2010 Eurostat income HBS when available", {
+test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
+  categories <- paste0("Q", 1:5)
+  hbs_dt <- data.table::CJ(
+    coicop = c("01", "02"),
+    year = 2020,
+    category = categories
+  )
+  hbs_dt[, series_name := "test HBS"]
+  hbs_dt[, consumption := c(120, 80, 100, 110, 90, 70, 130, 100, 90, 110)]
+  data.table::setcolorder(hbs_dt, c("series_name", "coicop", "year", "category", "consumption"))
+  hbs_total <- data.table::data.table(
+    series_name = "test HBS total",
+    coicop = c("01", "02"),
+    year = 2020,
+    total_consumption = c(100, 100)
+  )
+  custom_hbs <- hbs(
+    hbs_dt,
+    hbs_total,
+    country = "ZZ",
+    category = "income",
+    categories = categories,
+    level = 1
+  )
+  custom_index_weights <- index_weights(
+    data.table::data.table(
+      coicop = c("01", "02"),
+      weight = c(600, 400),
+      year = 2022
+    ),
+    country = "ZZ",
+    level = 1,
+    base_total = 1000
+  )
+
+  result <- calculate_weights(
+    "ZZ", "income",
+    level = 1,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    weighting_method = "ras"
+  )
+
+  row_sums <- result$dt[, .(total = sum(weighted_consumption)), by = category]
+  expect_true(all(abs(row_sums$total - 100) < 1e-8))
+
+  aggregate_weights <- result$dt[
+    ,
+    .(weighted_average = mean(weighted_consumption)),
+    by = coicop
+  ][order(coicop)]
+  expect_equal(aggregate_weights$weighted_average, c(60, 40), tolerance = 1e-8)
+})
+
+test_that("calculate_weights RAS works with income deciles", {
+  categories <- paste0("D", 1:10)
+  hbs_dt <- data.table::CJ(
+    coicop = c("01", "02"),
+    year = 2020,
+    category = categories
+  )
+  hbs_dt[, series_name := "test HBS"]
+  hbs_dt[, consumption := rep(c(80, 120), each = 10)]
+  data.table::setcolorder(hbs_dt, c("series_name", "coicop", "year", "category", "consumption"))
+  hbs_total <- data.table::data.table(
+    series_name = "test HBS total",
+    coicop = c("01", "02"),
+    year = 2020,
+    total_consumption = c(100, 100)
+  )
+  custom_hbs <- hbs(
+    hbs_dt,
+    hbs_total,
+    country = "ZZ",
+    category = "income",
+    categories = categories,
+    level = 1
+  )
+  custom_index_weights <- index_weights(
+    data.table::data.table(
+      coicop = c("01", "02"),
+      weight = c(250, 750),
+      year = 2022
+    ),
+    country = "ZZ",
+    level = 1,
+    base_total = 1000
+  )
+
+  result <- calculate_weights(
+    "ZZ", "income",
+    level = 1,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    weighting_method = "ras"
+  )
+
+  row_sums <- result$dt[, .(total = sum(weighted_consumption)), by = category]
+  expect_true(all(abs(row_sums$total - 100) < 1e-8))
+
+  aggregate_weights <- result$dt[
+    ,
+    .(weighted_average = mean(weighted_consumption)),
+    by = coicop
+  ][order(coicop)]
+  expect_equal(aggregate_weights$weighted_average, c(25, 75), tolerance = 1e-8)
+})
+
+test_that("calculate_weights uses bundled Italy reconstructed income HBS when available", {
   local_mocked_bindings(load_index_weights = mock_load_index_weights, .package = "inflationinequality")
   local_mocked_bindings(load_hbs = mock_load_hbs, .package = "inflationinequality")
 
   result <- calculate_weights("IT", "income")
 
-  expect_equal(unique(result$dt$year), 2010)
+  expect_equal(sort(unique(result$dt$year)), c(2015, 2020))
+  expect_equal(result$categories, c(
+    "First quintile", "Second quintile", "Third quintile",
+    "Fourth quintile", "Fifth quintile"
+  ))
 })
 
 # test_that("calculate_weights handles zero values correctly", {
