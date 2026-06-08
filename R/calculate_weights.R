@@ -252,10 +252,11 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     # Normalised weights
     dt_weighted_consumption[, weighted_consumption := unnormalized_weighted_consumption * 100 / sum(unnormalized_weighted_consumption), by = .(weight_year, category)]
   } else {
-    dt_weighted_consumption <- apply_ras_income_weights(
+    dt_weighted_consumption <- apply_ras_group_weights(
       dt_weighted_consumption,
       hbs_category = hbs$category,
-      categories = hbs$categories
+      categories = hbs$categories,
+      country = country
     )
   }
 
@@ -306,17 +307,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                    class = "weights"))
 }
 
-apply_ras_income_weights <- function(dt, hbs_category, categories, tolerance = 1e-10,
-                                     max_iter = 1000L) {
-  if (!identical(hbs_category, "income")) {
-    stop(
-      "weighting_method = 'ras' is currently implemented only for income ",
-      "quintiles or deciles.",
-      call. = FALSE
-    )
-  }
+apply_ras_group_weights <- function(dt, hbs_category, categories, country = NULL,
+                                    tolerance = 1e-10, max_iter = 1000L) {
   n_categories <- length(categories)
-  if (!n_categories %in% c(5L, 10L)) {
+  if (identical(hbs_category, "income") && !n_categories %in% c(5L, 10L)) {
     stop(
       "weighting_method = 'ras' is currently implemented only for income ",
       "quintiles or deciles.",
@@ -325,17 +319,22 @@ apply_ras_income_weights <- function(dt, hbs_category, categories, tolerance = 1
   }
   if (!all(categories %in% unique(dt$category))) {
     stop(
-      "Cannot apply RAS because not all income categories are present in the ",
+      "Cannot apply RAS because not all HBS categories are present in the ",
       "HBS-HICP matched data.",
       call. = FALSE
     )
   }
 
-  category_share <- data.table::data.table(
-    category = categories,
-    category_share = rep(1 / n_categories, n_categories)
+  category_share <- ras_category_shares(
+    hbs_category = hbs_category,
+    country = country,
+    categories = categories,
+    weight_years = sort(unique(dt$weight_year))
   )
-  dt <- category_share[dt, on = .(category)]
+  dt <- category_share[dt, on = .(category, weight_year)]
+  if (anyNA(dt$category_share)) {
+    stop("Missing group consumption shares for RAS calibration.", call. = FALSE)
+  }
   dt[, hbs_multiplier := data.table::fifelse(
     consumption == 1e-6 & total_consumption == 1e-6,
     1e-6,
@@ -357,12 +356,29 @@ apply_ras_income_weights <- function(dt, hbs_category, categories, tolerance = 1
   dt[]
 }
 
+apply_ras_income_weights <- function(dt, hbs_category, categories, country = NULL,
+                                     tolerance = 1e-10, max_iter = 1000L) {
+  apply_ras_group_weights(
+    dt = dt,
+    hbs_category = hbs_category,
+    categories = categories,
+    country = country,
+    tolerance = tolerance,
+    max_iter = max_iter
+  )
+}
+
 ras_calibrate_group <- function(dt, categories, tolerance, max_iter) {
   categories <- categories[categories %in% unique(dt$category)]
   coicops <- sort(unique(dt$coicop))
 
   wide <- dcast_ras_seed(dt, categories, coicops)
-  row_targets <- rep(100 / length(categories), length(categories))
+  row_targets <- dt[
+    ,
+    .(target = category_share[1L]),
+    by = category
+  ][match(categories, category), target]
+  row_targets <- row_targets * 100 / sum(row_targets)
   col_targets <- dt[
     ,
     .(target = weight[1L]),
@@ -384,6 +400,146 @@ ras_calibrate_group <- function(dt, categories, tolerance, max_iter) {
   out[, weighted_consumption := weighted_mass / category_share]
   out[, weighted_mass := NULL]
   out[]
+}
+
+ras_category_shares <- function(hbs_category, country, categories, weight_years) {
+  n_categories <- length(categories)
+  if (identical(hbs_category, "income") && n_categories != 5L) {
+    warning(
+      "RAS income group consumption-share table is available for quintiles only; ",
+      "using equal group shares for non-quintile income groups.",
+      call. = FALSE
+    )
+    return(data.table::CJ(
+      category = categories,
+      weight_year = as.integer(weight_years)
+    )[, category_share := 1 / n_categories][])
+  }
+  if (!hbs_category %in% names(category_data)) {
+    stop("Unknown HBS category '", hbs_category, "'.", call. = FALSE)
+  }
+  if (is.null(country) || is.na(country) || !nzchar(country)) {
+    stop("RAS group shares require a country code.", call. = FALSE)
+  }
+
+  shares <- load_group_consumption_shares()
+  country_code <- toupper(country)
+  shares <- shares[
+    get("hbs_category") == hbs_category &
+      get("country") == country_code &
+      category %in% categories,
+    .(category, year, category_share = group_consumption_share)
+  ]
+  if (nrow(shares) == 0L) {
+    stop(
+      "No ", hbs_category, " group consumption shares available for RAS country '",
+      country_code, "'. Run scripts/build_group_consumption_shares.R ",
+      "or provide a custom weighting path.",
+      call. = FALSE
+    )
+  }
+
+  grid <- data.table::CJ(
+    category = categories,
+    weight_year = as.integer(weight_years)
+  )
+  out <- data.table::rbindlist(lapply(categories, function(category_i) {
+    s <- shares[category == category_i]
+    data.table::setorder(s, year)
+    data.table::rbindlist(lapply(grid[category == category_i, weight_year], function(wy) {
+      candidates <- s[year <= wy]
+      if (nrow(candidates) == 0L) {
+        candidates <- s[year == min(year)]
+      }
+      chosen <- candidates[which.max(year)]
+      data.table::data.table(
+        category = category_i,
+        weight_year = as.integer(wy),
+        category_share = chosen$category_share
+      )
+    }), use.names = TRUE)
+  }), use.names = TRUE)
+  out[
+    ,
+    category_share := category_share / sum(category_share),
+    by = weight_year
+  ]
+  out[]
+}
+
+ras_income_category_shares <- function(country, categories, weight_years) {
+  ras_category_shares(
+    hbs_category = "income",
+    country = country,
+    categories = categories,
+    weight_years = weight_years
+  )
+}
+
+load_group_consumption_shares <- function() {
+  file_name <- "group_consumption_shares.csv"
+  candidates <- c(
+    file.path("inst", "extdata", file_name),
+    file.path("data-raw", file_name),
+    system.file("extdata", file_name, package = "inflationinequality", mustWork = FALSE)
+  )
+  candidates <- candidates[nzchar(candidates) & file.exists(candidates)]
+  if (length(candidates) == 0L) {
+    return(load_income_group_consumption_shares())
+  }
+  out <- data.table::fread(candidates[[1L]])
+  required <- c("hbs_category", "country", "year", "category", "group_consumption_share")
+  missing <- setdiff(required, names(out))
+  if (length(missing) > 0L) {
+    stop(
+      "Group consumption shares table is missing columns: ",
+      paste(missing, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  out[, `:=`(
+    hbs_category = as.character(hbs_category),
+    country = toupper(as.character(country)),
+    year = as.integer(year),
+    category = as.character(category),
+    group_consumption_share = as.numeric(group_consumption_share)
+  )]
+  out[]
+}
+
+load_income_group_consumption_shares <- function() {
+  file_name <- "income_group_consumption_shares.csv"
+  candidates <- c(
+    file.path("inst", "extdata", file_name),
+    file.path("data-raw", file_name),
+    system.file("extdata", file_name, package = "inflationinequality", mustWork = FALSE)
+  )
+  candidates <- candidates[nzchar(candidates) & file.exists(candidates)]
+  if (length(candidates) == 0L) {
+    stop(
+      "Missing income group consumption shares table '", file_name, "'. ",
+      "Run scripts/build_income_group_consumption_shares.R first.",
+      call. = FALSE
+    )
+  }
+  out <- data.table::fread(candidates[[1L]])
+  required <- c("country", "year", "category", "group_consumption_share")
+  missing <- setdiff(required, names(out))
+  if (length(missing) > 0L) {
+    stop(
+      "Income group consumption shares table is missing columns: ",
+      paste(missing, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  out[, `:=`(
+    hbs_category = "income",
+    country = toupper(as.character(country)),
+    year = as.integer(year),
+    category = as.character(category),
+    group_consumption_share = as.numeric(group_consumption_share)
+  )]
+  out
 }
 
 dcast_ras_seed <- function(dt, categories, coicops) {
