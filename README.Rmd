@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 
 ## Features
 
-- Calculate and visualize inflation and contributions to inflation by households categories
+- Calculate and visualize category- and household-level inflation
 - Calculate inflation burden as a share of disposable income
 - Simulate counterfactual price indices
 
@@ -37,6 +37,12 @@ knitr::opts_chunk$set(
 The main workflow is:
 
 `load_*()` -> `calculate_weights()` -> `calculate_price_indices()` / `calculate_inflation()` -> `calculate_contributions()` -> plots / validation.
+
+The package structures the workflow around reusable data objects. Loader and
+constructor functions create `cpi`, `hbs`, and `index_weights` objects, while
+calculation functions return structured `weights`, `price_indices`,
+`inflation`, `contributions`, and `household_inflation` objects that can be
+passed directly to plotting and validation helpers.
 
 ## Example
 

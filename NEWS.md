@@ -1,3 +1,17 @@
+## [0.1.1](https://github.com/JeremiMontornes/inflationinequality/compare/v0.1.0...v0.1.1) (2026-06-09)
+
+
+### Features
+
+* add household-level inflation calculation and distribution plotting tools
+
+
+### Documentation
+
+* clarify category- and household-level inflation features in the README
+* ignore local R check, build, and LaTeX artefacts
+
+
 ## [0.1.0](https://github.com/JeremiMontornes/inflationinequality/compare/v0.0.2...v0.1.0) (2026-06-01)
 
 
