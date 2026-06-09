@@ -20,7 +20,7 @@ calculate_contributions(
   specific_hbs_year = NULL,
   france_insee_income_groups = c("decile", "quintile"),
   weighting_method = c("relative_expenditure", "ras"),
-  recode_ecoicop2_to_ecoicop1 = NULL
+  recode_ecoicop2_to_ecoicop1 = TRUE
 )
 }
 \arguments{
@@ -73,8 +73,7 @@ weights matches the HICP item weights while each group basket sums to 100.}
 
 \item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
 codes back to ECOICOP v1-style codes before matching them to HBS weights.
-If \code{NULL}, this is enabled automatically for the bundled France INSEE
-level-3 income HBS calculation and disabled otherwise.}
+If \code{NULL}, the default \code{TRUE} is used.}
 }
 \value{
 An object of class \code{"contributions"} is a list containing the

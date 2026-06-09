@@ -80,9 +80,53 @@ calculate_inflation <- function(country = NULL, category = NULL, level = 2,
                                 specific_hbs_year = NULL,
                                 france_insee_income_groups = c("decile", "quintile"),
                                 weighting_method = c("relative_expenditure", "ras"),
-                                recode_ecoicop2_to_ecoicop1 = NULL) {
+                                recode_ecoicop2_to_ecoicop1 = TRUE) {
+  if (!is.null(country)) {
+    country <- toupper(country)
+  }
   france_insee_income_groups <- match.arg(france_insee_income_groups)
   weighting_method <- match.arg(weighting_method)
+
+  if (!is.null(country) && length(country) == 1 &&
+      grepl("^EA[0-9]+$", country) &&
+      is.null(custom_cpi) && is.null(custom_index_weights) && is.null(custom_hbs)) {
+    indices <- calculate_price_indices(
+      country = country,
+      category = category,
+      level = level,
+      start_year = start_year,
+      start_month = start_month,
+      end_year = end_year,
+      end_month = end_month,
+      ensure_complete_cpi = ensure_complete_cpi,
+      interpolated_hbs = interpolated_hbs,
+      specific_hbs_year = specific_hbs_year,
+      france_insee_income_groups = france_insee_income_groups,
+      include_total = FALSE,
+      recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
+      aggregate_geo = country,
+      weighting_method = weighting_method
+    )
+    dt_inflation <- data.table::copy(indices$dt)[
+      !is.na(annual_rate),
+      .(year, month, category, inflation = annual_rate)
+    ]
+
+    return(structure(list(dt = dt_inflation,
+                          dt_missing_weight = data.table::data.table(),
+                          dt_coverage = data.table::data.table(),
+                          country = country,
+                          source_countries = indices$source_countries,
+                          category = category,
+                          categories = indices$categories,
+                          weighting_method = weighting_method,
+                          level = indices$level,
+                          start_year = min(dt_inflation$year),
+                          start_month = min(dt_inflation[year == min(year), month]),
+                          end_year = max(dt_inflation$year),
+                          end_month = max(dt_inflation[year == max(year), month])),
+                     class = "inflation"))
+  }
 
   contributions <- calculate_contributions(country, category,
     level = level,

@@ -41,8 +41,7 @@
 #' @param custom_cpi an object of class `"cpi"`
 #' @param recode_ecoicop2_to_ecoicop1 whether to map ECOICOP v2 HICP item
 #'   codes back to ECOICOP v1-style codes before matching them to HBS weights.
-#'   If `NULL`, this is enabled automatically for the bundled France INSEE
-#'   level-3 income HBS calculation and disabled otherwise.
+#'   If `NULL`, the default `TRUE` is used.
 #'
 #' @returns An object of class `"contributions"` is a list containing the
 #'   following components:
@@ -115,16 +114,14 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     specific_hbs_year = NULL,
                                     france_insee_income_groups = c("decile", "quintile"),
                                     weighting_method = c("relative_expenditure", "ras"),
-                                    recode_ecoicop2_to_ecoicop1 = NULL) {
+                                    recode_ecoicop2_to_ecoicop1 = TRUE) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
   france_insee_income_groups <- match.arg(france_insee_income_groups)
   weighting_method <- match.arg(weighting_method)
   if (is.null(recode_ecoicop2_to_ecoicop1)) {
-    recode_ecoicop2_to_ecoicop1 <- use_france_insee_level3_hbs(
-      country, category, level, custom_hbs
-    )
+    recode_ecoicop2_to_ecoicop1 <- TRUE
   }
   if (!is.logical(recode_ecoicop2_to_ecoicop1) ||
       length(recode_ecoicop2_to_ecoicop1) != 1 ||
