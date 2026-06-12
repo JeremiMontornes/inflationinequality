@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeremimontornes/inflationinequality/actions/workflows/R-CMD-check.yaml) <!-- badges: end -->
 
-`inflationinequality` provides methods to calculate and visualize inflation inequality indicators.
+`inflationinequality` provides methods to compute and visualize inflation inequality indicators.
 
 ## Features
 
