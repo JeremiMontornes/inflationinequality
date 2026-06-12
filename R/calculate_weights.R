@@ -309,6 +309,8 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
 
 apply_ras_group_weights <- function(dt, hbs_category, categories, country = NULL,
                                     tolerance = 1e-10, max_iter = 1000L) {
+  categories <- normalize_group_labels(categories)
+  dt[, category := normalize_group_labels(category)]
   n_categories <- length(categories)
   if (identical(hbs_category, "income") && !n_categories %in% c(5L, 10L)) {
     stop(
@@ -403,18 +405,8 @@ ras_calibrate_group <- function(dt, categories, tolerance, max_iter) {
 }
 
 ras_category_shares <- function(hbs_category, country, categories, weight_years) {
+  categories <- normalize_group_labels(categories)
   n_categories <- length(categories)
-  if (identical(hbs_category, "income") && n_categories != 5L) {
-    warning(
-      "RAS income group consumption-share table is available for quintiles only; ",
-      "using equal group shares for non-quintile income groups.",
-      call. = FALSE
-    )
-    return(data.table::CJ(
-      category = categories,
-      weight_year = as.integer(weight_years)
-    )[, category_share := 1 / n_categories][])
-  }
   if (!hbs_category %in% names(category_data)) {
     stop("Unknown HBS category '", hbs_category, "'.", call. = FALSE)
   }
@@ -423,6 +415,7 @@ ras_category_shares <- function(hbs_category, country, categories, weight_years)
   }
 
   shares <- load_group_consumption_shares()
+  shares[, category := normalize_group_labels(category)]
   country_code <- toupper(country)
   shares <- shares[
     get("hbs_category") == hbs_category &
@@ -431,6 +424,17 @@ ras_category_shares <- function(hbs_category, country, categories, weight_years)
     .(category, year, category_share = group_consumption_share)
   ]
   if (nrow(shares) == 0L) {
+    if (identical(hbs_category, "income") && n_categories != 5L) {
+      warning(
+        "RAS income group consumption-share table has no matching non-quintile ",
+        "shares; using equal group shares.",
+        call. = FALSE
+      )
+      return(data.table::CJ(
+        category = categories,
+        weight_year = as.integer(weight_years)
+      )[, category_share := 1 / n_categories][])
+    }
     stop(
       "No ", hbs_category, " group consumption shares available for RAS country '",
       country_code, "'. Run scripts/build_group_consumption_shares.R ",
@@ -465,6 +469,23 @@ ras_category_shares <- function(hbs_category, country, categories, weight_years)
     by = weight_year
   ]
   out[]
+}
+
+normalize_group_labels <- function(x) {
+  out <- x
+  unknown <- Encoding(out) == "unknown"
+  if (any(unknown)) {
+    out[unknown] <- iconv(out[unknown], from = "latin1", to = "UTF-8")
+  }
+  if (any(!unknown)) {
+    out[!unknown] <- enc2utf8(out[!unknown])
+  }
+  missing <- is.na(out)
+  if (any(missing)) {
+    out[missing] <- enc2utf8(x[missing])
+  }
+  Encoding(out) <- "UTF-8"
+  out
 }
 
 ras_income_category_shares <- function(country, categories, weight_years) {

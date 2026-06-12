@@ -9,7 +9,8 @@ build_inflation_comparison <- function(level) {
     end_year = 2026,
     end_month = 3,
     base_year = 2010,
-    recode_ecoicop2_to_ecoicop1 = TRUE
+    recode_ecoicop2_to_ecoicop1 = TRUE,
+    weighting_method = "ras"
   )
 
   calculated_dt <- data.table::copy(indices$dt)

@@ -141,6 +141,39 @@ build_size_weighted_shares <- function(hbs_category, exp_dataset, car_dataset,
   shares[]
 }
 
+build_france_insee_2017_shares <- function() {
+  files <- list(
+    income = file.path("inst", "extdata", "INSEE_HBS_2017_level3.RDS"),
+    age = file.path("inst", "extdata", "INSEE_HBS_2017_age_level3.RDS"),
+    urban = file.path("inst", "extdata", "INSEE_HBS_2017_urban_level3.RDS")
+  )
+  files <- files[file.exists(unlist(files))]
+  rbindlist(lapply(names(files), function(hbs_category) {
+    hbs_obj <- readRDS(files[[hbs_category]])
+    dt <- as.data.table(hbs_obj$dt)
+    out <- dt[
+      nchar(coicop) == 2L,
+      .(mean_expenditure_pps_hh = sum(consumption, na.rm = TRUE)),
+      by = category
+    ]
+    out <- out[category %in% hbs_obj$categories]
+    out[, category := factor(category, levels = hbs_obj$categories)]
+    setorder(out, category)
+    out[, `:=`(
+      hbs_category = hbs_category,
+      country = "FR",
+      year = 2017L,
+      household_count = NA_real_,
+      household_share = NA_real_,
+      group_consumption_share = mean_expenditure_pps_hh / sum(mean_expenditure_pps_hh),
+      group_consumption_share_pm = 1000 * mean_expenditure_pps_hh / sum(mean_expenditure_pps_hh),
+      source = "Insee Les depenses des menages en 2017 TF101/TF102/TF106"
+    )]
+    out[, category := as.character(category)]
+    out
+  }), use.names = TRUE, fill = TRUE)
+}
+
 shares <- rbindlist(
   list(
     build_income_shares(),
@@ -164,6 +197,11 @@ shares <- rbindlist(
   use.names = TRUE,
   fill = TRUE
 )
+
+france_insee_2017 <- build_france_insee_2017_shares()
+shares <- shares[!(country == "FR" & year == 2017L &
+                     hbs_category %in% france_insee_2017$hbs_category)]
+shares <- rbindlist(list(shares, france_insee_2017), use.names = TRUE, fill = TRUE)
 
 category_order <- rbindlist(lapply(names(category_data), function(hbs_category) {
   data.table(

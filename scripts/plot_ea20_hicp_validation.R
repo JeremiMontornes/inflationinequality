@@ -3,18 +3,19 @@ library(ggplot2)
 
 devtools::load_all(".")
 
-cache_file <- file.path(tempdir(), "ea20_hicp_validation_indices_2015_2026_04.rds")
+cache_file <- file.path(tempdir(), "ea20_hicp_validation_indices_2010_2026_04_ras.rds")
 if (file.exists(cache_file)) {
   indices <- readRDS(cache_file)
 } else {
   indices <- calculate_price_indices(
     "EA20",
     "income",
-    start_year = 2015,
+    start_year = 2010,
     end_year = 2026,
     end_month = 4,
-    base_year = 2025,
-    include_total = TRUE
+    base_year = 2010,
+    include_total = TRUE,
+    weighting_method = "ras"
   )
   dir.create(dirname(cache_file), showWarnings = FALSE, recursive = TRUE)
   saveRDS(indices, cache_file)
@@ -28,7 +29,7 @@ calculated <- copy(indices$dt)[
 official_cpi <- load_cpi(
   "EA20",
   level = 2,
-  start_year = 2015,
+  start_year = 2010,
   end_year = 2026,
   end_month = 4
 )
@@ -39,7 +40,7 @@ setorder(official, date)
 official[, official_value := rebase_or_first_available(
   x = value,
   t = date,
-  t.ref = "2025"
+  t.ref = "2010"
 )]
 official <- official[, .(year, month, date, official_value)]
 
@@ -99,19 +100,21 @@ p <- ggplot(comparison, aes(x = date)) +
   ) +
   labs(
     x = NULL,
-    y = "Index level and difference, 2025 = 100",
+    y = NULL,
     color = NULL,
-    title = "EA20 recalculated total price index vs official HICP",
-    subtitle = "Level 2 COICOP, chained unchained movements, country aggregation with HICP country weights",
-    caption = "Grey bars: recalculated minus official HICP, in index points."
+    title = NULL,
+    subtitle = NULL,
+    caption = NULL
   ) +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "bottom",
-    plot.title = element_text(face = "bold"),
+    plot.title = element_blank(),
+    plot.subtitle = element_blank(),
+    plot.caption = element_blank(),
     panel.grid.minor = element_blank()
   ) +
-  coord_cartesian(ylim = c(70, NA))
+  coord_cartesian(ylim = c(95, NA))
 
 out_dir <- file.path("docs")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)

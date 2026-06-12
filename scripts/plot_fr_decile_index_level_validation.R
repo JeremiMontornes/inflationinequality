@@ -112,25 +112,21 @@ comparison_plot <- ggplot(
   )) +
   scale_x_continuous(breaks = seq(2010, 2023, 2)) +
   labs(
-    title = "France: official vs recalculated CPI index levels by living-standard decile",
-    subtitle = paste(
-      "Annual index, base 2015 = 100;",
-      "recalculated from INSEE COICOP level 3 prices and Budget de famille weights"
-    ),
+    title = NULL,
+    subtitle = NULL,
     x = NULL,
-    y = "Index level",
+    y = NULL,
     color = NULL,
     linetype = NULL,
-    caption = paste(
-      "Source: INSEE BDM series 010054292, 010054293, 010054299, 010054300;",
-      "inflationinequality recalculation."
-    )
+    caption = NULL
   ) +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "bottom",
     panel.grid.minor = element_blank(),
-    plot.title = element_text(face = "bold"),
+    plot.title = element_blank(),
+    plot.subtitle = element_blank(),
+    plot.caption = element_blank(),
     strip.text = element_text(face = "bold")
   )
 
@@ -146,18 +142,20 @@ gap_plot <- ggplot(comparison, aes(year, diff_index_points, color = decile)) +
   geom_point(size = 1.5) +
   scale_x_continuous(breaks = seq(2010, 2023, 2)) +
   labs(
-    title = "France: recalculated minus official CPI index level",
-    subtitle = "Annual index-point difference, base 2015 = 100",
+    title = NULL,
+    subtitle = NULL,
     x = NULL,
-    y = "Index points",
+    y = NULL,
     color = NULL,
-    caption = "Positive values mean the package recalculation is above the official INSEE series."
+    caption = NULL
   ) +
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "bottom",
     panel.grid.minor = element_blank(),
-    plot.title = element_text(face = "bold")
+    plot.title = element_blank(),
+    plot.subtitle = element_blank(),
+    plot.caption = element_blank()
   )
 
 gap_png <- file.path(

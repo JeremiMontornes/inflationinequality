@@ -29,15 +29,14 @@ ensure_repo_zip <- function(file_name) {
 cfg <- list(
   target_years = c(2015L, 2020L),
   level = 2L,
-  # The 2005 target is aggregate only: Eurostat reports the Italy HBS basket by
-  # income quintile, but we do not use 2005 Istat microdata. The optimisation
-  # chooses a latent-income score in 2015/2020 microdata whose probabilistic
-  # quintile baskets match the aggregate 2005 income-quintile gradient as
-  # closely as possible.
+  # COICOP baskets are estimated by the latent model. Aggregate consumption
+  # shares by income quintile are targeted by reweighting expenditure-quintile
+  # totals with the inverse average propensity to consume.
   calibration_year = 2005L,
   maxit = 4L,
   tau = 85,
-  target_weight = 0.35,
+  target_weight = 0,
+  group_target_weight = 1,
   ridge = 0.01,
   seed = 20260528L,
   zips = c(
@@ -78,6 +77,29 @@ coalesce_col <- function(dt, candidates, default = NA_real_) {
 }
 
 as_num <- function(x) suppressWarnings(as.numeric(x))
+
+carbonaro_scale <- function(n) {
+  n <- as_num(n)
+  fifelse(n <= 1, 0.60,
+    fifelse(n == 2, 1.00,
+      fifelse(n == 3, 1.33,
+        fifelse(n == 4, 1.63,
+          fifelse(n == 5, 1.90, fifelse(n == 6, 2.15, 2.40))
+        )
+      )
+    )
+  )
+}
+
+weighted_quintile <- function(x, w) {
+  ok <- is.finite(x) & is.finite(w) & w > 0
+  out <- rep(NA_integer_, length(x))
+  if (!any(ok)) return(out)
+  ord <- order(x[ok], seq_along(x[ok]))
+  p <- cumsum(w[ok][ord]) / sum(w[ok][ord])
+  out[which(ok)[ord]] <- findInterval(p, c(0.2, 0.4, 0.6, 0.8)) + 1L
+  out
+}
 
 weighted_ntile_rank <- function(x, w) {
   ok <- is.finite(x) & is.finite(w) & w > 0
@@ -187,14 +209,24 @@ read_istat_hbs_year <- function(year, zip_file) {
   dt
 }
 
-target_2005_division_shares <- function() {
-  h <- load_hbs("IT", "income", level = 2, start_year = 2005, end_year = 2020)
-  dt <- copy(h$dt[year == 2005])
-  dt[, coicop_div := substr(coicop, 1L, 2L)]
-  out <- dt[, .(consumption = sum(consumption, na.rm = TRUE)),
-            by = .(category, coicop_div)]
-  out[, target_share := consumption / sum(consumption), by = category]
-  out[, .(category, coicop_div, target_share)]
+target_bridge_division_shares <- function(target_years) {
+  target_path <- file.path(
+    "data-raw",
+    "italy_hbs",
+    "IT_income_targets_from_expense_bridge_2015_2020_level1.csv"
+  )
+  if (!file.exists(target_path)) {
+    stop(
+      "Missing bridge-corrected Italy income targets: ", target_path, "\n",
+      "Run scripts/build_it_income_targets_from_expense_bridge.R first.",
+      call. = FALSE
+    )
+  }
+  dt <- fread(target_path)
+  dt <- dt[year %in% target_years]
+  dt[, coicop_div := sub("^CP", "", coicop)]
+  dt[, target_share := adjusted_share_pm / 1000]
+  dt[, .(year = as.integer(year), category, coicop_div, target_share)]
 }
 
 prepare_expenditure_matrix <- function(dt) {
@@ -231,29 +263,114 @@ shares_from_probabilities <- function(exp_mat, w, p) {
   rbindlist(out)
 }
 
-objective_factory <- function(x, w, exp_mat, target, tau, target_weight, ridge) {
+group_shares_from_probabilities <- function(exp_mat, w, p) {
+  total_exp <- rowSums(exp_mat, na.rm = TRUE)
+  group_total <- colSums(p * (w * total_exp), na.rm = TRUE)
+  data.table(
+    category = colnames(p),
+    group_share = as.numeric(group_total / sum(group_total))
+  )
+}
+
+target_group_shares_from_propensity <- function(year, dt, exp_mat, w) {
+  ncomp <- as_num(coalesce_col(dt, c("c_Ncmp_altro", "ncomp", "NCOMP"), 1))
+  ncomp[!is.finite(ncomp) | ncomp <= 0] <- 1
+  total_exp <- rowSums(exp_mat, na.rm = TRUE)
+  expense_quintile <- weighted_quintile(total_exp / carbonaro_scale(ncomp), w)
+
+  expense_targets <- data.table(
+    quintile = paste0("Q", expense_quintile),
+    expenditure = total_exp * w
+  )[
+    !is.na(quintile) & is.finite(expenditure) & expenditure >= 0,
+    .(expense_total = sum(expenditure, na.rm = TRUE)),
+    by = quintile
+  ]
+
+  consumption_to_income <- load_consumption_to_income(
+    "IT",
+    start_year = year,
+    end_year = year
+  )
+  income_categories <- c(
+    "First quintile", "Second quintile", "Third quintile",
+    "Fourth quintile", "Fifth quintile"
+  )
+  consumption_to_income <- consumption_to_income[category != "Total"]
+  consumption_to_income[, quintile := paste0(
+    "Q",
+    match(category, income_categories)
+  )]
+
+  target <- merge(
+    expense_targets,
+    consumption_to_income[, .(quintile, category, consumption_to_income)],
+    by = "quintile",
+    all = FALSE
+  )
+  if (nrow(target) != 5L || any(!is.finite(target$consumption_to_income))) {
+    stop("Could not build Italy income group-share target for ", year, call. = FALSE)
+  }
+
+  target[, adjusted_total := expense_total * 100 / consumption_to_income]
+  target[, target_group_share := adjusted_total / sum(adjusted_total)]
+  target[, .(category = quintile, target_group_share)]
+}
+
+objective_factory <- function(x, w, exp_mat, target, group_target, tau,
+                              target_weight, group_target_weight, ridge) {
   categories <- paste0("Q", 1:5)
-  target_q <- copy(target)
-  target_q[, category := paste0("Q", match(category, unique(category)))]
-  target_q <- target_q[coicop_div %in% colnames(exp_mat)]
+  target_q <- NULL
+  if (!is.null(target) && target_weight > 0) {
+    target_q <- copy(target)
+    target_q[, category := paste0("Q", match(category, unique(category)))]
+    target_q <- target_q[coicop_div %in% colnames(exp_mat)]
+  }
+  group_target_q <- copy(group_target)
+  group_target_q <- group_target_q[category %in% categories]
 
   function(beta) {
     score <- as.numeric(x %*% beta)
     p <- quintile_probabilities(score, w, tau = tau)
-    pred <- shares_from_probabilities(exp_mat, w, p)
-    comp <- merge(
-      pred,
-      target_q,
-      by = c("category", "coicop_div"),
+    division_loss <- 0
+    if (!is.null(target_q) && nrow(target_q) > 0L) {
+      pred <- shares_from_probabilities(exp_mat, w, p)
+      comp <- merge(
+        pred,
+        target_q,
+        by = c("category", "coicop_div"),
+        all = FALSE
+      )
+      division_loss <- mean((comp$share - comp$target_share)^2, na.rm = TRUE)
+    }
+
+    pred_group <- group_shares_from_probabilities(exp_mat, w, p)
+    group_comp <- merge(
+      pred_group,
+      group_target_q,
+      by = "category",
       all = FALSE
     )
-    loss <- mean((comp$share - comp$target_share)^2, na.rm = TRUE)
-    target_weight * loss + ridge * mean(beta[-1L]^2)
+    group_loss <- mean(
+      (group_comp$group_share - group_comp$target_group_share)^2,
+      na.rm = TRUE
+    )
+
+    target_weight * division_loss +
+      group_target_weight * group_loss +
+      ridge * mean(beta[-1L]^2)
   }
 }
 
 calibrate_year <- function(year, target, cfg) {
   message("Reading Istat HBS microdata ", year)
+  target_year <- as.integer(year)
+  if (!is.null(target)) {
+    target <- target[year == target_year]
+    if (nrow(target) == 0L) {
+      stop("No bridge-corrected income target for ", year, call. = FALSE)
+    }
+  }
   dt <- read_istat_hbs_year(year, cfg$zips[as.character(year)])
   if (nrow(dt) > 2500L) {
     set.seed(cfg$seed + year)
@@ -262,12 +379,16 @@ calibrate_year <- function(year, target, cfg) {
   x <- build_household_features(dt)
   exp_mat <- prepare_expenditure_matrix(dt)
   w <- dt$weight
+  group_target <- target_group_shares_from_propensity(target_year, dt, exp_mat, w)
 
   set.seed(cfg$seed + year)
   starts <- list(
     c(0, rep(0.15, ncol(x) - 1L))
   )
-  obj <- objective_factory(x, w, exp_mat, target, cfg$tau, cfg$target_weight, cfg$ridge)
+  obj <- objective_factory(
+    x, w, exp_mat, target, group_target, cfg$tau, cfg$target_weight,
+    cfg$group_target_weight, cfg$ridge
+  )
   fits <- lapply(starts, function(start) {
     stats::optim(
       par = start,
@@ -289,6 +410,9 @@ calibrate_year <- function(year, target, cfg) {
   p <- quintile_probabilities(score, w, tau = cfg$tau)
   shares <- shares_from_probabilities(exp_mat, w, p)
   shares[, year := year]
+  group_shares <- group_shares_from_probabilities(exp_mat, w, p)
+  group_shares <- merge(group_shares, group_target, by = "category", all.x = TRUE)
+  group_shares[, year := year]
   probs <- as.data.table(p)
   probs[, household_row := .I]
   probs[, year := year]
@@ -300,6 +424,7 @@ calibrate_year <- function(year, target, cfg) {
     beta_names = colnames(x),
     loss = best$value,
     shares = shares,
+    group_shares = group_shares,
     probabilities = probs
   )
 }
@@ -398,8 +523,12 @@ add_proxy_coicop_rows <- function(hbs_obj, mapping) {
   )
 }
 
-message("Loading Eurostat calibration and all-households HBS totals")
-target <- target_2005_division_shares()
+message("Loading group-share calibration and all-households HBS totals")
+target <- if (cfg$target_weight > 0) {
+  target_bridge_division_shares(cfg$target_years)
+} else {
+  NULL
+}
 hbs_totals_src <- load_hbs(
   "IT", "income", level = cfg$level,
   start_year = cfg$calibration_year,
@@ -449,6 +578,10 @@ fwrite(
 fwrite(
   rbindlist(lapply(calibrated, `[[`, "shares"), use.names = TRUE),
   file.path(out_dir, "IT_income_hbs_latent_probability_division_shares.csv")
+)
+fwrite(
+  rbindlist(lapply(calibrated, `[[`, "group_shares"), use.names = TRUE),
+  file.path(out_dir, "IT_income_hbs_latent_probability_group_shares.csv")
 )
 fwrite(
   hbs_latent$dt[, .(

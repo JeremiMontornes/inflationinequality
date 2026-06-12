@@ -118,6 +118,42 @@ plot_household_inflation_distribution <- function(x,
   p
 }
 
+#' Plot household-level inflation distribution
+#'
+#' @description
+#' `plot_distribution()` is a short alias for
+#' [plot_household_inflation_distribution()]. It is intended for paper and
+#' presentation workflows that need a compact plotting verb.
+#'
+#' @inheritParams plot_household_inflation_distribution
+#'
+#' @returns A `ggplot2` object.
+#'
+#' @export
+plot_distribution <- function(x,
+                              years = NULL,
+                              bin_width = 0.1,
+                              overlay = TRUE,
+                              weighted = TRUE,
+                              xlim = NULL,
+                              title = "Distribution of household-level inflation in Spain",
+                              subtitle = NULL,
+                              xlab = "Mean annual inflation by household",
+                              ylab = NULL) {
+  plot_household_inflation_distribution(
+    x = x,
+    years = years,
+    bin_width = bin_width,
+    overlay = overlay,
+    weighted = weighted,
+    xlim = xlim,
+    title = title,
+    subtitle = subtitle,
+    xlab = xlab,
+    ylab = ylab
+  )
+}
+
 household_inflation_annual_mean_dt <- function(x) {
   if (inherits(x, "household_inflation")) {
     dt <- data.table::copy(x$dt)

@@ -74,7 +74,9 @@ test_that("plot_household_inflation_distribution returns a ggplot", {
 
   overlay <- plot_household_inflation_distribution(annual_mean, bin_width = 0.1)
   facets <- plot_household_inflation_distribution(annual_mean, bin_width = 0.1, overlay = FALSE)
+  alias <- plot_distribution(annual_mean, bin_width = 0.1)
 
   expect_s3_class(overlay, "ggplot")
   expect_s3_class(facets, "ggplot")
+  expect_s3_class(alias, "ggplot")
 })

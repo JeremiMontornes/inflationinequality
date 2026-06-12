@@ -82,7 +82,10 @@ test_that("calculate_weights normalizes weights correctly", {
 })
 
 test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
-  categories <- paste0("Q", 1:5)
+  categories <- c(
+    "First quintile", "Second quintile", "Third quintile",
+    "Fourth quintile", "Fifth quintile"
+  )
   hbs_dt <- data.table::CJ(
     coicop = c("01", "02"),
     year = 2020,
@@ -100,7 +103,7 @@ test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
   custom_hbs <- hbs(
     hbs_dt,
     hbs_total,
-    country = "ZZ",
+    country = "FR",
     category = "income",
     categories = categories,
     level = 1
@@ -111,13 +114,13 @@ test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
       weight = c(600, 400),
       year = 2022
     ),
-    country = "ZZ",
+    country = "FR",
     level = 1,
     base_total = 1000
   )
 
   result <- calculate_weights(
-    "ZZ", "income",
+    "FR", "income",
     level = 1,
     custom_index_weights = custom_index_weights,
     custom_hbs = custom_hbs,
@@ -127,9 +130,20 @@ test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
   row_sums <- result$dt[, .(total = sum(weighted_consumption)), by = category]
   expect_true(all(abs(row_sums$total - 100) < 1e-8))
 
-  aggregate_weights <- result$dt[
+  category_shares <- inflationinequality:::ras_category_shares(
+    "income",
+    country = "FR",
+    categories = categories,
+    weight_years = 2022L
+  )
+  result_with_shares <- merge(
+    result$dt,
+    category_shares,
+    by = c("category", "weight_year")
+  )
+  aggregate_weights <- result_with_shares[
     ,
-    .(weighted_average = mean(weighted_consumption)),
+    .(weighted_average = sum(weighted_consumption * category_share)),
     by = coicop
   ][order(coicop)]
   expect_equal(aggregate_weights$weighted_average, c(60, 40), tolerance = 1e-8)
@@ -170,12 +184,15 @@ test_that("calculate_weights RAS works with income deciles", {
     base_total = 1000
   )
 
-  result <- calculate_weights(
-    "ZZ", "income",
-    level = 1,
-    custom_index_weights = custom_index_weights,
-    custom_hbs = custom_hbs,
-    weighting_method = "ras"
+  expect_warning(
+    result <- calculate_weights(
+      "ZZ", "income",
+      level = 1,
+      custom_index_weights = custom_index_weights,
+      custom_hbs = custom_hbs,
+      weighting_method = "ras"
+    ),
+    "using equal group shares"
   )
 
   row_sums <- result$dt[, .(total = sum(weighted_consumption)), by = category]
@@ -187,6 +204,47 @@ test_that("calculate_weights RAS works with income deciles", {
     by = coicop
   ][order(coicop)]
   expect_equal(aggregate_weights$weighted_average, c(25, 75), tolerance = 1e-8)
+})
+
+test_that("calculate_weights RAS uses France INSEE level-3 group shares", {
+  expected <- list(
+    income = readRDS(test_path("../../inst/extdata/INSEE_HBS_2017_level3.RDS")),
+    age = readRDS(test_path("../../inst/extdata/INSEE_HBS_2017_age_level3.RDS")),
+    urban = readRDS(test_path("../../inst/extdata/INSEE_HBS_2017_urban_level3.RDS"))
+  )
+
+  for (hbs_category in names(expected)) {
+    hbs_obj <- expected[[hbs_category]]
+    expected_shares <- hbs_obj$dt[
+      nchar(coicop) == 2L,
+      .(category_share = sum(consumption, na.rm = TRUE)),
+      by = category
+    ]
+    expected_shares[, category_share := category_share / sum(category_share)]
+
+    shares <- inflationinequality:::ras_category_shares(
+      hbs_category,
+      country = "FR",
+      categories = hbs_obj$categories,
+      weight_years = 2017L
+    )
+
+    merged <- merge(expected_shares, shares, by = "category")
+    expect_equal(nrow(merged), length(hbs_obj$categories))
+    expect_equal(merged$category_share.x, merged$category_share.y, tolerance = 1e-10)
+
+    weights <- calculate_weights(
+      "FR", hbs_category,
+      level = 3,
+      weighting_method = "ras"
+    )
+    weight_sums <- weights$dt[
+      ,
+      .(total_weight = sum(weighted_consumption)),
+      by = .(category, weight_year)
+    ]
+    expect_true(all(abs(weight_sums$total_weight - 100) < 1e-6))
+  }
 })
 
 test_that("calculate_weights uses bundled Italy reconstructed income HBS when available", {
