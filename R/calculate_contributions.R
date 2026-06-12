@@ -175,7 +175,6 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
 
   index_weights_for_calc <- custom_index_weights
   if (recode_ecoicop2_to_ecoicop1) {
-    cpi <- recode_cpi_ecoicop2_to_ecoicop1(cpi, target_level = level)
     index_weights_for_calc <- if (is.null(index_weights_for_calc)) {
       if (is.null(country)) {
         stop("Either 'country' or 'custom_index_weights' must be provided.")
@@ -187,6 +186,11 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     } else {
       index_weights_for_calc
     }
+    cpi <- recode_cpi_ecoicop2_to_ecoicop1(
+      cpi,
+      target_level = level,
+      index_weights_obj = index_weights_for_calc
+    )
     index_weights_for_calc <- recode_index_weights_ecoicop2_to_ecoicop1(
       index_weights_for_calc,
       target_level = level
@@ -302,12 +306,27 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
     p_y1_12 <- cpi$dt_basket[month == 12 & year == y - 1, value]
     p_y2_12 <- cpi$dt_basket[month == 12 & year == y - 2, value]
 
-    # We only use COICOP codes that exist in years `y-2`, `y-1`, `y`
-    # but also have more than 1e-6 in those years.
-    valid_coicops <- cpi$dt[year %in% c(y-2, y-1, y),
-                            .(n_years = data.table::uniqueN(year),
-                              all_valid = all(value > 1e-6)),
-                            by = coicop][n_years == 3 & all_valid == TRUE, unique(coicop)]
+    # The contribution formula uses December of y-2, all available months of
+    # y-1, and the matching months of y. Earlier y-2 months are not required.
+    valid_coicops <- cpi$dt[
+      year %in% c(y - 2, y - 1, y),
+      {
+        y2_dec <- value[year == y - 2 & month == 12]
+        y1_values <- value[year == y - 1]
+        y_values <- value[year == y]
+        .(
+          valid =
+            length(y2_dec) == 1L &&
+              is.finite(y2_dec) &&
+              y2_dec > 1e-6 &&
+              length(y1_values) > 0L &&
+              all(is.finite(y1_values) & y1_values > 1e-6) &&
+              length(y_values) > 0L &&
+              all(is.finite(y_values) & y_values > 1e-6)
+        )
+      },
+      by = coicop
+    ][valid == TRUE, unique(coicop)]
 
     # COICOP codes that do not exist that recorded
     missing_coicops_y <- setdiff(cpi_coicops, valid_coicops)

@@ -58,6 +58,54 @@ test_that("ECOICOP v2 bridge leaves unmapped codes unchanged", {
   )
 })
 
+test_that("ECOICOP v2 CPI recode uses lower-level HICP weights on monthly movements", {
+  cpi_dt <- data.table::data.table(
+    series_name = rep("CPI", 8),
+    coicop = rep(c("1212", "1213", "1214", "1219"), each = 2),
+    value = c(100, 110, 100, 120, 100, 130, 100, 140),
+    year = rep(c(2021, 2022), 4),
+    month = rep(c(12, 1), 4)
+  )
+  custom_cpi <- cpi(
+    cpi_dt,
+    data.table::data.table(
+      series_name = rep("CPI", 2),
+      value = c(100, 125),
+      year = c(2021, 2022),
+      month = c(12, 1)
+    ),
+    country = "FR",
+    level = 3
+  )
+  custom_index_weights <- index_weights(
+    data.table::data.table(
+      coicop = c("1212", "1213", "1214", "1219"),
+      weight = c(1, 2, 3, 4),
+      year = 2022
+    ),
+    country = "FR",
+    level = 3,
+    base_total = 10
+  )
+
+  recoded <- inflationinequality:::recode_cpi_ecoicop2_to_ecoicop1(
+    custom_cpi,
+    target_level = 2,
+    index_weights_obj = custom_index_weights
+  )
+
+  expect_equal(unique(recoded$dt$coicop), "125")
+  recoded_dt <- data.table::copy(recoded$dt)
+  recoded_dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
+  data.table::setorder(recoded_dt, coicop, date)
+  recoded_dt[, dec_ratio := hicp::unchain(value, date), by = coicop]
+
+  expect_equal(
+    recoded_dt[year == 2022 & month == 1, dec_ratio],
+    stats::weighted.mean(c(1.10, 1.20, 1.30, 1.40), c(1, 2, 3, 4))
+  )
+})
+
 test_that("calculate_price_indices returns chained indices by category", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 8),

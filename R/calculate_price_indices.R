@@ -215,7 +215,11 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
   }
 
   if (recode_ecoicop2_to_ecoicop1) {
-    cpi_obj <- recode_cpi_ecoicop2_to_ecoicop1(cpi_obj, target_level = level)
+    cpi_obj <- recode_cpi_ecoicop2_to_ecoicop1(
+      cpi_obj,
+      target_level = level,
+      index_weights_obj = index_weights_obj
+    )
     index_weights_obj <- recode_index_weights_ecoicop2_to_ecoicop1(index_weights_obj, target_level = level)
   }
 
@@ -833,23 +837,66 @@ aggregate_france_insee_deciles_to_quintiles <- function(hbs_obj) {
   )
 }
 
-recode_cpi_ecoicop2_to_ecoicop1 <- function(cpi_obj, target_level) {
+recode_cpi_ecoicop2_to_ecoicop1 <- function(cpi_obj, target_level, index_weights_obj = NULL) {
   cpi_new <- cpi_obj
   cpi_new$dt <- data.table::copy(cpi_new$dt)
   cpi_new$dt <- cpi_new$dt[nchar(coicop) == cpi_obj$level + 1L]
+  cpi_new$dt[, coicop_v2_source := coicop]
+  cpi_new$dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
+  data.table::setorder(cpi_new$dt, coicop_v2_source, date)
+  cpi_new$dt[, dec_ratio := hicp::unchain(x = value, t = date), by = coicop_v2_source]
   cpi_new$dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
   cpi_new$dt[, coicop := coicop_to_level(coicop, target_level)]
+
+  if (!is.null(index_weights_obj)) {
+    cpi_recode_weights <- data.table::copy(index_weights_obj$dt)
+    cpi_recode_weight_year_col <- if ("weight_year" %in% names(cpi_recode_weights)) {
+      "weight_year"
+    } else {
+      "year"
+    }
+    cpi_recode_weights <- cpi_recode_weights[
+      nchar(coicop) == index_weights_obj$level + 1L,
+      .(coicop_v2_source = coicop, year = get(cpi_recode_weight_year_col), weight)
+    ]
+    cpi_recode_weights <- cpi_recode_weights[
+      ,
+      .(weight = sum(weight, na.rm = TRUE)),
+      by = .(coicop_v2_source, year)
+    ]
+    cpi_new$dt <- merge(
+      cpi_new$dt,
+      cpi_recode_weights,
+      by = c("coicop_v2_source", "year"),
+      all.x = TRUE
+    )
+  } else {
+    cpi_new$dt[, weight := NA_real_]
+  }
+
   cpi_new$dt <- cpi_new$dt[
     ,
     .(
       series_name = paste(unique(stats::na.omit(series_name)), collapse = "; "),
-      value = mean(value, na.rm = TRUE)
+      dec_ratio = weighted_mean_or_mean(dec_ratio, weight)
     ),
-    by = .(coicop, year, month)
+    by = .(coicop, year, month, date)
   ]
+  data.table::setorder(cpi_new$dt, coicop, date)
+  cpi_new$dt[, value := hicp::chain(x = dec_ratio, t = date, by = 12), by = coicop]
+  cpi_new$dt[, c("date", "dec_ratio") := NULL]
   cpi_new$dt[series_name == "", series_name := NA_character_]
   cpi_new$level <- target_level
   cpi_new
+}
+
+weighted_mean_or_mean <- function(x, w) {
+  ok <- !is.na(x) & !is.na(w) & is.finite(w) & w > 0
+  if (any(ok)) {
+    stats::weighted.mean(x[ok], w[ok], na.rm = TRUE)
+  } else {
+    mean(x, na.rm = TRUE)
+  }
 }
 
 recode_index_weights_ecoicop2_to_ecoicop1 <- function(index_weights_obj, target_level) {
