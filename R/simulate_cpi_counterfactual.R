@@ -98,6 +98,71 @@ simulate_cpi_counterfactual <- function(cpi = NULL,
     cpi <- recode_cpi_ecoicop2_to_ecoicop1(cpi, target_level = cpi$level)
   }
 
+  policy <- cpi_counterfactual_policy(
+    coicop = as.character(coicop),
+    type = match.arg(type),
+    start = start,
+    end = end,
+    old_rate = old_rate,
+    new_rate = new_rate,
+    ratio = ratio,
+    elasticity = elasticity,
+    subsidy = subsidy,
+    unit_price = unit_price,
+    counterfactual_index = counterfactual_index
+  )
+
+  simulate_cpi_policy_counterfactuals(
+    cpi = cpi,
+    policies = policy,
+    recalculate_price_basket = recalculate_price_basket,
+    recode_ecoicop2_to_ecoicop1 = FALSE
+  )
+}
+
+#' Define one CPI policy counterfactual
+#'
+#' @description
+#' `cpi_counterfactual_policy()` converts one manually specified policy
+#' counterfactual into a monthly policy table. The resulting table can be passed
+#' to [simulate_cpi_policy_counterfactuals()], alone or after row-binding it
+#' with other policy tables.
+#'
+#' @param policy_id Optional policy identifier. If omitted, a stable identifier
+#'   is built from `type`, `coicop`, `start`, and `end`.
+#' @inheritParams simulate_cpi_counterfactual
+#'
+#' @return A data.table with one row per month and columns `policy_id`,
+#'   `type`, `coicop`, `date`, `policy_ratio`, and `counterfactual_index`.
+#'
+#' @examples
+#' policy <- cpi_counterfactual_policy(
+#'   policy_id = "vat_electricity",
+#'   coicop = "0451",
+#'   type = "vat",
+#'   start = "2022-03",
+#'   end = "2022-12",
+#'   old_rate = 0.21,
+#'   new_rate = 0.06
+#' )
+#'
+#' @importFrom data.table :=
+#' @export
+cpi_counterfactual_policy <- function(policy_id = NULL,
+                                      coicop,
+                                      type = c("vat", "ratio", "unit_subsidy", "index"),
+                                      start,
+                                      end,
+                                      old_rate = NULL,
+                                      new_rate = NULL,
+                                      ratio = NULL,
+                                      elasticity = 1,
+                                      subsidy = NULL,
+                                      unit_price = NULL,
+                                      counterfactual_index = NULL) {
+  if (missing(coicop) || length(coicop) != 1 || is.na(coicop)) {
+    stop("coicop must be a single COICOP code")
+  }
   type <- match.arg(type)
   policy <- build_cpi_counterfactual_policy(
     coicop = as.character(coicop),
@@ -112,15 +177,95 @@ simulate_cpi_counterfactual <- function(cpi = NULL,
     unit_price = unit_price,
     counterfactual_index = counterfactual_index
   )
+  if (is.null(policy_id)) {
+    policy_id <- paste(type, coicop, start, end, sep = "_")
+  }
+  if (!is.character(policy_id) || length(policy_id) != 1 || is.na(policy_id)) {
+    stop("policy_id must be NULL or a single character value")
+  }
+  policy[, `:=`(policy_id = policy_id, type = type)]
+  data.table::setcolorder(
+    policy,
+    c("policy_id", "type", "coicop", "date", "policy_ratio", "counterfactual_index")
+  )
+  policy[]
+}
 
-  simulated_price_dt <- simulate_cpi_counterfactual_item_indices(cpi$dt, policy)
+#' Simulate several CPI policy counterfactuals
+#'
+#' @description
+#' `simulate_cpi_policy_counterfactuals()` applies several monthly policy
+#' counterfactuals to CPI item indices, then optionally recalculates the
+#' aggregate CPI basket once. This is useful for policy scenarios combining
+#' several VAT cuts, unit subsidies, tariff ratios, or externally supplied
+#' counterfactual indices.
+#'
+#' @param cpi A `"cpi"` object.
+#' @param policies A data.frame or data.table of monthly counterfactual policy
+#'   rows, usually created with [cpi_counterfactual_policy()]. Required columns
+#'   are `coicop`, `date`, `policy_ratio`, and `counterfactual_index`.
+#' @inheritParams simulate_cpi_counterfactual
+#'
+#' @return A `"cpi"` object with counterfactual CPI item indices and, when
+#'   `recalculate_price_basket = TRUE`, a recalculated aggregate CPI basket.
+#'
+#' @examples
+#' dt <- data.table::data.table(
+#'   series_name = rep("CPI", 24),
+#'   coicop = rep(c("0451", "0452"), each = 12),
+#'   value = 100,
+#'   year = rep(2022, 24),
+#'   month = rep(1:12, 2)
+#' )
+#' dt_basket <- data.table::data.table(
+#'   series_name = "CPI",
+#'   value = 100,
+#'   year = rep(2022, 12),
+#'   month = 1:12
+#' )
+#' cpi <- cpi(dt, dt_basket, "FR", 3)
+#' policies <- data.table::rbindlist(list(
+#'   cpi_counterfactual_policy("vat_electricity", "0451", "vat", "2022-03", "2022-12", old_rate = 0.21, new_rate = 0.06),
+#'   cpi_counterfactual_policy("vat_gas", "0452", "vat", "2022-03", "2022-12", old_rate = 0.21, new_rate = 0.06)
+#' ))
+#' simulate_cpi_policy_counterfactuals(cpi, policies, recalculate_price_basket = FALSE)
+#'
+#' @importFrom data.table :=
+#' @export
+simulate_cpi_policy_counterfactuals <- function(cpi,
+                                                policies,
+                                                recalculate_price_basket = TRUE,
+                                                recode_ecoicop2_to_ecoicop1 = FALSE) {
+  if (!inherits(cpi, "cpi")) {
+    stop("cpi must be a 'cpi' object")
+  }
+  if (!is.data.frame(policies) && !data.table::is.data.table(policies)) {
+    stop("policies must be a data.frame or data.table")
+  }
+  if (!is.logical(recalculate_price_basket) ||
+      length(recalculate_price_basket) != 1 ||
+      is.na(recalculate_price_basket)) {
+    stop("'recalculate_price_basket' must be TRUE or FALSE.")
+  }
+  if (!is.logical(recode_ecoicop2_to_ecoicop1) ||
+      length(recode_ecoicop2_to_ecoicop1) != 1 ||
+      is.na(recode_ecoicop2_to_ecoicop1)) {
+    stop("'recode_ecoicop2_to_ecoicop1' must be TRUE or FALSE.")
+  }
+
+  if (isTRUE(recode_ecoicop2_to_ecoicop1)) {
+    cpi <- recode_cpi_ecoicop2_to_ecoicop1(cpi, target_level = cpi$level)
+  }
+
+  policies <- validate_counterfactual_policies(policies)
+  simulated_price_dt <- simulate_cpi_counterfactual_item_indices(cpi$dt, policies)
   simulated_dt <- simulated_price_dt[, .(series_name, coicop, value, year, month)]
 
   new_dt_basket <- if (isTRUE(recalculate_price_basket)) {
     simulate_cpi_counterfactual_basket(
       cpi = cpi,
       simulated_price_dt = simulated_price_dt,
-      policy = policy,
+      policy = policies,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
     )
   } else {
@@ -133,6 +278,41 @@ simulate_cpi_counterfactual <- function(cpi = NULL,
     country = cpi$country,
     level = cpi$level
   ))
+}
+
+validate_counterfactual_policies <- function(policies) {
+  required_cols <- c("coicop", "date", "policy_ratio", "counterfactual_index")
+  if (!all(required_cols %in% names(policies))) {
+    stop("policies must contain columns: ", paste(required_cols, collapse = ", "))
+  }
+  policies <- data.table::as.data.table(data.table::copy(policies))
+  policies[, `:=`(
+    coicop = as.character(coicop),
+    date = parse_counterfactual_date_column(date),
+    policy_ratio = as.numeric(policy_ratio),
+    counterfactual_index = as.numeric(counterfactual_index)
+  )]
+  if (nrow(policies) == 0) {
+    stop("policies must contain at least one row")
+  }
+  if (any(is.na(policies$coicop)) || any(is.na(policies$date))) {
+    stop("policies cannot contain missing coicop or date values")
+  }
+  if (any(is.na(policies$policy_ratio) & is.na(policies$counterfactual_index))) {
+    stop("each policy row must define policy_ratio or counterfactual_index")
+  }
+  if (any(!is.na(policies$policy_ratio) & !is.na(policies$counterfactual_index))) {
+    stop("each policy row must define only one of policy_ratio or counterfactual_index")
+  }
+  if (any(!is.na(policies$policy_ratio) & policies$policy_ratio <= 0)) {
+    stop("policy_ratio values must be strictly positive")
+  }
+  duplicate_rows <- policies[, .(n = .N), by = .(coicop, date)]
+  duplicate_rows <- duplicate_rows[duplicate_rows[["n"]] > 1]
+  if (nrow(duplicate_rows) > 0) {
+    stop("policies cannot contain more than one counterfactual for the same coicop-date")
+  }
+  policies[]
 }
 
 find_calling_cpi <- function() {
@@ -287,15 +467,16 @@ simulate_cpi_counterfactual_item_indices <- function(price_dt, policy) {
   price_dt[, simulated_chain_index := chain_index]
   price_dt[, direct_counterfactual_value := NA_real_]
 
-  coicop_code <- unique(policy$coicop)
-  rows_to_modify <- price_dt[
-    coicop == coicop_code &
-      date >= min(policy$date) &
-      date <= max(policy$date)
-  ]
-  if (nrow(rows_to_modify) == 0) {
-    warning(paste("No data found for COICOP", coicop_code, "in the specified date range"))
-    return(price_dt)
+  for (coicop_code in unique(policy$coicop)) {
+    coicop_policy <- policy[coicop == coicop_code]
+    rows_to_modify <- price_dt[
+      coicop == coicop_code &
+        date >= min(coicop_policy$date) &
+        date <= max(coicop_policy$date)
+    ]
+    if (nrow(rows_to_modify) == 0) {
+      warning(paste("No data found for COICOP", coicop_code, "in the specified date range"))
+    }
   }
 
   price_dt <- merge(

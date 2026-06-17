@@ -67,3 +67,124 @@ And using the contribution gap plot:
 sim_contributions <- calculate_contributions("FR", "income", level = 3, start_year = 2019, custom_cpi = sim_cpi, custom_hbs = INSEE_HBS_2017)
 plot_contribution_gap(sim_contributions, category_mapping = list("Fuel" = "0722"))
 ```
+
+## Simulating several policy counterfactuals
+
+For policy scenarios, it is often useful to define each measure separately and
+then apply all measures to the CPI object in one step. This avoids recalculating
+the aggregate CPI basket after every individual measure.
+
+The helper `cpi_counterfactual_policy()` creates one monthly policy table. The
+function `simulate_cpi_policy_counterfactuals()` can then apply several of these
+tables simultaneously and recalculate the aggregate CPI basket once.
+
+The example below defines five VAT counterfactuals. Each row-binding step adds
+one product-specific measure to the scenario.
+
+```{r}
+vat_policies <- data.table::rbindlist(list(
+  cpi_counterfactual_policy(
+    policy_id = "vat_bread",
+    coicop = "0111",
+    type = "vat",
+    start = "2022-04",
+    end = "2022-12",
+    old_rate = 0.20,
+    new_rate = 0.055
+  ),
+  cpi_counterfactual_policy(
+    policy_id = "vat_meat",
+    coicop = "0112",
+    type = "vat",
+    start = "2022-04",
+    end = "2022-12",
+    old_rate = 0.20,
+    new_rate = 0.055
+  ),
+  # [...]
+))
+
+policy_cpi <- simulate_cpi_policy_counterfactuals(
+  cpi,
+  policies = vat_policies,
+  recalculate_price_basket = TRUE
+)
+
+policy_inflation <- calculate_inflation(
+  "FR",
+  "income",
+  level = 3,
+  start_year = 2019,
+  custom_cpi = policy_cpi,
+  custom_hbs = INSEE_HBS_2017
+)
+plot_time_series(policy_inflation)
+```
+
+The aggregate CPI basket is stored in `dt_basket`. The example below changes
+only the simulated sub-indices, keeps all other French CPI items unchanged, and
+then compares the observed and counterfactual total year-on-year inflation
+rates.
+
+```{r total-cpi-counterfactual-plot, eval = TRUE, fig.width = 7, fig.height = 4}
+cpi_fr <- load_cpi("FR", level = 3, start_year = 2019, end_year = 2026)
+
+policy_cpi_fr <- simulate_cpi_policy_counterfactuals(
+  cpi_fr,
+  policies = data.table::rbindlist(list(
+    cpi_counterfactual_policy(
+      policy_id = "electricity_vat_counterfactual",
+      coicop = "0451",
+      type = "vat",
+      start = "2022-04",
+      end = "2023-12",
+      old_rate = 0.20,
+      new_rate = 0.055
+    ),
+    cpi_counterfactual_policy(
+      policy_id = "gas_tariff_counterfactual",
+      coicop = "0452",
+      type = "ratio",
+      start = "2022-04",
+      end = "2023-12",
+      ratio = 1.25
+    ),
+    cpi_counterfactual_policy(
+      policy_id = "fuel_subsidy_counterfactual",
+      coicop = "0722",
+      type = "unit_subsidy",
+      start = "2022-04",
+      end = "2022-12",
+      subsidy = 0.18,
+      unit_price = 1.85
+    )
+  )),
+  recalculate_price_basket = TRUE
+)
+
+total_indices <- data.table::rbindlist(list(
+  data.table::copy(cpi_fr$dt_basket)[, scenario := "Observed inflation"],
+  data.table::copy(policy_cpi_fr$dt_basket)[, scenario := "Counterfactual inflation"]
+))
+total_indices[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
+data.table::setorder(total_indices, scenario, date)
+total_indices[, inflation_yoy := 100 * (value / data.table::shift(value, 12) - 1), by = scenario]
+total_indices <- total_indices[
+  date >= as.Date("2020-01-01") &
+    date <= min(as.Date("2026-12-01"), max(date, na.rm = TRUE)) &
+    !is.na(inflation_yoy)
+]
+
+ggplot2::ggplot(
+  total_indices,
+  ggplot2::aes(x = date, y = inflation_yoy, color = scenario)
+) +
+  ggplot2::geom_hline(yintercept = 0, linewidth = 0.3, color = "grey75") +
+  ggplot2::geom_line(linewidth = 0.8) +
+  ggplot2::labs(x = NULL, y = "Year-on-year inflation (%)", color = NULL) +
+  ggplot2::theme_minimal()
+```
+
+The same workflow can mix different policy types. For example, a VAT
+counterfactual can be combined with a unit fuel subsidy or an externally
+supplied tariff index before recalculating the CPI basket.
