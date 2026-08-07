@@ -50,7 +50,7 @@ calculate_inflation2 <- function(country = NULL, category = NULL, level = 2,
                                  recode_ecoicop2_to_ecoicop1 = TRUE,
                                  aggregate_geo = "EA20",
                                  custom_country_weights = NULL,
-                                 weighting_method = c("relative_expenditure", "ras")) {
+                                 weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
   formula <- match.arg(formula)
   weighting_method <- match.arg(weighting_method)
   france_insee_income_groups <- match.arg(france_insee_income_groups)

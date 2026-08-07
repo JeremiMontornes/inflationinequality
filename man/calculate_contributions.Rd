@@ -19,7 +19,7 @@ calculate_contributions(
   interpolated_hbs = FALSE,
   specific_hbs_year = NULL,
   france_insee_income_groups = c("decile", "quintile"),
-  weighting_method = c("relative_expenditure", "ras"),
+  weighting_method = c("relative_expenditure", "ras", "additive_qp"),
   recode_ecoicop2_to_ecoicop1 = TRUE
 )
 }
@@ -67,9 +67,14 @@ decile groups, not income-threshold bounds. This option only affects
 original national groups.}
 
 \item{weighting_method}{weighting formula. \code{"relative_expenditure"} keeps the
-historical package formula. \code{"ras"} applies iterative proportional fitting
-for income quintiles or deciles, so the population-weighted average of group
-weights matches the HICP item weights while each group basket sums to 100.}
+historical package formula. \code{"ras"} applies iterative proportional fitting.
+\code{"additive_qp"} preserves absolute HBS differences between groups and, when
+necessary, projects the resulting weights onto the non-negative weights
+satisfying the group-basket and HICP-item margins. At COICOP level 2, all
+weighting methods combine HBS actual rents (\code{04.1}) and imputed rents of
+owner-occupiers (\code{04.2}) to distribute the HICP actual-rents weight
+(\code{04.1}). This housing bridge is applied for every country when both HBS
+components are available; HICP weights remain unchanged.}
 
 \item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
 codes back to ECOICOP v1-style codes before matching them to HBS weights.

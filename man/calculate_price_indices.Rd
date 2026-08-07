@@ -25,7 +25,7 @@ calculate_price_indices(
   recode_ecoicop2_to_ecoicop1 = TRUE,
   aggregate_geo = "EA20",
   custom_country_weights = NULL,
-  weighting_method = c("relative_expenditure", "ras")
+  weighting_method = c("relative_expenditure", "ras", "additive_qp")
 )
 }
 \arguments{
@@ -97,9 +97,14 @@ When \code{country = "EA20"}, \code{level} is forced to \code{2} because euro-ar
 household-group aggregation is currently supported at COICOP level 2.}
 
 \item{weighting_method}{weighting formula. \code{"relative_expenditure"} keeps the
-historical package formula. \code{"ras"} applies iterative proportional fitting
-for income quintiles or deciles, so the population-weighted average of group
-weights matches the HICP item weights while each group basket sums to 100.}
+historical package formula. \code{"ras"} applies iterative proportional fitting.
+\code{"additive_qp"} preserves absolute HBS differences between groups and, when
+necessary, projects the resulting weights onto the non-negative weights
+satisfying the group-basket and HICP-item margins. At COICOP level 2, all
+weighting methods combine HBS actual rents (\code{04.1}) and imputed rents of
+owner-occupiers (\code{04.2}) to distribute the HICP actual-rents weight
+(\code{04.1}). This housing bridge is applied for every country when both HBS
+components are available; HICP weights remain unchanged.}
 }
 \value{
 An object of class \code{"price_indices"} containing:

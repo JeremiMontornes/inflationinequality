@@ -45,9 +45,14 @@
 #'   `category = "income"`; France `age` and `urban` level-3 HBS data keep their
 #'   original national groups.
 #' @param weighting_method weighting formula. `"relative_expenditure"` keeps the
-#'   historical package formula. `"ras"` applies iterative proportional fitting
-#'   for income quintiles or deciles, so the population-weighted average of group
-#'   weights matches the HICP item weights while each group basket sums to 100.
+#'   historical package formula. `"ras"` applies iterative proportional fitting.
+#'   `"additive_qp"` preserves absolute HBS differences between groups and, when
+#'   necessary, projects the resulting weights onto the non-negative weights
+#'   satisfying the group-basket and HICP-item margins. At COICOP level 2, all
+#'   weighting methods combine HBS actual rents (`04.1`) and imputed rents of
+#'   owner-occupiers (`04.2`) to distribute the HICP actual-rents weight
+#'   (`04.1`). This housing bridge is applied for every country when both HBS
+#'   components are available; HICP weights remain unchanged.
 #'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
@@ -100,7 +105,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               interpolated_hbs = FALSE,
                               specific_hbs_year = NULL,
                               france_insee_income_groups = c("decile", "quintile"),
-                              weighting_method = c("relative_expenditure", "ras")) {
+                              weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
   if (!is.null(country)) {
     country <- toupper(country)
   }
@@ -182,6 +187,10 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     hbs <- interpolate_hbs(hbs)
   }
 
+  if (identical(as.integer(level), 2L)) {
+    hbs <- combine_hbs_actual_and_imputed_rents(hbs)
+  }
+
   dt_coicop_bridge <- build_coicop_bridge(
     country = country,
     category = category,
@@ -251,8 +260,15 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
 
     # Normalised weights
     dt_weighted_consumption[, weighted_consumption := unnormalized_weighted_consumption * 100 / sum(unnormalized_weighted_consumption), by = .(weight_year, category)]
-  } else {
+  } else if (identical(weighting_method, "ras")) {
     dt_weighted_consumption <- apply_ras_group_weights(
+      dt_weighted_consumption,
+      hbs_category = hbs$category,
+      categories = hbs$categories,
+      country = country
+    )
+  } else {
+    dt_weighted_consumption <- apply_additive_qp_group_weights(
       dt_weighted_consumption,
       hbs_category = hbs$category,
       categories = hbs$categories,
@@ -305,6 +321,221 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                         start_year = min(dt_weighted_consumption$weight_year),
                         end_year = max(dt_weighted_consumption$weight_year)),
                    class = "weights"))
+}
+
+combine_hbs_actual_and_imputed_rents <- function(hbs) {
+  housing_codes <- c("041", "042")
+  if (!all(housing_codes %in% unique(hbs$dt$coicop))) {
+    return(hbs)
+  }
+
+  out <- hbs
+  dt <- data.table::copy(hbs$dt)
+  dt_total <- data.table::copy(hbs$dt_total)
+
+  housing <- dt[
+    coicop %in% housing_codes,
+    .(
+      series_name = paste(sort(unique(stats::na.omit(series_name))), collapse = " + "),
+      consumption = sum(consumption, na.rm = TRUE)
+    ),
+    by = .(year, category)
+  ]
+  housing[, coicop := "041"]
+  data.table::setcolorder(
+    housing,
+    intersect(names(dt), c("series_name", "coicop", "year", "category", "consumption"))
+  )
+
+  housing_total <- dt_total[
+    coicop %in% housing_codes,
+    .(
+      series_name = if ("series_name" %in% names(dt_total)) {
+        paste(sort(unique(stats::na.omit(series_name))), collapse = " + ")
+      } else {
+        NA_character_
+      },
+      total_consumption = sum(total_consumption, na.rm = TRUE)
+    ),
+    by = year
+  ]
+  housing_total[, coicop := "041"]
+  if (!"series_name" %in% names(dt_total)) {
+    housing_total[, series_name := NULL]
+  }
+  data.table::setcolorder(
+    housing_total,
+    intersect(names(dt_total), c("series_name", "coicop", "year", "total_consumption"))
+  )
+
+  out$dt <- data.table::rbindlist(
+    list(dt[!coicop %in% housing_codes], housing),
+    use.names = TRUE,
+    fill = TRUE
+  )
+  out$dt_total <- data.table::rbindlist(
+    list(dt_total[!coicop %in% housing_codes], housing_total),
+    use.names = TRUE,
+    fill = TRUE
+  )
+  data.table::setorder(out$dt, coicop, year, category)
+  data.table::setorder(out$dt_total, coicop, year)
+  out$combined_hbs_housing_041_042 <- TRUE
+  out
+}
+
+apply_additive_qp_group_weights <- function(dt, hbs_category, categories,
+                                            country = NULL,
+                                            tolerance = 1e-8,
+                                            max_iter = 100000L) {
+  categories <- normalize_group_labels(categories)
+  dt[, category := normalize_group_labels(category)]
+  if (!all(categories %in% unique(dt$category))) {
+    stop(
+      "Cannot apply additive QP because not all HBS categories are present ",
+      "in the HBS-HICP matched data.",
+      call. = FALSE
+    )
+  }
+
+  category_share <- ras_category_shares(
+    hbs_category = hbs_category,
+    country = country,
+    categories = categories,
+    weight_years = sort(unique(dt$weight_year))
+  )
+  dt <- category_share[dt, on = .(category, weight_year)]
+  if (anyNA(dt$category_share)) {
+    stop("Missing group consumption shares for additive calibration.", call. = FALSE)
+  }
+
+  dt <- dt[
+    ,
+    additive_qp_calibrate_group(
+      .SD,
+      categories = categories,
+      tolerance = tolerance,
+      max_iter = max_iter
+    ),
+    by = weight_year
+  ]
+  dt[, category_share := NULL]
+  dt[]
+}
+
+additive_qp_calibrate_group <- function(dt, categories, tolerance, max_iter) {
+  categories <- categories[categories %in% unique(dt$category)]
+  coicops <- sort(unique(dt$coicop))
+  n_group <- length(categories)
+  n_item <- length(coicops)
+
+  category_share <- dt[
+    , .(category_share = category_share[1L]), by = category
+  ][match(categories, category), category_share]
+  category_share <- category_share / sum(category_share)
+  hicp_target <- dt[
+    , .(weight = weight[1L]), by = coicop
+  ][match(coicops, coicop), weight]
+  hicp_target <- hicp_target * 100 / sum(hicp_target)
+
+  hbs <- matrix(0, nrow = n_group, ncol = n_item,
+                dimnames = list(categories, coicops))
+  for (q in seq_along(categories)) {
+    values <- dt[category == categories[q]][match(coicops, coicop), consumption]
+    values[!is.finite(values) | values < 0] <- 0
+    if (sum(values) <= 0) {
+      hbs[q, ] <- hicp_target
+    } else {
+      hbs[q, ] <- values * 100 / sum(values)
+    }
+  }
+  hbs_mean <- drop(crossprod(category_share, hbs))
+  additive <- sweep(hbs, 2L, hbs_mean, "-")
+  additive <- sweep(additive, 2L, hicp_target, "+")
+  unsupported <- dt[
+    , .(unsupported = all(total_consumption <= 1e-6)), by = coicop
+  ][match(coicops, coicop), unsupported]
+  # An HICP item with no HBS support carries no distributional signal: assign
+  # its national HICP weight to every group before projecting the full system.
+  if (any(unsupported)) {
+    additive[, unsupported] <- rep(hicp_target[unsupported], each = n_group)
+  }
+
+  calibrated <- additive_qp_project(
+    additive,
+    category_share = category_share,
+    hicp_target = hicp_target,
+    tolerance = tolerance,
+    max_iter = max_iter
+  )
+
+  calibrated_dt <- data.table::as.data.table(as.table(calibrated))
+  data.table::setnames(
+    calibrated_dt,
+    c("category", "coicop", "weighted_consumption")
+  )
+  calibrated_dt[, `:=`(
+    category = as.character(category),
+    coicop = as.character(coicop),
+    weighted_consumption = as.numeric(weighted_consumption)
+  )]
+  calibrated_dt[dt, on = .(category, coicop)][]
+}
+
+additive_qp_project <- function(seed, category_share, hicp_target,
+                                tolerance = 1e-8, max_iter = 100000L) {
+  n_group <- nrow(seed)
+  n_item <- ncol(seed)
+  n_variable <- n_group * n_item
+
+  # One HICP constraint is redundant with the basket constraints and is
+  # omitted so that the affine projection has full row rank.
+  constraint <- matrix(0, nrow = n_group + n_item - 1L,
+                       ncol = n_variable)
+  for (q in seq_len(n_group)) {
+    constraint[q, q + n_group * (seq_len(n_item) - 1L)] <- 1
+  }
+  if (n_item > 1L) {
+    for (j in seq_len(n_item - 1L)) {
+      constraint[n_group + j,
+                 seq_len(n_group) + n_group * (j - 1L)] <- category_share
+    }
+  }
+  target <- c(rep(100, n_group), hicp_target[seq_len(n_item - 1L)])
+  gram <- tcrossprod(constraint)
+  project_affine <- function(value) {
+    residual <- target - drop(constraint %*% value)
+    value + drop(crossprod(constraint, qr.solve(gram, residual)))
+  }
+
+  current <- as.vector(seed)
+  affine_correction <- numeric(n_variable)
+  nonnegative_correction <- numeric(n_variable)
+  for (iter in seq_len(max_iter)) {
+    affine_input <- current + affine_correction
+    affine <- project_affine(affine_input)
+    affine_correction <- affine_input - affine
+
+    nonnegative_input <- affine + nonnegative_correction
+    updated <- pmax(nonnegative_input, 0)
+    nonnegative_correction <- nonnegative_input - updated
+
+    margin_error <- max(abs(drop(constraint %*% updated) - target))
+    if (max(abs(updated - current)) < tolerance && margin_error < tolerance) {
+      out <- matrix(updated, nrow = n_group, ncol = n_item,
+                    dimnames = dimnames(seed))
+      if (min(out) < -tolerance ||
+          max(abs(rowSums(out) - 100)) > 10 * tolerance ||
+          max(abs(drop(crossprod(category_share, out)) - hicp_target)) >
+            10 * tolerance) {
+        stop("Additive QP calibration failed its margin checks.", call. = FALSE)
+      }
+      out[out < 0 & out > -tolerance] <- 0
+      return(out)
+    }
+    current <- updated
+  }
+  stop("Additive QP calibration did not converge.", call. = FALSE)
 }
 
 apply_ras_group_weights <- function(dt, hbs_category, categories, country = NULL,
