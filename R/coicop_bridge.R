@@ -134,6 +134,9 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
     "exact",
     "rolled_up_to_higher_level"
   )]
+  if (isTRUE(hbs$combined_hbs_housing_041_042)) {
+    mapping[hicp_coicop == "041", mapping_status := "combined_hbs_041_042"]
+  }
 
   mapping[, hbs_code_available := hbs_coicop %in% hbs_available]
 

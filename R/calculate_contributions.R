@@ -113,7 +113,7 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                                     interpolated_hbs = FALSE,
                                     specific_hbs_year = NULL,
                                     france_insee_income_groups = c("decile", "quintile"),
-                                    weighting_method = c("relative_expenditure", "ras"),
+                                    weighting_method = c("relative_expenditure", "ras", "additive_qp"),
                                     recode_ecoicop2_to_ecoicop1 = TRUE) {
   if (!is.null(country)) {
     country <- toupper(country)

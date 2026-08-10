@@ -149,6 +149,230 @@ test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
   expect_equal(aggregate_weights$weighted_average, c(60, 40), tolerance = 1e-8)
 })
 
+test_that("calculate_weights additive QP preserves both margins and non-negativity", {
+  categories <- c(
+    "First quintile", "Second quintile", "Third quintile",
+    "Fourth quintile", "Fifth quintile"
+  )
+  hbs_dt <- data.table::CJ(
+    coicop = c("01", "02", "03"),
+    year = 2020,
+    category = categories
+  )
+  hbs_dt[, series_name := "test HBS"]
+  # The first group puts nearly all expenditure on item 01. Combined with its
+  # small HICP margin, the unconstrained additive solution contains negatives.
+  hbs_dt[, consumption := data.table::fcase(
+    category == categories[1L] & coicop == "01", 850,
+    category == categories[1L], 75,
+    coicop == "01", 0,
+    default = 500
+  )]
+  data.table::setcolorder(
+    hbs_dt,
+    c("series_name", "coicop", "year", "category", "consumption")
+  )
+  custom_hbs <- hbs(
+    hbs_dt,
+    data.table::data.table(
+      series_name = "test HBS total",
+      coicop = c("01", "02", "03"),
+      year = 2020,
+      total_consumption = c(170, 415, 415)
+    ),
+    country = "FR",
+    category = "income",
+    categories = categories,
+    level = 1
+  )
+  custom_index_weights <- index_weights(
+    data.table::data.table(
+      coicop = c("01", "02", "03"),
+      weight = c(100, 450, 450),
+      year = 2022
+    ),
+    country = "FR",
+    level = 1,
+    base_total = 1000
+  )
+
+  result <- calculate_weights(
+    "FR", "income",
+    level = 1,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    weighting_method = "additive_qp"
+  )
+  shares <- inflationinequality:::ras_category_shares(
+    "income", "FR", categories, 2022L
+  )
+  checked <- merge(result$dt, shares, by = c("category", "weight_year"))
+
+  expect_gte(min(checked$weighted_consumption), -1e-10)
+  expect_equal(
+    checked[, sum(weighted_consumption), by = category]$V1,
+    rep(100, length(categories)),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    checked[, sum(category_share * weighted_consumption), by = coicop][order(coicop)]$V1,
+    c(10, 45, 45),
+    tolerance = 1e-8
+  )
+})
+
+test_that("additive QP leaves an already feasible additive solution unchanged", {
+  seed <- matrix(
+    c(55, 45, 60, 40),
+    nrow = 2,
+    byrow = TRUE,
+    dimnames = list(c("low", "high"), c("01", "02"))
+  )
+  result <- inflationinequality:::additive_qp_project(
+    seed,
+    category_share = c(0.5, 0.5),
+    hicp_target = c(57.5, 42.5)
+  )
+  expect_equal(result, seed, tolerance = 1e-10)
+})
+
+test_that("additive QP treats an item without HBS support neutrally", {
+  categories <- c("low", "high")
+  dt <- data.table::CJ(category = categories, coicop = c("01", "02"))
+  dt[, `:=`(
+    weight_year = 2022L,
+    weight = data.table::fifelse(coicop == "01", 700, 300),
+    category_share = 0.5,
+    consumption = data.table::fcase(
+      coicop == "02", 1e-6,
+      category == "low", 80,
+      default = 120
+    ),
+    total_consumption = data.table::fifelse(coicop == "01", 100, 1e-6)
+  )]
+  result <- inflationinequality:::additive_qp_calibrate_group(
+    dt, categories, tolerance = 1e-10, max_iter = 10000L
+  )
+  expect_equal(
+    result[coicop == "02", weighted_consumption],
+    c(30, 30),
+    tolerance = 1e-8
+  )
+})
+
+test_that("additive QP combines actual and imputed rents without double counting", {
+  categories <- c("low", "high")
+  dt <- data.table::data.table(
+    series_name = "national HBS",
+    coicop = rep(c("041", "042", "045"), each = 2L),
+    year = 2022,
+    category = rep(categories, 3L),
+    consumption = c(20, 5, 10, 30, 15, 25)
+  )
+  dt_total <- data.table::data.table(
+    series_name = "national HBS total",
+    coicop = c("041", "042", "045"),
+    year = 2022,
+    total_consumption = c(12.5, 20, 20)
+  )
+  original <- hbs(
+    dt, dt_total,
+    country = "ZZ", category = "income", categories = categories, level = 2
+  )
+
+  combined <- inflationinequality:::combine_hbs_actual_and_imputed_rents(original)
+
+  expect_false("042" %in% combined$dt$coicop)
+  expect_false("042" %in% combined$dt_total$coicop)
+  expect_equal(
+    combined$dt[coicop == "041"][order(category), consumption],
+    c(35, 30)
+  )
+  expect_equal(combined$dt_total[coicop == "041", total_consumption], 32.5)
+  expect_equal(sum(combined$dt$consumption), sum(original$dt$consumption))
+  expect_equal(
+    sum(combined$dt_total$total_consumption),
+    sum(original$dt_total$total_consumption)
+  )
+  expect_true(combined$combined_hbs_housing_041_042)
+})
+
+test_that("housing combination is a no-op when imputed rents are unavailable", {
+  categories <- c("low", "high")
+  original <- hbs(
+    data.table::data.table(
+      series_name = "HBS", coicop = "041", year = 2022,
+      category = categories, consumption = c(10, 20)
+    ),
+    data.table::data.table(
+      series_name = "HBS total", coicop = "041", year = 2022,
+      total_consumption = 15
+    ),
+    country = "ZZ", category = "income", categories = categories, level = 2
+  )
+  expect_identical(
+    inflationinequality:::combine_hbs_actual_and_imputed_rents(original),
+    original
+  )
+})
+
+test_that("level-2 housing bridge is applied by every weighting method", {
+  categories <- c(
+    "First quintile", "Second quintile", "Third quintile",
+    "Fourth quintile", "Fifth quintile"
+  )
+  hbs_dt <- data.table::CJ(
+    coicop = c("041", "042", "045"),
+    year = 2020,
+    category = categories
+  )
+  hbs_dt[, `:=`(
+    series_name = "test HBS",
+    consumption = data.table::fcase(
+      coicop == "041", c(30, 25, 20, 15, 10)[match(category, categories)],
+      coicop == "042", c(5, 10, 15, 20, 25)[match(category, categories)],
+      default = 40
+    )
+  )]
+  custom_hbs <- hbs(
+    hbs_dt,
+    data.table::data.table(
+      series_name = "test HBS total",
+      coicop = c("041", "042", "045"),
+      year = 2020,
+      total_consumption = c(20, 15, 40)
+    ),
+    country = "FR", category = "income", categories = categories, level = 2
+  )
+  custom_index_weights <- index_weights(
+    data.table::data.table(
+      coicop = c("041", "045"), weight = c(400, 600), year = 2022
+    ),
+    country = "FR", level = 2, base_total = 1000
+  )
+
+  for (method in c("relative_expenditure", "ras", "additive_qp")) {
+    result <- calculate_weights(
+      "FR", "income", level = 2,
+      custom_index_weights = custom_index_weights,
+      custom_hbs = custom_hbs,
+      weighting_method = method
+    )
+    expect_false("042" %in% result$dt$coicop, info = method)
+    expect_equal(
+      result$dt[, sum(weighted_consumption), by = category]$V1,
+      rep(100, length(categories)),
+      tolerance = 1e-8,
+      info = method
+    )
+    expect_equal(
+      unique(result$dt_coicop_bridge[hicp_coicop == "041", mapping_status]),
+      "combined_hbs_041_042",
+      info = method
+    )
+  }
+})
+
 test_that("calculate_weights RAS works with income deciles", {
   categories <- paste0("D", 1:10)
   hbs_dt <- data.table::CJ(
@@ -208,9 +432,18 @@ test_that("calculate_weights RAS works with income deciles", {
 
 test_that("calculate_weights RAS uses France INSEE level-3 group shares", {
   expected <- list(
-    income = readRDS(test_path("../../inst/extdata/INSEE_HBS_2017_level3.RDS")),
-    age = readRDS(test_path("../../inst/extdata/INSEE_HBS_2017_age_level3.RDS")),
-    urban = readRDS(test_path("../../inst/extdata/INSEE_HBS_2017_urban_level3.RDS"))
+    income = readRDS(system.file(
+      "extdata", "INSEE_HBS_2017_level3.RDS",
+      package = "inflationinequality", mustWork = TRUE
+    )),
+    age = readRDS(system.file(
+      "extdata", "INSEE_HBS_2017_age_level3.RDS",
+      package = "inflationinequality", mustWork = TRUE
+    )),
+    urban = readRDS(system.file(
+      "extdata", "INSEE_HBS_2017_urban_level3.RDS",
+      package = "inflationinequality", mustWork = TRUE
+    ))
   )
 
   for (hbs_category in names(expected)) {

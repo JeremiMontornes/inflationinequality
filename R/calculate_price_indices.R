@@ -81,7 +81,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
                                     recode_ecoicop2_to_ecoicop1 = TRUE,
                                     aggregate_geo = "EA20",
                                     custom_country_weights = NULL,
-                                    weighting_method = c("relative_expenditure", "ras")) {
+                                    weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
   if (is.null(country) && is.null(custom_cpi)) {
     stop("Either 'country' or 'custom_cpi' must be provided.")
   }
@@ -430,7 +430,7 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
                                                       recode_ecoicop2_to_ecoicop1 = TRUE,
                                                       aggregate_geo = "EA20",
                                                       custom_country_weights = NULL,
-                                                      weighting_method = c("relative_expenditure", "ras")) {
+                                                      weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
   countries <- toupper(countries)
   formula <- match.arg(formula)
   weighting_method <- match.arg(weighting_method)
