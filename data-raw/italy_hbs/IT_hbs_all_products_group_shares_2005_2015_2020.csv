@@ -14,12 +14,14 @@ Income,Fourth quintile,2020,22.8
 Income,Fifth quintile,2005,24.7
 Income,Fifth quintile,2015,24.7
 Income,Fifth quintile,2020,24.7
-Age,35--64 years,2015,61.9642201167124
-Age,65 years or over,2015,31.564061112264
-Age,18--34 years,2015,6.47171877102365
-Age,65 years or over,2020,32.6664458627434
-Age,35--64 years,2020,59.9360621485224
-Age,18--34 years,2020,7.39749198873412
+Age,Less than 30 years,2015,1.95337334459809
+Age,From 30 to 44 years,2015,19.7498718033529
+Age,From 45 to 59 years,2015,34.8126106934862
+Age,60 years or over,2015,43.4841441585629
+Age,Less than 30 years,2020,2.16022043130369
+Age,From 30 to 44 years,2020,17.9411850388214
+Age,From 45 to 59 years,2020,34.1990760872581
+Age,60 years or over,2020,45.6995184426168
 Residence area,Rural areas,2005,
 Residence area,Rural areas,2015,
 Residence area,Rural areas,2020,

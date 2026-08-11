@@ -97,16 +97,22 @@ load_cpi <- function(country, level = 2,
   end_period <- as.Date(paste0(date_range[2], "-01"))
   dt_raw <- dt_raw[as.Date(paste0(time, "-01")) >= start_period & as.Date(paste0(time, "-01")) <= end_period]
 
-  coicop_col <- if ("coicop18" %in% names(dt_raw)) "coicop18" else "coicop"
-  if (!(coicop_col %in% names(dt_raw))) {
+  coicop_col <- intersect(
+    c("coicop18", "coicop", "coicop23", "ecoicop"),
+    names(dt_raw)
+  )
+  if (length(coicop_col) == 0L) {
     stop(sprintf("No COICOP column found in dataset '%s'.", dataset_code))
   }
+  coicop_col <- coicop_col[[1L]]
 
   # Keep COICOP item codes only; the all-items aggregate is handled separately in dt_basket.
   dt <- dt_raw[
     grepl("^CP\\d+$", get(coicop_col)),
     .(
-      series_name = paste0(dataset_code, ".", unit, ".", get(coicop_col), ".", geo),
+      series_name = paste0(
+        dataset_code, ".I15.", get(coicop_col), ".", country
+      ),
       coicop = get(coicop_col),
       value = values,
       period = as.Date(paste0(time, "-01"))
@@ -138,13 +144,19 @@ load_cpi <- function(country, level = 2,
   }
   dt_basket_raw <- dt_basket_raw[as.Date(paste0(time, "-01")) >= start_period & as.Date(paste0(time, "-01")) <= end_period]
 
-  coicop_col_basket <- if ("coicop18" %in% names(dt_basket_raw)) "coicop18" else "coicop"
-  if (!(coicop_col_basket %in% names(dt_basket_raw))) {
+  coicop_col_basket <- intersect(
+    c("coicop18", "coicop", "coicop23", "ecoicop"),
+    names(dt_basket_raw)
+  )
+  if (length(coicop_col_basket) == 0L) {
     stop(sprintf("No COICOP column found in basket dataset '%s'.", dataset_code))
   }
+  coicop_col_basket <- coicop_col_basket[[1L]]
 
   dt_basket <- dt_basket_raw[, .(
-    series_name = paste0(dataset_code, ".", unit, ".", get(coicop_col_basket), ".", geo),
+    series_name = paste0(
+      dataset_code, ".I15.", get(coicop_col_basket), ".", country
+    ),
     value = values,
     year = as.integer(substr(time, 1, 4)),
     month = as.integer(substr(time, 6, 7))
@@ -359,10 +371,14 @@ load_index_weights <- function(country, level = 2,
     filters = list(geo = country)
   )
 
-  coicop_col <- if ("coicop18" %in% names(dt_raw)) "coicop18" else "coicop"
-  if (!(coicop_col %in% names(dt_raw))) {
+  coicop_col <- intersect(
+    c("coicop18", "coicop", "coicop23", "ecoicop"),
+    names(dt_raw)
+  )
+  if (length(coicop_col) == 0L) {
     stop(sprintf("No COICOP column found in dataset '%s'.", dataset_code))
   }
+  coicop_col <- coicop_col[[1L]]
 
   dt <- dt_raw[
     # Keep only item COICOP codes
