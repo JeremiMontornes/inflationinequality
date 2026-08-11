@@ -833,14 +833,14 @@ load_italy_level2_hbs_if_available <- function(country, category, level) {
   }
 
   file_name <- if (identical(category, "income")) {
-    "IT_income_hbs_latent_probabilities_2015_2020_level2.rds"
+    "IT_income_hbs_calibrated_2015_2020_level2.rds"
   } else if (identical(category, "urban")) {
     "IT_urban_hbs_eurostat_2015_2020_level2.rds"
   } else {
     "IT_age_hbs_eurostat_2015_2020_level2.rds"
   }
   subdir <- if (identical(category, "income")) {
-    "italy_latent_income_hbs"
+    "italy_calibrated_hbs"
   } else {
     "italy_hbs"
   }

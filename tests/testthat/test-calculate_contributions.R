@@ -76,7 +76,9 @@ test_that("calculate_contributions input validation works", {
 test_that("calculate_contributions returns expected structure", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
-  result <- calculate_contributions("FR", "income")
+  result <- calculate_contributions(
+    "FR", "income", recode_ecoicop2_to_ecoicop1 = FALSE
+  )
   expect_s3_class(result$dt, "data.table")
   expect_named(result$dt, c("coicop", "category", "year", "month", "contribution"))
 })
@@ -84,8 +86,13 @@ test_that("calculate_contributions returns expected structure", {
 test_that("calculate_contributions handles different date ranges", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
-  result_full <- calculate_contributions("FR", "income")
-  result_partial <- calculate_contributions("FR", "income", start_year = 2016, end_year = 2017)
+  result_full <- calculate_contributions(
+    "FR", "income", recode_ecoicop2_to_ecoicop1 = FALSE
+  )
+  result_partial <- calculate_contributions(
+    "FR", "income", start_year = 2016, end_year = 2017,
+    recode_ecoicop2_to_ecoicop1 = FALSE
+  )
 
   expect_lte(nrow(result_partial$dt), nrow(result_full$dt))
   expect_in(result_partial$dt$year, 2016:2017)  # Remember, it calculates for y-2 years
@@ -94,9 +101,15 @@ test_that("calculate_contributions handles different date ranges", {
 test_that("calculate_contributions works with different categories", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
-  result_income <- calculate_contributions("FR", "income")
-  result_age <- calculate_contributions("FR", "age")
-  result_urban <- calculate_contributions("FR", "urban")
+  result_income <- calculate_contributions(
+    "FR", "income", recode_ecoicop2_to_ecoicop1 = FALSE
+  )
+  result_age <- calculate_contributions(
+    "FR", "age", recode_ecoicop2_to_ecoicop1 = FALSE
+  )
+  result_urban <- calculate_contributions(
+    "FR", "urban", recode_ecoicop2_to_ecoicop1 = FALSE
+  )
 
   expect_false(identical(result_income$dt, result_urban$dt))
 })

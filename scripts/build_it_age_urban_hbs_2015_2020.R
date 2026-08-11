@@ -226,7 +226,10 @@ hbs_age_level2 <- add_proxy_coicop_rows(hbs_age_level2, it_level2_proxy_map)
 hbs_urban <- add_proxy_coicop_rows(hbs_urban, it_level2_proxy_map)
 
 age_path <- file.path(out_dir, "IT_age_hbs_istat_original_2015_2020_level1.rds")
-age_level2_path <- file.path(out_dir, "IT_age_hbs_eurostat_2015_2020_level2.rds")
+age_level2_path <- file.path(
+  out_dir,
+  "IT_age_hbs_eurostat_2015_2020_level2_uncalibrated.rds"
+)
 urban_path <- file.path(out_dir, "IT_urban_hbs_eurostat_2015_2020_level2.rds")
 saveRDS(hbs_age, age_path)
 saveRDS(hbs_age_level2, age_level2_path)
@@ -263,10 +266,34 @@ urban_blank <- data.table(
   year = rep(c(2005, 2015, 2020), times = 3L),
   share_total = as.numeric(NA)
 )
+
+# Use the harmonised Eurostat age groups in the paper summary, consistently
+# with the level-2 Italy HBS object used by calculate_weights() and with all
+# other countries. The restricted Istat public-use files only identify
+# 18--34, 35--64 and 65+; those bands cannot be converted exactly to the
+# Eurostat bands (<30, 30--44, 45--59 and 60+).
+group_share_path <- file.path("data-raw", "group_consumption_shares.csv")
+if (!file.exists(group_share_path)) {
+  stop("Missing harmonised group shares: ", group_share_path, call. = FALSE)
+}
+age_harmonised <- fread(group_share_path)[
+  hbs_category == "age" & country == "IT" & year %in% years,
+  .(
+    Dimension = "Age",
+    Group = category,
+    year = as.numeric(year),
+    share_total = 100 * as.numeric(group_consumption_share)
+  )
+]
+if (nrow(age_harmonised) != length(years) * 4L ||
+    age_harmonised[, anyNA(share_total)] ||
+    any(age_harmonised[, abs(sum(share_total) - 100) > 1e-8, by = year]$V1)) {
+  stop("Invalid harmonised Italy age-group shares.", call. = FALSE)
+}
 group_shares <- rbindlist(
   list(
     income_anchor,
-    rbindlist(lapply(age_parts, `[[`, "group_total_shares"), use.names = TRUE),
+    age_harmonised,
     urban_blank
   ),
   use.names = TRUE

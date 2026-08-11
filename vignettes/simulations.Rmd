@@ -126,7 +126,7 @@ only the simulated sub-indices, keeps all other French CPI items unchanged, and
 then compares the observed and counterfactual total year-on-year inflation
 rates.
 
-```{r total-cpi-counterfactual-plot, eval = TRUE, fig.width = 7, fig.height = 4}
+```{r total-cpi-counterfactual-plot, eval = FALSE, fig.width = 7, fig.height = 4}
 cpi_fr <- load_cpi("FR", level = 3, start_year = 2019, end_year = 2026)
 
 policy_cpi_fr <- simulate_cpi_policy_counterfactuals(

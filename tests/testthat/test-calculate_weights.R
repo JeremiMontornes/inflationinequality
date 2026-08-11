@@ -431,6 +431,8 @@ test_that("calculate_weights RAS works with income deciles", {
 })
 
 test_that("calculate_weights RAS uses France INSEE level-3 group shares", {
+  skip_if_no_internet()
+
   expected <- list(
     income = readRDS(system.file(
       "extdata", "INSEE_HBS_2017_level3.RDS",

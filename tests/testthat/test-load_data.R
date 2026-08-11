@@ -212,6 +212,27 @@ mem_load_index_weights <- memoise::memoise(load_index_weights)
 # Constant values
 weights_columns <- c("coicop", "weight", "year")
 
+test_that("load_index_weights accepts the current Eurostat coicop18 dimension", {
+  local_mocked_bindings(
+    resolve_hicp_weights_dataset = function() "prc_hicp_iw",
+    download_hicp_dataset = function(id, filters = list(), date.range = NULL) {
+      data.table::data.table(
+        freq = "A",
+        coicop18 = c("CP01", "CP011"),
+        statinfo = "IW",
+        geo = "FR",
+        time = "2025",
+        values = c(150, 120)
+      )
+    },
+    .package = "inflationinequality"
+  )
+
+  weights <- load_index_weights("FR", level = 1, start_year = 2025, end_year = 2025)
+  expect_equal(weights$dt$coicop, "01")
+  expect_equal(weights$dt$weight, 150)
+})
+
 test_that("weights data formatted as data.table", {
   skip_if_no_internet()
   local_mocked_bindings(load_index_weights = mem_load_index_weights, .package = "inflationinequality")
