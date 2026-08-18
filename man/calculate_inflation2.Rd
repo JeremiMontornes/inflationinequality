@@ -25,27 +25,110 @@ calculate_inflation2(
   recode_ecoicop2_to_ecoicop1 = TRUE,
   aggregate_geo = "EA20",
   custom_country_weights = NULL,
-  weighting_method = c("relative_expenditure", "ras")
+  weighting_method = c("relative_expenditure", "ras", "additive_qp")
 )
+}
+\arguments{
+\item{country}{2-digit country code (see ISO 3166-1 alpha-2), only one
+country at a time is accepted. The parameter is optional since we can load
+\code{custom_index_weights} and \code{custom_hbs}, but if both of those arguments are
+missing, then the \code{country} parameter is mandatory.}
+
+\item{category}{HBS data by category: \code{"income"}, \code{"age"}, \code{"urban"}. The
+parameter is optional since one can load \code{custom_hbs}, but it is mandatory
+if that argument is missing.}
+
+\item{level}{COICOP level. Possible values are 1-3. For example, "01" is
+level 1 and "012" is level 2. Default value is 2.}
+
+\item{start_year}{year of start date.}
+
+\item{start_month}{month of start date.}
+
+\item{end_year}{year of end date.}
+
+\item{end_month}{month of end date.}
+
+\item{ensure_complete_cpi}{flag that when set to \code{TRUE}, synthesizes missing
+CPI data when the CPI dataset is incomplete.}
+
+\item{custom_cpi}{an object of class \code{"cpi"}}
+
+\item{custom_index_weights}{an object of class \code{"index_weights"}.}
+
+\item{custom_hbs}{an object of class \code{"hbs"}.}
+
+\item{interpolated_hbs}{flag if you want to interpolate HBS weights}
+
+\item{specific_hbs_year}{year of selected HBS wave. It's recommended to
+download HBS data first to see what HBS years are available.}
+
+\item{france_insee_income_groups}{grouping used for the bundled France
+INSEE level-3 income HBS data. \code{"decile"} keeps the original INSEE decile
+means. \code{"quintile"} averages adjacent decile means (D1-D2, D3-D4, ...)
+because the source values are mean expenditures for equal-population
+decile groups, not income-threshold bounds. This option only affects
+\code{category = "income"}; France \code{age} and \code{urban} level-3 HBS data keep their
+original national groups.}
+
+\item{base_year}{year used to rebase the chained index to 100. If \code{NULL},
+the package uses \code{2025} as the default presentation base.}
+
+\item{include_total}{whether to include the official all-items HICP index as
+a \code{"Total"} category.}
+
+\item{formula}{upper-level index formula. \code{"laspeyres"} uses the package's
+Eurostat-style chained Laspeyres aggregation with annual weights.
+\code{"toernqvist"} uses \code{\link[hicp:index.aggregation]{hicp::toernqvist()}} with previous-year and current-year
+category weights as an approximation to a chained Törnqvist index.}
+
+\item{recode_ecoicop2_to_ecoicop1}{whether to map ECOICOP v2 HICP item
+codes back to ECOICOP v1-style codes before matching them to HBS weights.}
+
+\item{aggregate_geo}{country-group aggregate used when \code{country} contains
+several countries. The default \code{"EA20"} loads Eurostat HICP country weights
+(\code{prc_hicp_cow}, \code{statinfo = "COWEA20"}).}
+
+\item{custom_country_weights}{optional data frame with columns \code{country},
+\code{year}, and \code{weight} (or \code{country_weight}) used to aggregate national
+indices when \code{country} contains several countries.
+
+When \code{country = "EA20"}, \code{level} is forced to \code{2} because euro-area
+household-group aggregation is currently supported at COICOP level 2.}
+
+\item{weighting_method}{weighting formula. \code{"relative_expenditure"} keeps the
+historical package formula. \code{"ras"} applies iterative proportional fitting.
+\code{"additive_qp"} preserves absolute HBS differences between groups and, when
+necessary, projects the resulting weights onto the non-negative weights
+satisfying the group-basket and HICP-item margins. At COICOP level 2, all
+weighting methods combine HBS actual rents (\code{04.1}) and imputed rents of
+owner-occupiers (\code{04.2}) to distribute the HICP actual-rents weight
+(\code{04.1}). This housing bridge is applied for every country when both HBS
+components are available; HICP weights remain unchanged.}
+}
+\value{
+An object of class \code{"inflation"} containing:
+\itemize{
+\item \code{dt}: a \code{data.table} with columns \code{year}, \code{month}, \code{category}, and
+\code{inflation}.
+\item \code{country}, \code{category}, \code{categories}, \code{weighting_method}, \code{level},
+\code{start_year}, \code{start_month}, \code{end_year}, and \code{end_month}: calculation
+metadata.
+\item \code{price_indices}: the underlying \code{"price_indices"} object used to compute
+the rates.
+}
 }
 \description{
 \code{calculate_inflation2()} computes monthly year-on-year inflation rates
 directly from the category-specific price indices returned by
-\code{calculate_price_indices()}. For each category and month, inflation is
+\code{\link[=calculate_price_indices]{calculate_price_indices()}}. For each category and month, inflation is
 defined as
 
 \code{100 * (price_index[t] / price_index[t - 12] - 1)}.
-}
-\details{
+
 This makes the reported inflation rate algebraically consistent with the
-corresponding monthly price index. Months without an observation twelve months
-earlier are omitted. Arguments are passed to \code{calculate_price_indices()}.
-}
-\value{
-An object of class \code{"inflation"}. Its \code{dt} component is a
-\code{data.table} with columns \code{year}, \code{month}, \code{category}, and
-\code{inflation}. The object also contains calculation metadata and the
-underlying \code{"price_indices"} object in \code{price_indices}.
+corresponding monthly price index. Months without an observation twelve
+months earlier are omitted.
 }
 \examples{
 \dontrun{
@@ -54,8 +137,8 @@ france_inflation <- calculate_inflation2(
 )
 france_inflation$dt
 }
+
 }
 \seealso{
-\code{\link[=calculate_inflation]{calculate_inflation()}},
-\code{\link[=calculate_price_indices]{calculate_price_indices()}}
+\code{\link[=calculate_inflation]{calculate_inflation()}}, \code{\link[=calculate_price_indices]{calculate_price_indices()}}
 }

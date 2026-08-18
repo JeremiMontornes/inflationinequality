@@ -2,7 +2,7 @@
 #'
 #' @description
 #' `load_consumption_to_income()` downloads Eurostat experimental statistics
-#' on aggregate propensity to consume by income quintile (`icw_sr_10`). Eurostat
+#' on aggregate propensity to consume by income quintile (`icw_sr_10`). Values
 #' are percentages of disposable income.
 #'
 #' @param country 2-digit country code.

@@ -63,10 +63,9 @@ Each data.frame must contain \code{country}, \code{coicop}, \code{category}, and
 \item{gap_categories}{optional named list. Each element is a length-two
 character vector defining the low/reference group and high/comparison
 group for the matching \code{group_weights} element. When omitted, income
-quintiles labelled \code{First quintile}/\code{Q1} and
-\code{Fifth quintile}/\code{Q5} are resolved as Q1 minus Q5 regardless of row
-order. Other inputs with more than two categories must supply this argument
-explicitly.}
+quintiles labelled \verb{First quintile}/\code{Q1} and \verb{Fifth quintile}/\code{Q5} are
+resolved as Q1 minus Q5 regardless of row order. Other inputs with more
+than two categories must supply this argument explicitly.}
 
 \item{output_scale}{multiplier applied to inflation effects. Use \code{100} to
 express a 0.01 price change as 1 percentage point. Defaults to \code{100}.}
