@@ -69,8 +69,9 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
     weight_dt,
     on = .(coicop, weight_year)
   ]
-  if (is_spain_epf_level3_bridge(country_value, category_type_value, level)) {
-    weight_dt <- prepare_index_weights_tree(index_weights)
+  if (is_spain_epf_level3_bridge(country_value, category_type_value, level) ||
+      is_portugal_idef_level3_bridge(country_value, category_type_value, level)) {
+    weight_dt <- prepare_country_specific_level3_index_weights(index_weights)
     weight_dt[, hicp_coicopv2 := coicop]
     weight_dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
     weight_dt[, coicop := coicop_to_level(coicop, 3)]
@@ -83,7 +84,7 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
       by = .(coicop, weight_year)
     ]
   } else if (is_france_tf106_level3_bridge(country_value, category_type_value, level)) {
-    weight_dt <- prepare_index_weights_tree(index_weights)
+    weight_dt <- prepare_country_specific_level3_index_weights(index_weights)
     weight_dt[, hicp_coicopv2 := coicop]
     weight_dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
     weight_dt[, coicop := coicop_to_level(coicop, 3)]
@@ -106,6 +107,7 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
 
 
   weight_coicops <- if (is_spain_epf_level3_bridge(country_value, category_type_value, level) ||
+      is_portugal_idef_level3_bridge(country_value, category_type_value, level) ||
       is_france_tf106_level3_bridge(country_value, category_type_value, level)) {
     weight_dt[, unique(coicop)]
   } else {
@@ -114,7 +116,8 @@ build_coicop_bridge <- function(country = NULL, category = NULL, level = 2,
   hbs_available <- unique(hbs_dt$coicop)
 
   mapping <- data.table::data.table(hicp_coicop = weight_coicops)
-  if (is_spain_epf_level3_bridge(country_value, category_type_value, level)) {
+  if (is_spain_epf_level3_bridge(country_value, category_type_value, level) ||
+      is_portugal_idef_level3_bridge(country_value, category_type_value, level)) {
     mapping[, hbs_coicop := closest_available_hbs_coicop(hicp_coicop, hbs_available)]
   } else if (is_france_tf106_level3_bridge(country_value, category_type_value, level)) {
     mapping[, tf106_coicop := closest_available_hbs_coicop(hicp_coicop, france_tf106_level3_codes())]
@@ -255,9 +258,10 @@ check_hbs_cpi_coverage <- function(country = NULL, category = NULL, level = 2,
   }
 
   spain_epf_case <- is_spain_epf_level3_bridge(country, category, level)
+  portugal_idef_case <- is_portugal_idef_level3_bridge(country, category, level)
   france_tf106_case <- is_france_tf106_level3_bridge(country, category, level)
-  if (spain_epf_case || france_tf106_case) {
-    weight_dt <- prepare_index_weights_tree(index_weights)
+  if (spain_epf_case || portugal_idef_case || france_tf106_case) {
+    weight_dt <- prepare_country_specific_level3_index_weights(index_weights)
     weight_dt[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
     weight_dt[, coicop := coicop_to_level(coicop, 3)]
     weight_dt <- weight_dt[
@@ -280,7 +284,7 @@ check_hbs_cpi_coverage <- function(country = NULL, category = NULL, level = 2,
   }
   hbs_dt <- hbs_dt[data.table::copy(hbs$dt_total), on = .(coicop, year)]
 
-  weight_coicops <- if (spain_epf_case || france_tf106_case) {
+  weight_coicops <- if (spain_epf_case || portugal_idef_case || france_tf106_case) {
     sort(unique(weight_dt$coicop))
   } else {
     sort(unique(weight_dt[nchar(coicop) == level + 1, coicop]))
@@ -295,7 +299,8 @@ check_hbs_cpi_coverage <- function(country = NULL, category = NULL, level = 2,
   codes[, in_hicp := coicop %in% weight_coicops]
   codes[, in_hbs := coicop %in% hbs_coicops]
   hbs_available <- unique(hbs_dt$coicop)
-  if (is_spain_epf_level3_bridge(country, category, level)) {
+  if (is_spain_epf_level3_bridge(country, category, level) ||
+      is_portugal_idef_level3_bridge(country, category, level)) {
     codes[, hbs_match_coicop := data.table::fifelse(
       in_hicp,
       closest_available_hbs_coicop(coicop, hbs_available),
@@ -466,6 +471,8 @@ load_coicop_bridge_inputs <- function(country, category, index_level, hbs_level,
       italy_hbs
     } else if (use_spain_epf_2020_level3_hbs(country, category, hbs_level, custom_hbs)) {
       load_spain_epf_2020_hbs_level3(category = category)
+    } else if (use_portugal_idef_2015_level3_hbs(country, category, hbs_level, custom_hbs)) {
+      load_portugal_idef_2015_hbs_level3(category = category)
     } else if (use_france_insee_level3_hbs(country, category, hbs_level, custom_hbs)) {
       load_france_insee_hbs_level3(
         category = category,
@@ -523,6 +530,12 @@ is_france_tf106_level3_bridge <- function(country, category, level) {
 
 is_spain_epf_level3_bridge <- function(country, category, level) {
   identical(toupper(country %||local% ""), "ES") &&
+    isTRUE(category %in% c("income", "age", "urban")) &&
+    identical(as.integer(level), 3L)
+}
+
+is_portugal_idef_level3_bridge <- function(country, category, level) {
+  identical(toupper(country %||local% ""), "PT") &&
     isTRUE(category %in% c("income", "age", "urban")) &&
     identical(as.integer(level), 3L)
 }

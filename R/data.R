@@ -48,8 +48,10 @@
 #'   \item{package_status}{Current implementation status in this package.}
 #' }
 #' @source Package authors, based on package defaults, INSEE's definition of
-#' "niveau de vie", Eurostat Statistics Explained HBS documentation, and Bruegel's dataset documentation:
+#' "niveau de vie", Portugal INE's IDEF 2015/2016 publication, Eurostat
+#' Statistics Explained HBS documentation, and Bruegel's dataset documentation:
 #' <https://www.insee.fr/fr/metadonnees/definition/c1890>,
+#' <https://www.ine.pt/xurl/pub/277098526>,
 #' <https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Household_budget_survey_-_statistics_on_consumption_expenditure&stable=1>,
 #' <https://www.bruegel.org/dataset/inflation-inequality-european-union-and-its-drivers>.
 "country_coicop_special_cases"

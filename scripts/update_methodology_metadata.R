@@ -47,7 +47,7 @@ methodology_metadata[
 )
 
 country_coicop_special_cases <- data.frame(
-  country = c("France", "Italy", "Spain", "Euro area"),
+  country = c("France", "Italy", "Spain", "Portugal", "Euro area"),
   coicop_case = c(
     paste(
       "Level = 3 uses bundled INSEE Budget de famille 2017 national HBS",
@@ -60,6 +60,10 @@ country_coicop_special_cases <- data.frame(
     paste(
       "Level = 3 uses compact INE EPF 2020 microdata-derived HBS objects",
       "for income, age, and residence-area groups."
+    ),
+    paste(
+      "Level = 3 uses INE IDEF 2015/2016 published group expenditure",
+      "at 3-digit COICOP and national expenditure at 4-digit COICOP."
     ),
     paste(
       "Euro-area aggregates are built from country-level HICP-HBS",
@@ -82,6 +86,10 @@ country_coicop_special_cases <- data.frame(
       "density of residence from EPF microdata."
     ),
     paste(
+      "Within each published 3-digit group total, 4-digit expenditure is",
+      "allocated using the IDEF national 4-digit composition."
+    ),
+    paste(
       "Household groups are defined within each country; euro-area results",
       "are not a pooled household distribution."
     )
@@ -90,11 +98,13 @@ country_coicop_special_cases <- data.frame(
     "National-source level-3 workflow implemented.",
     "Estimated input; users can replace it with custom_hbs.",
     "National microdata input; users can replace it with custom_hbs.",
+    "National published-table input; users can replace it with custom_hbs.",
     ""
   ),
   package_status = c(
     "Implemented for level = 3 income, age, and urban calculations.",
     "Implemented for level = 2 income calculations.",
+    "Implemented for level = 3 income, age, and urban calculations.",
     "Implemented for level = 3 income, age, and urban calculations.",
     "Implemented through country-level calculations; unavailable inputs are excluded."
   ),

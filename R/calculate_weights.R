@@ -147,6 +147,8 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
       italy_hbs
     } else if (use_spain_epf_2020_level3_hbs(country, category, level, custom_hbs)) {
       load_spain_epf_2020_hbs_level3(category = category)
+    } else if (use_portugal_idef_2015_level3_hbs(country, category, level, custom_hbs)) {
+      load_portugal_idef_2015_hbs_level3(category = category)
     } else if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
       load_france_insee_hbs_level3(category = category, income_groups = france_insee_income_groups)
     } else {
@@ -204,6 +206,8 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     merge_spain_epf_level3_index_and_hbs(index_weights, hbs, specific_hbs_year)
   } else if (use_france_insee_level3_hbs(country, category, level, custom_hbs)) {
     merge_france_tf106_level3_index_and_hbs(index_weights, hbs, specific_hbs_year)
+  } else if (use_portugal_idef_2015_level3_hbs(country, category, level, custom_hbs)) {
+    merge_portugal_idef_level3_index_and_hbs(index_weights, hbs, specific_hbs_year)
   } else {
     merge_index_and_hbs(index_weights, hbs, specific_hbs_year)
   }
@@ -919,7 +923,7 @@ merge_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
 }
 
 merge_france_tf106_level3_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
-  dt_index_weights <- prepare_index_weights_tree(index_weights)
+  dt_index_weights <- prepare_country_specific_level3_index_weights(index_weights)
   dt_index_weights[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
   dt_index_weights[, coicop := coicop_to_level(coicop, 3)]
   dt_index_weights <- dt_index_weights[
@@ -963,7 +967,7 @@ merge_france_tf106_level3_index_and_hbs <- function(index_weights, hbs, specific
 }
 
 merge_spain_epf_level3_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
-  dt_index_weights <- prepare_index_weights_tree(index_weights)
+  dt_index_weights <- prepare_country_specific_level3_index_weights(index_weights)
   dt_index_weights[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
   dt_index_weights[, coicop := coicop_to_level(coicop, 3)]
   dt_index_weights <- dt_index_weights[
@@ -1002,6 +1006,64 @@ merge_spain_epf_level3_index_and_hbs <- function(index_weights, hbs, specific_hb
       & !is.na(year)
       & !is.na(consumption)
     ]
+}
+
+merge_portugal_idef_level3_index_and_hbs <- function(index_weights, hbs, specific_hbs_year) {
+  dt_index_weights <- prepare_country_specific_level3_index_weights(index_weights)
+  dt_index_weights[, coicop := recode_coicop_ecoicop2_to_ecoicop1(coicop)]
+  dt_index_weights[, coicop := coicop_to_level(coicop, 3)]
+  dt_index_weights <- dt_index_weights[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop, weight_year)
+  ]
+
+  dt_hbs <- hbs$dt[hbs$dt_total, on = .(coicop, year)]
+  if (!is.null(specific_hbs_year)) {
+    dt_hbs <- dt_hbs[year == specific_hbs_year, ]
+  }
+
+  hbs_coicops <- unique(dt_hbs$coicop)
+  dt_index_weights[, hbs_coicop := closest_available_hbs_coicop(coicop, hbs_coicops)]
+
+  missing_hbs_match <- dt_index_weights[is.na(hbs_coicop), unique(coicop)]
+  if (length(missing_hbs_match) > 0) {
+    stop(
+      "Portuguese level-3 HICP codes found in CPI weights but not in IDEF HBS, ",
+      "even after rolling up to an available parent: ",
+      paste(missing_hbs_match, collapse = ", ")
+    )
+  }
+
+  dt_index_weights <- dt_index_weights[
+    ,
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop = hbs_coicop, weight_year)
+  ]
+
+  dt_hbs[dt_index_weights, on = .(coicop), allow.cartesian = TRUE] %>%
+    .[!is.na(category)
+      & !is.na(weight_year)
+      & !is.na(weight)
+      & !is.na(year)
+      & !is.na(consumption)
+    ]
+}
+
+prepare_country_specific_level3_index_weights <- function(index_weights) {
+  if (!isTRUE(index_weights$ecoicop2_recoded_to_ecoicop1)) {
+    return(prepare_index_weights_tree(index_weights))
+  }
+
+  dt <- data.table::copy(index_weights$dt)
+  if ("year" %in% names(dt)) {
+    data.table::setnames(dt, "year", "weight_year")
+  }
+  dt[
+    !is.na(coicop) & !is.na(weight_year) & !is.na(weight),
+    .(weight = sum(weight, na.rm = TRUE)),
+    by = .(coicop, weight_year)
+  ]
 }
 
 prepare_index_weights_tree <- function(index_weights) {

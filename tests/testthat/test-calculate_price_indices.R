@@ -455,6 +455,78 @@ test_that("Spain EPF 2020 level 3 HBS is available for income, age, and urban gr
   }
 })
 
+test_that("Portugal IDEF 2015 level 3 HBS is available for income, age, and urban groups", {
+  expected_categories <- list(
+    income = c(
+      "First quintile", "Second quintile", "Third quintile",
+      "Fourth quintile", "Fifth quintile"
+    ),
+    age = c(
+      "Less than 30 years", "From 30 to 44 years",
+      "From 45 to 59 years", "60 years or over"
+    ),
+    urban = c("Rural areas", "Towns and suburbs", "Cities")
+  )
+
+  for (category in names(expected_categories)) {
+    hbs_pt <- inflationinequality:::load_portugal_idef_2015_hbs_level3(category)
+
+    expect_s3_class(hbs_pt, "hbs")
+    expect_equal(hbs_pt$country, "PT")
+    expect_equal(hbs_pt$category, category)
+    expect_equal(hbs_pt$categories, expected_categories[[category]])
+    expect_equal(hbs_pt$level, 3)
+    expect_true("0451" %in% hbs_pt$dt$coicop)
+    expect_true(all(hbs_pt$dt$consumption > 0))
+    expect_true(inflationinequality:::use_portugal_idef_2015_level3_hbs(
+      "PT", category, 3, NULL
+    ))
+  }
+})
+
+test_that("Portugal IDEF level 3 leaves preserve published level 2 group totals", {
+  hbs_pt <- inflationinequality:::load_portugal_idef_2015_hbs_level3("income")
+  parents <- hbs_pt$dt[nchar(coicop) == 3L, .(
+    parent_consumption = consumption
+  ), by = .(category, parent = coicop)]
+  leaves <- hbs_pt$dt[nchar(coicop) == 4L, .(
+    leaf_consumption = sum(consumption)
+  ), by = .(category, parent = substr(coicop, 1L, 3L))]
+  check <- parents[leaves, on = .(category, parent), nomatch = 0L]
+
+  expect_gt(nrow(check), 0L)
+  expect_equal(check$leaf_consumption, check$parent_consumption, tolerance = 1e-5)
+})
+
+test_that("Portugal IDEF bridge retains recoded HICP parent weights", {
+  hbs_pt <- inflationinequality:::load_portugal_idef_2015_hbs_level3("income")
+  index_dt <- data.table::data.table(
+    coicop = c("022", "112", "124", "126", "127"),
+    weight = c(20, 40, 15, 10, 15),
+    year = rep(2020L, 5L)
+  )
+  index_obj <- index_weights(
+    index_dt,
+    country = "PT",
+    level = 3,
+    base_total = 100
+  )
+  index_obj$ecoicop2_recoded_to_ecoicop1 <- TRUE
+
+  result <- calculate_weights(
+    "PT", "income", level = 3,
+    custom_index_weights = index_obj,
+    custom_hbs = hbs_pt
+  )
+
+  expect_equal(result$dt_coverage$weight_sum_avg, 100, tolerance = 1e-10)
+  expected_coicops <- inflationinequality:::recode_coicop_ecoicop2_to_ecoicop1(
+    index_dt$coicop
+  )
+  expect_setequal(unique(result$dt$coicop), expected_coicops)
+  expect_true(all(result$dt_coicop_bridge$hbs_code_available))
+})
+
 test_that("calculate_price_indices uses INSEE HBS for France age level 3", {
   cpi_dt <- data.table::data.table(
     series_name = rep("CPI", 8),

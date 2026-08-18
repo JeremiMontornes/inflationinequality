@@ -1,0 +1,4 @@
+structure,rows,categories,first_period,last_period,min_inflation,max_inflation
+income_calibrated,60,5,2020-01,2020-12,-1.09459483817041,0.896153173165757
+age_clean,48,4,2020-01,2020-12,-1.39843238246979,1.3528955330609
+consumption_quintile,60,5,2020-01,2020-12,-1.05706517956977,0.913967601828054
