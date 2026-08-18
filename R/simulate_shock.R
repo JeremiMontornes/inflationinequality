@@ -38,7 +38,10 @@
 #'   Each data.frame must contain `country`, `coicop`, `category`, and `weight`.
 #' @param gap_categories optional named list. Each element is a length-two
 #'   character vector defining the low/reference group and high/comparison
-#'   group for the matching `group_weights` element.
+#'   group for the matching `group_weights` element. When omitted, income
+#'   quintiles labelled `First quintile`/`Q1` and `Fifth quintile`/`Q5` are
+#'   resolved as Q1 minus Q5 regardless of row order. Other inputs with more
+#'   than two categories must supply this argument explicitly.
 #' @param output_scale multiplier applied to inflation effects. Use `100` to
 #'   express a 0.01 price change as 1 percentage point. Defaults to `100`.
 #'
@@ -291,15 +294,42 @@ subtract_sector_weights <- function(low_w, high_w) {
 }
 
 resolve_gap_categories <- function(group_sector_weights, requested = NULL) {
+  cats <- unique(as.character(group_sector_weights$category))
   if (!is.null(requested)) {
     if (length(requested) != 2) {
       stop("Each gap_categories entry must contain exactly two categories.", call. = FALSE)
     }
-    return(as.character(requested))
+    requested <- as.character(requested)
+    missing <- setdiff(requested, cats)
+    if (length(missing)) {
+      stop(
+        "Requested gap categories not found in group weights: ",
+        paste(missing, collapse = ", "),
+        call. = FALSE
+      )
+    }
+    return(requested)
   }
-  cats <- unique(group_sector_weights$category)
   if (length(cats) < 2) {
     stop("At least two categories are needed to compute an inflation gap.", call. = FALSE)
+  }
+
+  # Income-quintile weights can arrive in an arbitrary order after joins and
+  # aggregation. Resolve the economically defined Q1 - Q5 contrast by label,
+  # never by the incidental row order.
+  normalized <- tolower(trimws(cats))
+  q1 <- which(normalized %in% c("first quintile", "quintile 1", "q1"))
+  q5 <- which(normalized %in% c("fifth quintile", "quintile 5", "q5"))
+  if (length(q1) == 1L && length(q5) == 1L) {
+    return(c(cats[q1], cats[q5]))
+  }
+
+  if (length(cats) > 2) {
+    stop(
+      "gap_categories must be supplied when more than two categories are present ",
+      "and a Q1 - Q5 contrast cannot be identified from their labels.",
+      call. = FALSE
+    )
   }
   c(cats[1], cats[length(cats)])
 }

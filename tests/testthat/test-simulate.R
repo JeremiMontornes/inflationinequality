@@ -282,3 +282,66 @@ test_that("simulate_cpi can recode ECOICOP v2 item codes to v1-style codes", {
   expect_equal(unique(result$dt$coicop), "081")
   expect_true(all(result$dt[coicop == "081" & year == 2022 & month >= 6, value] > 100))
 })
+
+test_that("simulate_shock computes Q1 minus Q5 independently of category order", {
+  nodes <- data.frame(
+    node = c("FR_B", "FR_X"),
+    country = "FR",
+    sector = c("B", "X")
+  )
+  A <- matrix(0, 2, 2, dimnames = list(nodes$node, nodes$node))
+  bridge <- data.frame(
+    country = "FR",
+    coicop = c("01", "02"),
+    sector = c("B", "X"),
+    share = 1
+  )
+  total_weights <- data.frame(
+    country = "FR",
+    coicop = c("01", "02"),
+    weight = c(0.5, 0.5)
+  )
+  category_order <- c(
+    "Fifth quintile", "First quintile", "Fourth quintile",
+    "Second quintile", "Third quintile"
+  )
+  energy_weights <- c(0.2, 0.8, 0.3, 0.6, 0.4)
+  group_weights <- data.table::rbindlist(lapply(seq_along(category_order), function(i) {
+    data.table::data.table(
+      country = "FR",
+      coicop = c("01", "02"),
+      category = category_order[i],
+      weight = c(energy_weights[i], 1 - energy_weights[i])
+    )
+  }))
+
+  result <- simulate_shock(
+    A = A,
+    nodes = nodes,
+    shock = 0.40,
+    shock_sectors = "B",
+    shock_scope = "all",
+    bridge = bridge,
+    countries = "FR",
+    total_weights = total_weights,
+    group_weights = list(income_gap = group_weights)
+  )
+
+  # Q1 has an 80% energy weight and Q5 a 20% weight:
+  # (0.8 - 0.2) * 0.40 * 100 = +24 percentage points.
+  expect_equal(result$income_gap, 24)
+  expect_equal(result$income_gap_direct, 24)
+  expect_equal(result$income_gap_indirect, 0)
+})
+
+test_that("resolve_gap_categories rejects ambiguous multi-group contrasts", {
+  weights <- data.table::data.table(
+    category = c("Group C", "Group A", "Group B"),
+    sector = "B",
+    weight = 1
+  )
+  expect_error(
+    resolve_gap_categories(weights),
+    "gap_categories must be supplied"
+  )
+})
