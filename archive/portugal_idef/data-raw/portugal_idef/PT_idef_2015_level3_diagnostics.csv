@@ -1,0 +1,4 @@
+source,method,category,n_categories,n_coicop4,max_parent_leaf_gap,output_rds
+INE IDEF 2015/2016 published tables,Published group COICOP3 totals allocated by national COICOP4 shares,income,5,117,2e-06,PT_income_idef_2015_level3.rds
+INE IDEF 2015/2016 published tables,Published group COICOP3 totals allocated by national COICOP4 shares,age,4,117,5.74834416511294e-07,PT_age_idef_2015_level3.rds
+INE IDEF 2015/2016 published tables,Published group COICOP3 totals allocated by national COICOP4 shares,urban,3,117,4.25619845145775e-07,PT_urban_idef_2015_level3.rds
