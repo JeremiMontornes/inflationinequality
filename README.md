@@ -364,6 +364,30 @@ Implemented for level = 3 income, age, and urban calculations.
 
 <td style="text-align:left;">
 
+Portugal
+</td>
+
+<td style="text-align:left;">
+
+Level = 3 uses INE IDEF 2015/2016 published group expenditure at 3-digit COICOP and national expenditure at 4-digit COICOP.
+</td>
+
+<td style="text-align:left;">
+
+Within each published 3-digit group total, 4-digit expenditure is allocated using the IDEF national 4-digit composition.
+</td>
+
+<td style="text-align:left;">
+
+Implemented for level = 3 income, age, and urban calculations.
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
 Italy
 </td>
 

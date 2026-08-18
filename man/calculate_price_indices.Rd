@@ -143,7 +143,10 @@ country.
 For France, \code{level = 3} automatically uses bundled INSEE 2017 HBS level-3
 data for income, age, and residence-area groups when \code{custom_hbs} is not
 supplied. For Spain, \code{level = 3} uses compact INE EPF 2020 microdata-derived
-HBS objects when available. Eurostat public HBS data are generally not
+HBS objects when available. For Portugal, \code{level = 3} uses bundled INE IDEF
+2015/2016 objects that preserve the published group-specific COICOP level-2
+totals and allocate them across level-3 classes using the published national
+four-digit composition. Eurostat public HBS data are generally not
 available at this granularity, so national HBS sources are required for a
 genuine 4-digit COICOP calculation.
 }

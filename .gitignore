@@ -17,3 +17,8 @@ inst/doc
 *.pptx
 docs/shock_simulations/*.aux
 docs/shock_simulations/*.log
+
+# Restricted/raw survey archives: keep local, never commit.
+/data-raw/ISTAT_MFR_EUSILC_Cross_2023_EN.zip
+/data-raw/italy_eusilc/ISTAT_MFR_EUSILC_Cross_2020_EN_METADATA_ONLY.zip
+/data-raw/italy_hbs/zips/HBS_2023_IT.zip
