@@ -74,6 +74,10 @@
 #' - `category`: HBS category (e.g., "First quintile").
 #' - `weighted_consumption`: calculated weight (normalized to sum to 100 within
 #' each category and year).
+#' - `weighted_mass`: RAS-calibrated joint mass for the category and COICOP item;
+#' returned when `weighting_method = "ras"`.
+#' - `category_share`: consumption share used as the RAS category margin;
+#' returned when `weighting_method = "ras"`.
 #' - `weight_year`: year of the CPI weight data.
 #'
 #' The component `dt_coverage` has the following columns:
@@ -589,7 +593,6 @@ apply_ras_group_weights <- function(dt, hbs_category, categories, country = NULL
     ),
     by = .(weight_year)
   ]
-  dt[, category_share := NULL]
   dt[]
 }
 
@@ -635,7 +638,6 @@ ras_calibrate_group <- function(dt, categories, tolerance, max_iter) {
 
   out <- calibrated_dt[dt, on = .(category, coicop)]
   out[, weighted_consumption := weighted_mass / category_share]
-  out[, weighted_mass := NULL]
   out[]
 }
 

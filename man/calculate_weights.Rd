@@ -86,6 +86,10 @@ The component \code{dt} has the following columns:
 \item \code{category}: HBS category (e.g., "First quintile").
 \item \code{weighted_consumption}: calculated weight (normalized to sum to 100 within
 each category and year).
+\item \code{weighted_mass}: RAS-calibrated joint mass for the category and COICOP item;
+returned when \code{weighting_method = "ras"}.
+\item \code{category_share}: consumption share used as the RAS category margin;
+returned when \code{weighting_method = "ras"}.
 \item \code{weight_year}: year of the CPI weight data.
 }
 

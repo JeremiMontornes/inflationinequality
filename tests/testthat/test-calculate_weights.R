@@ -130,18 +130,32 @@ test_that("calculate_weights RAS calibrates quintile average to HICP weights", {
   row_sums <- result$dt[, .(total = sum(weighted_consumption)), by = category]
   expect_true(all(abs(row_sums$total - 100) < 1e-8))
 
+  expect_true(all(c("weighted_mass", "category_share") %in% names(result$dt)))
+  expect_equal(
+    result$dt$weighted_mass,
+    result$dt$category_share * result$dt$weighted_consumption,
+    tolerance = 1e-10
+  )
+  expect_equal(
+    result$dt[, sum(weighted_mass), by = coicop][order(coicop)]$V1,
+    c(60, 40),
+    tolerance = 1e-8
+  )
+
   category_shares <- inflationinequality:::ras_category_shares(
     "income",
     country = "FR",
     categories = categories,
     weight_years = 2022L
   )
-  result_with_shares <- merge(
-    result$dt,
-    category_shares,
-    by = c("category", "weight_year")
+  actual_shares <- unique(
+    result$dt[, .(category, weight_year, category_share)]
   )
-  aggregate_weights <- result_with_shares[
+  data.table::setorder(actual_shares, category, weight_year)
+  data.table::setorder(category_shares, category, weight_year)
+  expect_equal(actual_shares, category_shares, tolerance = 1e-10)
+
+  aggregate_weights <- result$dt[
     ,
     .(weighted_average = sum(weighted_consumption * category_share)),
     by = coicop
