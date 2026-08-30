@@ -1,37 +1,17 @@
 #' Calculates inflation contributions
 #'
 #' @description
-#' `calculate_contributions()` computes the contributions to inflation for
-#' different COICOP (Classification of Individual Consumption According to
-#' Purpose) categories over time, using Consumer Price Index (CPI) data and
-#' weighted consumption data.
+#' `calculate_contributions()` decomposes the exact annual inflation rates
+#' returned by [calculate_price_indices()] into elementary COICOP contributions.
 #'
 #' @details
-#' The function performs the following key operations:
-#' 1. Loads CPI data and calculates weights using `load_cpi()` and
-#' `calculate_weights()`.
-#' 2. Filters data to ensure consistency across COICOP codes and years.
-#' 3. Calculates contributions using a formula that accounts for year-over-year
-#' changes in prices and weights.
-#' 4. Handles multiple categories (e.g., income groups, age groups)
-#' simultaneously.
-#'
-#' The contribution calculation is based on the following formula:
-#' \deqn{
-#' C_{y,m,j,q} =
-#' \frac{P_{y-1,12}}{P_{y-1,m}} w_{y-1,j,q}
-#' \frac{P_{y,m,j} - P_{y-1,12,j}}{P_{y-1,12,j}} +
-#' \frac{P_{y-2,12}}{P_{y-1,m}} w_{y-2,j,q}
-#' \frac{P_{y-1,12,j} - P_{y-1,m,j}}{P_{y-2,12,j}}
-#' }
-#'
-#' Where:
-#' * P: Price index
-#' * w: Weight
-#' * y: Year
-#' * m: Month
-#' * j: COICOP category
-#' * q: Demographic category (e.g., income quintile)
+#' The annual rate crosses two chain links: the movement from month `m` of
+#' `y - 1` to December of `y - 1`, and the movement from that December to month
+#' `m` of `y`. The interaction between the two links is allocated symmetrically.
+#' Products must have both prices and weights throughout a calendar year;
+#' retained weights are renormalized to 100 and excluded mass is reported as a
+#' coverage diagnostic. Missing prices or weights are never replaced by a
+#' positive artificial weight.
 #'
 #' @inheritParams calculate_weights
 #' @param start_month month of start date.
@@ -48,6 +28,8 @@
 #' - `dt`: a `data.table` object (see below).
 #' - `dt_missing_weights`: a `data.table` object (see below).
 #' - `dt_coverage`: a `data.table` object (see below).
+#' - `dt_effective_weights`: retained weights after renormalization.
+#' - `dt_price_indices`: the exact price-index observations being decomposed.
 #' - `country`: 2-digit country code (see ISO 3166-1 alpha-2).
 #' - `category`: Category for which contributions were calculated: "income",
 #' "age", or "urban".
@@ -76,8 +58,11 @@
 #'
 #' The component `dt_coverage` has the following columns:
 #' \describe{
-#'   \item{weight_year}{year}
-#'   \item{weight_sum_avg}{total weight coverage of price index in percentage points}
+#'   \item{year}{weight year}
+#'   \item{original_weight}{weight mass before filtering}
+#'   \item{included_weight}{weight mass with a valid price path}
+#'   \item{excluded_weight}{weight mass excluded from the common universe}
+#'   \item{coverage_rate}{included weight divided by original weight}
 #' }
 #'
 #' @examples
@@ -128,6 +113,30 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
       is.na(recode_ecoicop2_to_ecoicop1)) {
     stop("'recode_ecoicop2_to_ecoicop1' must be TRUE, FALSE, or NULL.")
   }
+  if (!is.null(custom_cpi) && !is.null(start_year) &&
+      start_year < custom_cpi$start_year) {
+    stop("Not enough CPI data. Latest possible start year: ",
+         custom_cpi$start_year)
+  }
+
+  return(calculate_contributions_from_price_indices(
+    country = country,
+    category = category,
+    level = level,
+    start_year = start_year,
+    start_month = start_month,
+    end_year = end_year,
+    end_month = end_month,
+    ensure_complete_cpi = ensure_complete_cpi,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    interpolated_hbs = interpolated_hbs,
+    specific_hbs_year = specific_hbs_year,
+    france_insee_income_groups = france_insee_income_groups,
+    weighting_method = weighting_method,
+    recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
+  ))
 
   # Set start year 2 years behind due to the requirements of the equation
   data_start_year <- if (!is.null(start_year)) {
@@ -434,4 +443,66 @@ calculate_contributions <- function(country = NULL, category = NULL, level = 2,
                         end_year = max(contrib2$year),
                         end_month = max(contrib2[year == max(contrib2$year), month])),
                    class = "contributions"))
+}
+
+calculate_contributions_from_price_indices <- function(
+    country, category, level, start_year, start_month, end_year, end_month,
+    ensure_complete_cpi, custom_cpi, custom_index_weights, custom_hbs,
+    interpolated_hbs, specific_hbs_year, france_insee_income_groups,
+    weighting_method, recode_ecoicop2_to_ecoicop1) {
+  indices <- calculate_price_indices(
+    country = country,
+    category = category,
+    level = level,
+    start_year = start_year,
+    start_month = start_month,
+    end_year = end_year,
+    end_month = end_month,
+    ensure_complete_cpi = ensure_complete_cpi,
+    custom_cpi = custom_cpi,
+    custom_index_weights = custom_index_weights,
+    custom_hbs = custom_hbs,
+    interpolated_hbs = interpolated_hbs,
+    specific_hbs_year = specific_hbs_year,
+    france_insee_income_groups = france_insee_income_groups,
+    include_total = FALSE,
+    formula = "laspeyres",
+    weighting_method = weighting_method,
+    recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1
+  )
+  contributions <- data.table::copy(indices$dt_components)[
+    , .(coicop, category, year, month, contribution)
+  ]
+  accounting <- contributions[
+    , .(component_sum = sum(contribution)),
+    by = .(category, year, month)
+  ]
+  accounting <- indices$dt[accounting, on = .(category, year, month)]
+  bad <- accounting[
+    is.finite(annual_rate) & abs(component_sum - annual_rate) > 1e-10
+  ]
+  if (nrow(bad) > 0L) {
+    stop("Contributions do not add to the displayed annual inflation rate.")
+  }
+
+  structure(
+    list(
+      dt = contributions,
+      dt_missing_weight = data.table::copy(indices$dt_missing_weights),
+      dt_missing_weights = data.table::copy(indices$dt_missing_weights),
+      dt_coverage = data.table::copy(indices$dt_coverage),
+      dt_effective_weights = data.table::copy(indices$dt_effective_weights),
+      dt_price_indices = data.table::copy(indices$dt),
+      country = indices$country,
+      category = indices$category,
+      categories = indices$categories,
+      weighting_method = weighting_method,
+      level = indices$level,
+      start_year = indices$start_year,
+      start_month = indices$start_month,
+      end_year = indices$end_year,
+      end_month = indices$end_month
+    ),
+    class = "contributions"
+  )
 }

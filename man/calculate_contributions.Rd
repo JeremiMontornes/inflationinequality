@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_contributions.R
 \name{calculate_contributions}
 \alias{calculate_contributions}
-\title{Calculates inflation contributions}
+\title{Calculate contributions to annual inflation}
 \usage{
 calculate_contributions(
   country = NULL,
@@ -87,6 +87,8 @@ following components:
 \item \code{dt}: a \code{data.table} object (see below).
 \item \code{dt_missing_weights}: a \code{data.table} object (see below).
 \item \code{dt_coverage}: a \code{data.table} object (see below).
+\item \code{dt_effective_weights}: retained weights after renormalization.
+\item \code{dt_price_indices}: the exact price-index observations being decomposed.
 \item \code{country}: 2-digit country code (see ISO 3166-1 alpha-2).
 \item \code{category}: Category for which contributions were calculated: "income",
 "age", or "urban".
@@ -117,46 +119,25 @@ The component \code{dt_missing_weights} has the following columns:
 
 The component \code{dt_coverage} has the following columns:
 \describe{
-\item{weight_year}{year}
-\item{weight_sum_avg}{total weight coverage of price index in percentage points}
+\item{year}{weight year}
+\item{original_weight}{weight mass before filtering}
+\item{included_weight}{weight mass with a valid price path}
+\item{excluded_weight}{weight mass excluded from the common universe}
+\item{coverage_rate}{included weight divided by original weight}
 }
 }
 \description{
-\code{calculate_contributions()} computes the contributions to inflation for
-different COICOP (Classification of Individual Consumption According to
-Purpose) categories over time, using Consumer Price Index (CPI) data and
-weighted consumption data.
+\code{calculate_contributions()} decomposes the exact annual inflation rates
+returned by \code{\link[=calculate_price_indices]{calculate_price_indices()}} into elementary COICOP contributions.
 }
 \details{
-The function performs the following key operations:
-\enumerate{
-\item Loads CPI data and calculates weights using \code{load_cpi()} and
-\code{calculate_weights()}.
-\item Filters data to ensure consistency across COICOP codes and years.
-\item Calculates contributions using a formula that accounts for year-over-year
-changes in prices and weights.
-\item Handles multiple categories (e.g., income groups, age groups)
-simultaneously.
-}
-
-The contribution calculation is based on the following formula:
-\deqn{
-C_{y,m,j,q} =
-\frac{P_{y-1,12}}{P_{y-1,m}} w_{y-1,j,q}
-\frac{P_{y,m,j} - P_{y-1,12,j}}{P_{y-1,12,j}} +
-\frac{P_{y-2,12}}{P_{y-1,m}} w_{y-2,j,q}
-\frac{P_{y-1,12,j} - P_{y-1,m,j}}{P_{y-2,12,j}}
-}
-
-Where:
-\itemize{
-\item P: Price index
-\item w: Weight
-\item y: Year
-\item m: Month
-\item j: COICOP category
-\item q: Demographic category (e.g., income quintile)
-}
+The annual rate crosses two chain links: the movement from month \code{m} of
+\code{y - 1} to December of \code{y - 1}, and the movement from that December to month
+\code{m} of \code{y}. The interaction between the two links is allocated symmetrically.
+Products must have both prices and weights throughout a calendar year;
+retained weights are renormalized to 100 and excluded mass is reported as a
+coverage diagnostic. Missing prices or weights are never replaced by a
+positive artificial weight.
 }
 \examples{
 \dontrun{
@@ -178,6 +159,6 @@ total_contribution <- dt_contributions[
 
 }
 \seealso{
-\code{\link[=load_cpi]{load_cpi()}}, \code{\link[=calculate_weights]{calculate_weights()}}, \code{\link[=correct_cpi]{correct_cpi()}} for CPI data
-synthesization, \code{\link[=cpi]{cpi()}}
+\code{\link[=calculate_price_indices]{calculate_price_indices()}}, \code{\link[=calculate_weights]{calculate_weights()}},
+\code{\link[=load_cpi]{load_cpi()}}
 }

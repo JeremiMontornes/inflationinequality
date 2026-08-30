@@ -111,6 +111,12 @@ An object of class \code{"price_indices"} containing:
 \itemize{
 \item \code{dt}: a \code{data.table} with columns \code{year}, \code{month}, \code{date}, \code{category},
 \code{laspeyres}, \code{chain_laspeyres}, \code{price_index}, and \code{annual_rate}.
+\item \code{dt_components}: elementary COICOP contributions to \code{annual_rate} when
+\code{formula = "laspeyres"}.
+\item \code{dt_effective_weights}: the common-universe weights renormalized to 100.
+\item \code{dt_coverage}: original, included, and excluded weight mass by group-year.
+\item \code{dt_missing_weights}: weights excluded because a matching valid price path
+is unavailable.
 \item \code{country}: 2-digit country code.
 \item \code{category}: HBS category used to build household groups.
 \item \code{categories}: ordered category labels.

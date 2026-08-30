@@ -66,6 +66,11 @@ mock_calculate_weights <- function(country, category, level, start_year, end_yea
   return(weights_fr2)
 }
 
+mock_load_index_weights_contributions <- function(country, level, start_year,
+                                                   end_year) {
+  readRDS("fixtures/index_weights_fr2.RDS")
+}
+
 test_that("calculate_contributions input validation works", {
   skip_if_no_internet()
   expect_error(calculate_contributions("FRA", "income"), "Country must be a 2-character ISO code")
@@ -75,6 +80,8 @@ test_that("calculate_contributions input validation works", {
 
 test_that("calculate_contributions returns expected structure", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(load_index_weights = mock_load_index_weights_contributions,
+                        .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   result <- calculate_contributions(
     "FR", "income", recode_ecoicop2_to_ecoicop1 = FALSE
@@ -85,6 +92,8 @@ test_that("calculate_contributions returns expected structure", {
 
 test_that("calculate_contributions handles different date ranges", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(load_index_weights = mock_load_index_weights_contributions,
+                        .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   result_full <- calculate_contributions(
     "FR", "income", recode_ecoicop2_to_ecoicop1 = FALSE
@@ -100,6 +109,8 @@ test_that("calculate_contributions handles different date ranges", {
 
 test_that("calculate_contributions works with different categories", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(load_index_weights = mock_load_index_weights_contributions,
+                        .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   result_income <- calculate_contributions(
     "FR", "income", recode_ecoicop2_to_ecoicop1 = FALSE
@@ -116,9 +127,95 @@ test_that("calculate_contributions works with different categories", {
 
 test_that("calculate_contributions with sideloaded CPI data fails with mismatched dates", {
   local_mocked_bindings(load_cpi = mock_load_cpi, .package = "inflationinequality")
+  local_mocked_bindings(load_index_weights = mock_load_index_weights_contributions,
+                        .package = "inflationinequality")
   local_mocked_bindings(calculate_weights = mock_calculate_weights, .package = "inflationinequality")
   dt_cpi_fr <- load_cpi("FR",start_year = 2016, end_year = 2017)
-  expect_error(calculate_contributions("FR", "income", start_year = 2015, custom_cpi = dt_cpi_fr))
+  expect_error(calculate_contributions("FR", "income", start_year = 2013, custom_cpi = dt_cpi_fr))
+})
+
+test_that("elementary contributions exactly decompose the displayed annual rate", {
+  dt <- data.table::CJ(
+    coicop = c("01", "02"),
+    category = c("Q1", "Q5"),
+    year = 2021:2022,
+    month = 1:12
+  )
+  dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
+  dt[, dec_ratio := 1 + ifelse(coicop == "01", 0.01, 0.02) * month]
+  dt[, weighted_consumption := data.table::fcase(
+    category == "Q1" & coicop == "01", 60,
+    category == "Q1", 40,
+    coicop == "01", 40,
+    default = 60
+  )]
+
+  built <- inflationinequality:::build_index_components(dt, base_year = 2021)
+  sums <- built$components[
+    , .(component_sum = sum(contribution)),
+    by = .(category, year, month)
+  ]
+  checked <- built$index[sums, on = .(category, year, month)]
+
+  expect_lt(
+    max(abs(checked[is.finite(annual_rate), component_sum - annual_rate])),
+    1e-10
+  )
+  expect_equal(
+    built$effective_weights[, sum(effective_weight), by = .(category, year)]$V1,
+    rep(100, 4),
+    tolerance = 1e-12
+  )
+})
+
+test_that("policy contributions decompose the observed-counterfactual group gap", {
+  make_data <- function(policy_factor = 1) {
+    dt <- data.table::CJ(
+      coicop = c("01", "02"),
+      category = c("Q1", "Q5"),
+      year = 2021:2022,
+      month = 1:12
+    )
+    dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
+    dt[, dec_ratio := 1 + ifelse(coicop == "01", 0.01, 0.02) * month]
+    dt[coicop == "02" & year == 2022, dec_ratio :=
+         1 + policy_factor * (dec_ratio - 1)]
+    dt[, weighted_consumption := data.table::fcase(
+      category == "Q1" & coicop == "01", 70,
+      category == "Q1", 30,
+      coicop == "01", 30,
+      default = 70
+    )]
+    dt
+  }
+  observed <- inflationinequality:::build_index_components(
+    make_data(1), base_year = 2021
+  )
+  counterfactual <- inflationinequality:::build_index_components(
+    make_data(0.5), base_year = 2021
+  )
+  expect_equal(observed$effective_weights, counterfactual$effective_weights)
+  expect_equal(observed$coverage, counterfactual$coverage)
+
+  rates <- merge(
+    observed$index[, .(category, year, month, observed_rate = annual_rate)],
+    counterfactual$index[, .(category, year, month,
+                             counterfactual_rate = annual_rate)],
+    by = c("category", "year", "month")
+  )
+  rate_gap <- rates[year == 2022 & month == 6,
+    diff((observed_rate - counterfactual_rate)[match(c("Q1", "Q5"), category)])
+  ]
+  product_gap <- merge(
+    observed$components[, .(coicop, category, year, month,
+                             observed = contribution)],
+    counterfactual$components[, .(coicop, category, year, month,
+                                   counterfactual = contribution)],
+    by = c("coicop", "category", "year", "month")
+  )[year == 2022 & month == 6,
+    sum((observed - counterfactual) * ifelse(category == "Q5", 1, -1))
+  ]
+  expect_equal(product_gap, rate_gap, tolerance = 1e-10)
 })
 
 test_that("calculate_contributions does not mix up data between categories: single category", {

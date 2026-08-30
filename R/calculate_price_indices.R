@@ -41,6 +41,12 @@
 #' @returns An object of class `"price_indices"` containing:
 #' - `dt`: a `data.table` with columns `year`, `month`, `date`, `category`,
 #'   `laspeyres`, `chain_laspeyres`, `price_index`, and `annual_rate`.
+#' - `dt_components`: elementary COICOP contributions to `annual_rate` when
+#'   `formula = "laspeyres"`.
+#' - `dt_effective_weights`: the common-universe weights renormalized to 100.
+#' - `dt_coverage`: original, included, and excluded weight mass by group-year.
+#' - `dt_missing_weights`: weights excluded because a matching valid price path
+#'   is unavailable.
 #' - `country`: 2-digit country code.
 #' - `category`: HBS category used to build household groups.
 #' - `categories`: ordered category labels.
@@ -302,6 +308,7 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     stop("No common COICOP-year observations between CPI data and category weights.")
   }
 
+  index_components <- NULL
   if (formula == "toernqvist") {
     weights_dt_previous <- data.table::copy(weights_dt)
     weights_dt_previous[, year := year + 1L]
@@ -331,23 +338,25 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       by = .(category, year, month, date)
     ]
   } else {
-    index_dt <- hicp_data[
-      !is.na(dec_ratio) & !is.na(weighted_consumption),
-      .(laspeyres = hicp::laspeyres(x = dec_ratio, w0 = weighted_consumption)),
-      by = .(category, year, month, date)
-    ]
+    index_components <- build_index_components(
+      hicp_data = hicp_data,
+      base_year = base_year
+    )
+    index_dt <- index_components$index
   }
 
-  data.table::setorder(index_dt, category, date)
-  index_dt[, chain_laspeyres := hicp::chain(x = laspeyres, t = date, by = 12),
-           by = category]
-  index_dt[, price_index := rebase_or_first_available(
-    x = chain_laspeyres,
-    t = date,
-    t.ref = as.character(base_year)
-  ), by = category]
-  index_dt[, annual_rate := hicp::rates(x = price_index, t = date, type = "year"),
-           by = category]
+  if (formula == "toernqvist") {
+    data.table::setorder(index_dt, category, date)
+    index_dt[, chain_laspeyres := hicp::chain(x = laspeyres, t = date, by = 12),
+             by = category]
+    index_dt[, price_index := rebase_or_first_available(
+      x = chain_laspeyres,
+      t = date,
+      t.ref = as.character(base_year)
+    ), by = category]
+    index_dt[, annual_rate := hicp::rates(x = price_index, t = date, type = "year"),
+             by = category]
+  }
 
   index_dt <- index_dt[
     (year > start_year_out | (year == start_year_out & month >= (start_month %||% 1))) &
@@ -403,9 +412,20 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
   data.table::setorder(index_dt, category, date)
 
   structure(
-    list(
-      dt = index_dt,
-      country = country %||% cpi_obj$country,
+      list(
+        dt = index_dt,
+        dt_components = if (is.null(index_components)) NULL else
+          index_components$components[
+            (year > start_year_out | (year == start_year_out & month >= (start_month %||% 1))) &
+              (year < end_year_out | (year == end_year_out & month <= (end_month %||% 12)))
+          ],
+        dt_effective_weights = if (is.null(index_components)) NULL else
+          index_components$effective_weights,
+        dt_coverage = if (is.null(index_components)) NULL else
+          index_components$coverage,
+        dt_missing_weights = if (is.null(index_components)) NULL else
+          index_components$missing_weights,
+        country = country %||% cpi_obj$country,
       category = category %||% custom_hbs$category,
       categories = if (include_total) c(weights$categories, "Total") else weights$categories,
       level = level,
@@ -594,6 +614,25 @@ aggregate_price_indices_by_country <- function(price_indices_list,
   aggregate_dt[, annual_rate := hicp::rates(price_index, t = date, type = "year"),
                by = category]
 
+  aggregate_components <- NULL
+  if (identical(formula, "laspeyres") &&
+      all(vapply(price_indices_list, function(x) !is.null(x$dt_components), logical(1)))) {
+    national_components <- data.table::rbindlist(
+      lapply(seq_along(price_indices_list), function(i) {
+        out <- data.table::copy(price_indices_list[[i]]$dt_components)
+        out[, source_country := countries[[i]]]
+        out
+      }),
+      use.names = TRUE,
+      fill = TRUE
+    )
+    aggregate_components <- aggregate_index_components(
+      national_components = national_components,
+      national_indices = dt,
+      aggregate_indices = aggregate_dt
+    )
+  }
+
   categories <- Reduce(
     intersect,
     lapply(price_indices_list, function(x) as.character(x$categories))
@@ -607,6 +646,28 @@ aggregate_price_indices_by_country <- function(price_indices_list,
   structure(
     list(
       dt = aggregate_dt,
+      dt_components = aggregate_components,
+      dt_effective_weights = data.table::rbindlist(
+        lapply(seq_along(price_indices_list), function(i) {
+          out <- data.table::copy(price_indices_list[[i]]$dt_effective_weights)
+          if (!is.null(out)) out[, source_country := countries[[i]]]
+          out
+        }), fill = TRUE
+      ),
+      dt_coverage = data.table::rbindlist(
+        lapply(seq_along(price_indices_list), function(i) {
+          out <- data.table::copy(price_indices_list[[i]]$dt_coverage)
+          if (!is.null(out)) out[, source_country := countries[[i]]]
+          out
+        }), fill = TRUE
+      ),
+      dt_missing_weights = data.table::rbindlist(
+        lapply(seq_along(price_indices_list), function(i) {
+          out <- data.table::copy(price_indices_list[[i]]$dt_missing_weights)
+          if (!is.null(out)) out[, source_country := countries[[i]]]
+          out
+        }), fill = TRUE
+      ),
       country = aggregate_geo,
       source_countries = countries,
       category = category %||% price_indices_list[[1]]$category,
@@ -621,6 +682,255 @@ aggregate_price_indices_by_country <- function(price_indices_list,
       country_weights = weights_dt
     ),
     class = "price_indices"
+  )
+}
+
+aggregate_index_components <- function(national_components, national_indices,
+                                       aggregate_indices,
+                                       tolerance = 1e-10) {
+  current_weights <- national_indices[, .(
+    source_country, category, year, month, country_weight
+  )]
+  current_weights[, current_country_share :=
+                    country_weight / sum(country_weight),
+                  by = .(category, year, month)]
+  previous_weights <- data.table::copy(current_weights)
+  previous_weights[, year := year + 1L]
+  data.table::setnames(
+    previous_weights,
+    c("country_weight", "current_country_share"),
+    c("previous_country_weight", "previous_country_share")
+  )
+
+  components <- current_weights[
+    national_components,
+    on = .(source_country, category, year, month)
+  ]
+  components <- previous_weights[
+    components,
+    on = .(source_country, category, year, month)
+  ]
+  components <- components[
+    is.finite(current_country_share) & is.finite(previous_country_share) &
+      is.finite(previous_month_index)
+  ]
+  components[, previous_raw_change :=
+               previous_link_contribution * previous_month_index / 100]
+  components <- components[, .(
+    current_link_contribution = sum(
+      current_country_share * current_link_contribution
+    ),
+    previous_raw_change = sum(previous_country_share * previous_raw_change)
+  ), by = .(coicop, category, year, month)]
+
+  previous_aggregate <- aggregate_indices[, .(
+    category, year = year + 1L, month,
+    previous_aggregate_index = laspeyres
+  )]
+  components <- previous_aggregate[
+    components, on = .(category, year, month)
+  ][is.finite(previous_aggregate_index) & previous_aggregate_index > 0]
+  components[, previous_link_contribution :=
+               100 * previous_raw_change / previous_aggregate_index]
+  components[, `:=`(
+    current_link_rate = sum(current_link_contribution),
+    previous_link_rate = sum(previous_link_contribution)
+  ), by = .(category, year, month)]
+  components[, contribution :=
+               current_link_contribution * (1 + previous_link_rate / 200) +
+               previous_link_contribution * (1 + current_link_rate / 200)]
+  components <- aggregate_indices[
+    components, on = .(category, year, month),
+    .(coicop = i.coicop, category, year, month, date,
+      contribution = i.contribution,
+      current_link_contribution = i.current_link_contribution,
+      previous_link_contribution = i.previous_link_contribution,
+      current_link_rate = i.current_link_rate,
+      previous_link_rate = i.previous_link_rate)
+  ]
+
+  accounting <- components[, .(component_sum = sum(contribution)),
+                           by = .(category, year, month)]
+  accounting <- aggregate_indices[accounting, on = .(category, year, month)]
+  bad <- accounting[
+    is.finite(annual_rate) & abs(component_sum - annual_rate) > tolerance
+  ]
+  if (nrow(bad) > 0L) {
+    stop(
+      "Aggregate index components do not add to the displayed annual rate; ",
+      "maximum gap: ",
+      format(max(abs(bad$component_sum - bad$annual_rate)), scientific = TRUE)
+    )
+  }
+  components[]
+}
+
+build_index_components <- function(hicp_data, base_year, tolerance = 1e-10) {
+  dt <- data.table::copy(hicp_data)
+  required <- c(
+    "coicop", "category", "year", "month", "date", "dec_ratio",
+    "weighted_consumption"
+  )
+  missing <- setdiff(required, names(dt))
+  if (length(missing) > 0L) {
+    stop("Missing columns for index construction: ", paste(missing, collapse = ", "))
+  }
+
+  dt[, valid_observation :=
+       is.finite(dec_ratio) & dec_ratio > 0 &
+       is.finite(weighted_consumption) & weighted_consumption >= 0]
+  month_counts <- unique(dt[, .(category, year, month)])[,
+    .(required_months = .N), by = .(category, year)]
+  valid_products <- dt[
+    valid_observation == TRUE,
+    .(observed_months = data.table::uniqueN(month)),
+    by = .(category, year, coicop)
+  ][month_counts, on = .(category, year)][
+    observed_months == required_months,
+    .(category, year, coicop)
+  ]
+
+  weight_base <- unique(dt[, .(category, year, coicop, weighted_consumption)])
+  coverage <- weight_base[
+    , .(original_weight = sum(weighted_consumption, na.rm = TRUE)),
+    by = .(category, year)
+  ]
+  included <- weight_base[valid_products, on = .(category, year, coicop), nomatch = 0L][
+    , .(included_weight = sum(weighted_consumption, na.rm = TRUE)),
+    by = .(category, year)
+  ]
+  coverage <- included[coverage, on = .(category, year)]
+  coverage[is.na(included_weight), included_weight := 0]
+  coverage[, `:=`(
+    excluded_weight = original_weight - included_weight,
+    coverage_rate = data.table::fifelse(
+      original_weight > 0, included_weight / original_weight, NA_real_
+    )
+  )]
+  if (all(coverage$included_weight <= 0)) {
+    stop("No positive common price-weight coverage.")
+  }
+
+  effective_weights <- weight_base[
+    valid_products, on = .(category, year, coicop), nomatch = 0L
+  ][
+    , effective_weight := weighted_consumption * 100 / sum(weighted_consumption),
+    by = .(category, year)
+  ]
+  missing_weights <- weight_base[
+    !valid_products, on = .(category, year, coicop)
+  ][, .(
+    coicop, year, category,
+    missing_weight = weighted_consumption
+  )]
+  dt <- dt[
+    effective_weights,
+    on = .(category, year, coicop),
+    nomatch = 0L
+  ]
+  dt[, item_link_value := effective_weight * dec_ratio / 100]
+
+  index <- dt[
+    , .(laspeyres = sum(item_link_value)),
+    by = .(category, year, month, date)
+  ]
+  data.table::setorder(index, category, date)
+  index[, chain_laspeyres := hicp::chain(x = laspeyres, t = date, by = 12),
+        by = category]
+  index[, price_index := rebase_or_first_available(
+    x = chain_laspeyres,
+    t = date,
+    t.ref = as.character(base_year)
+  ), by = category]
+  index[, annual_rate := hicp::rates(x = price_index, t = date, type = "year"),
+        by = category]
+
+  current <- dt[, .(
+    category, coicop, year, month,
+    current_item = item_link_value,
+    current_weight = effective_weight / 100
+  )]
+  previous_month <- dt[, .(
+    category, coicop, year = year + 1L, month,
+    previous_month_item = item_link_value
+  )]
+  previous_december <- dt[month == 12L, .(
+    category, coicop, year = year + 1L,
+    previous_december_item = item_link_value
+  )]
+  components <- merge(
+    current,
+    previous_month,
+    by = c("category", "coicop", "year", "month"),
+    all = TRUE
+  )
+  components <- merge(
+    components,
+    previous_december,
+    by = c("category", "coicop", "year"),
+    all.x = TRUE
+  )
+  components[is.na(current_item), `:=`(current_item = 0, current_weight = 0)]
+  components[is.na(previous_month_item), previous_month_item := 0]
+  components[is.na(previous_december_item), previous_december_item := 0]
+  previous_index <- index[, .(
+    category, year = year + 1L, month,
+    previous_month_index = laspeyres
+  )]
+  components <- previous_index[
+    components, on = .(category, year, month)
+  ]
+  components <- components[
+    is.finite(previous_month_index) & previous_month_index > 0
+  ]
+  components[, `:=`(
+    current_link_contribution = 100 * (current_item - current_weight),
+    previous_link_contribution =
+      100 * (previous_december_item - previous_month_item) /
+      previous_month_index
+  )]
+  components[, `:=`(
+    current_link_rate = sum(current_link_contribution),
+    previous_link_rate = sum(previous_link_contribution)
+  ), by = .(category, year, month)]
+  components[, contribution :=
+    current_link_contribution * (1 + previous_link_rate / 200) +
+    previous_link_contribution * (1 + current_link_rate / 200)]
+  components <- index[
+    components, on = .(category, year, month),
+    .(coicop = i.coicop, category, year, month, date,
+      contribution = i.contribution,
+      current_link_contribution = i.current_link_contribution,
+      previous_link_contribution = i.previous_link_contribution,
+      current_link_rate = i.current_link_rate,
+      previous_link_rate = i.previous_link_rate,
+      previous_month_index = i.previous_month_index)
+  ]
+  components <- components[, .(
+    coicop, category, year, month, date, contribution,
+    current_link_contribution, previous_link_contribution,
+    current_link_rate, previous_link_rate, previous_month_index
+  )]
+
+  accounting <- components[, .(component_sum = sum(contribution)),
+                           by = .(category, year, month)]
+  accounting <- index[accounting, on = .(category, year, month)]
+  bad <- accounting[
+    is.finite(annual_rate) & abs(component_sum - annual_rate) > tolerance
+  ]
+  if (nrow(bad) > 0L) {
+    stop(
+      "Index components do not add to the displayed annual rate; maximum gap: ",
+      format(max(abs(bad$component_sum - bad$annual_rate)), scientific = TRUE)
+    )
+  }
+
+  list(
+    index = index,
+    components = components,
+    effective_weights = effective_weights,
+    coverage = coverage,
+    missing_weights = missing_weights
   )
 }
 
@@ -688,6 +998,16 @@ trim_price_indices <- function(price_indices_obj,
   }
   data.table::setorder(dt, category, date)
   price_indices_obj$dt <- dt
+  if (!is.null(price_indices_obj$dt_components)) {
+    components <- data.table::copy(price_indices_obj$dt_components)
+    components <- components[
+      (is.null(start_year) | year > start_year |
+         (year == start_year & month >= (start_month %||% 1L))) &
+        (is.null(end_year) | year < end_year |
+           (year == end_year & month <= (end_month %||% 12L)))
+    ]
+    price_indices_obj$dt_components <- components
+  }
   price_indices_obj$start_year <- min(dt$year)
   price_indices_obj$start_month <- min(dt[year == min(year), month])
   price_indices_obj$end_year <- max(dt$year)

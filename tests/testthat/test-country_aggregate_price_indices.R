@@ -135,6 +135,63 @@ test_that("aggregate_price_indices_by_country aggregates movements before chaini
   expect_equal(out$dt[year == 2021, price_index], 115)
 })
 
+test_that("EA20 elementary components add to the aggregate annual rate", {
+  make_component_indices <- function(country, price_scale) {
+    dt <- data.table::CJ(
+      coicop = c("01", "02"), category = c("Q1", "Q5"),
+      year = 2021:2022, month = 1:12
+    )
+    dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
+    dt[, dec_ratio := 1 + price_scale *
+         ifelse(coicop == "01", 0.01, 0.02) * month]
+    dt[, weighted_consumption := data.table::fcase(
+      category == "Q1" & coicop == "01", 60,
+      category == "Q1", 40,
+      coicop == "01", 40,
+      default = 60
+    )]
+    built <- inflationinequality:::build_index_components(dt, 2021)
+    structure(list(
+      dt = built$index,
+      dt_components = built$components,
+      dt_effective_weights = built$effective_weights,
+      dt_coverage = built$coverage,
+      dt_missing_weights = built$missing_weights,
+      country = country,
+      category = "income",
+      categories = c("Q1", "Q5"),
+      level = 1,
+      base_year = 2021,
+      formula = "laspeyres"
+    ), class = "price_indices")
+  }
+
+  out <- aggregate_price_indices_by_country(
+    list(
+      DE = make_component_indices("DE", 1),
+      FR = make_component_indices("FR", 1.5)
+    ),
+    country_weights = data.table::data.table(
+      country = rep(c("DE", "FR"), each = 2),
+      year = rep(2021:2022, 2),
+      weight = c(3, 4, 1, 1)
+    ),
+    aggregate_geo = "EA20",
+    category = "income",
+    level = 1,
+    base_year = 2021
+  )
+  sums <- out$dt_components[
+    , .(component_sum = sum(contribution)),
+    by = .(category, year, month)
+  ]
+  checked <- out$dt[sums, on = .(category, year, month)]
+  expect_lt(
+    max(abs(checked[is.finite(annual_rate), component_sum - annual_rate])),
+    1e-10
+  )
+})
+
 test_that("calculate_price_indices forces EA20 aggregation to level 2", {
   local_mocked_bindings(
     calculate_price_indices_country_aggregate = function(...) {
