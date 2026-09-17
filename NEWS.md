@@ -1,3 +1,14 @@
+## [1.0.0](https://github.com/JeremiMontornes/inflationinequality/compare/v0.2.0...v1.0.0) (2026-09-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* calculate_household_inflation is renamed to calculate_spain_household_inflation.
+
+### Features
+
+* add COICOP exclusions and clarify Spain household inflation API ([2476d05](https://github.com/JeremiMontornes/inflationinequality/commit/2476d054c2b77a36b53ef2b1fc0349cd51da85cb))
+
 ## [0.2.0](https://github.com/JeremiMontornes/inflationinequality/compare/v0.1.1...v0.2.0) (2026-06-12)
 
 
