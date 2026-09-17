@@ -239,6 +239,55 @@ test_that("simulate_cpi_policy_counterfactuals recalculates the basket once", {
   )
 })
 
+test_that("January policy preserves its entry and expiry level jumps", {
+  dt <- data.table::data.table(
+    series_name = rep("CPI", 72),
+    coicop = rep(c("01", "02"), each = 36),
+    value = 100,
+    year = rep(rep(2022:2024, each = 12), 2),
+    month = rep(1:12, 6)
+  )
+  dt_basket <- data.table::data.table(
+    series_name = "CPI",
+    value = 100,
+    year = rep(2022:2024, each = 12),
+    month = rep(1:12, 3)
+  )
+  cpi_obj <- cpi(dt, dt_basket, "FR", 1)
+  policy <- cpi_counterfactual_policy(
+    policy_id = "calendar_year_ratio",
+    coicop = "01",
+    type = "ratio",
+    start = "2023-01",
+    end = "2023-12",
+    ratio = 1.10
+  )
+  mock_weights <- index_weights(
+    data.table::data.table(
+      coicop = rep(c("01", "02"), each = 3),
+      weight = 50,
+      year = rep(2022:2024, 2)
+    ),
+    country = "FR",
+    level = 1
+  )
+  local_mocked_bindings(
+    load_index_weights = function(...) mock_weights,
+    .package = "inflationinequality"
+  )
+
+  result <- simulate_cpi_policy_counterfactuals(
+    cpi_obj,
+    policy,
+    recalculate_price_basket = TRUE
+  )
+
+  expect_equal(result$dt_basket[year == 2022 & month == 12, value], 100)
+  expect_equal(result$dt_basket[year == 2023 & month == 1, value], 105)
+  expect_equal(result$dt_basket[year == 2023 & month == 12, value], 105)
+  expect_equal(result$dt_basket[year == 2024 & month == 1, value], 100)
+})
+
 test_that("simulate_cpi_policy_counterfactuals rejects duplicate coicop-month policies", {
   cpi_obj <- create_counterfactual_sample_cpi()
   policy <- cpi_counterfactual_policy(

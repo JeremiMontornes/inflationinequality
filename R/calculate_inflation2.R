@@ -50,7 +50,9 @@ calculate_inflation2 <- function(country = NULL, category = NULL, level = 2,
                                  recode_ecoicop2_to_ecoicop1 = TRUE,
                                  aggregate_geo = "EA20",
                                  custom_country_weights = NULL,
-                                 weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
+                                 weighting_method = c("relative_expenditure", "ras", "additive_qp"),
+                                 exclude_coicop = NULL) {
+  exclude_coicop <- normalize_exclude_coicop(exclude_coicop, level)
   formula <- match.arg(formula)
   weighting_method <- match.arg(weighting_method)
   france_insee_income_groups <- match.arg(france_insee_income_groups)
@@ -76,7 +78,8 @@ calculate_inflation2 <- function(country = NULL, category = NULL, level = 2,
     recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
     aggregate_geo = aggregate_geo,
     custom_country_weights = custom_country_weights,
-    weighting_method = weighting_method
+    weighting_method = weighting_method,
+    exclude_coicop = exclude_coicop
   )
 
   dt_inflation <- data.table::copy(indices$dt)[
@@ -103,6 +106,7 @@ calculate_inflation2 <- function(country = NULL, category = NULL, level = 2,
       category = indices$category,
       categories = indices$categories,
       weighting_method = weighting_method,
+      exclude_coicop = exclude_coicop,
       formula = formula,
       level = indices$level,
       start_year = first_year,

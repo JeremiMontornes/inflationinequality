@@ -54,6 +54,12 @@
 #'   (`04.1`). This housing bridge is applied for every country when both HBS
 #'   components are available; HICP weights remain unchanged.
 #'
+#' @param exclude_coicop character vector of COICOP prefixes to exclude, e.g.
+#'   `c("041", "042")` for actual and imputed rents. `NULL` excludes nothing.
+#'   Codes use the target HBS nomenclature and include all descendants. They
+#'   must not be finer than `level`. Exclusions apply before the housing bridge
+#'   and weight normalization. Remaining category weights sum to 100.
+#'
 #' @returns An object of class `"weights"` is a list containing the following
 #'   components:
 #' - `dt`: a `data.table` object (see below).
@@ -109,7 +115,9 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                               interpolated_hbs = FALSE,
                               specific_hbs_year = NULL,
                               france_insee_income_groups = c("decile", "quintile"),
-                              weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
+                              weighting_method = c("relative_expenditure", "ras", "additive_qp"),
+                              exclude_coicop = NULL) {
+  exclude_coicop <- normalize_exclude_coicop(exclude_coicop, level)
   if (!is.null(country)) {
     country <- toupper(country)
   }
@@ -193,6 +201,12 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     hbs <- interpolate_hbs(hbs)
   }
 
+  if (length(exclude_coicop)) {
+    hbs <- exclude_hbs_coicop(hbs, exclude_coicop)
+    index_weights$dt <- exclude_coicop_rows(index_weights$dt, exclude_coicop)
+    if (!nrow(index_weights$dt)) stop("'exclude_coicop' removes all HICP weights.")
+  }
+
   if (identical(as.integer(level), 2L)) {
     hbs <- combine_hbs_actual_and_imputed_rents(hbs)
   }
@@ -205,6 +219,18 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
     custom_hbs = hbs,
     specific_hbs_year = specific_hbs_year
   )
+
+  # A fallback to an unadjusted parent basket could put excluded expenditure
+  # back into the calculation (e.g. missing 043 mapped to 04 after dropping 041).
+  for (prefix in exclude_coicop) {
+    parent <- dt_coicop_bridge$hbs_coicop
+    crosses_exclusion <- !is.na(parent) & nchar(parent) < nchar(prefix) &
+      startsWith(prefix, parent)
+    if (any(crosses_exclusion)) {
+      stop("COICOP fallback uses an HBS parent containing excluded products. ",
+           "Provide detailed custom_hbs data before using 'exclude_coicop'.")
+    }
+  }
 
   dt_weighted_consumption <- if (use_spain_epf_2020_level3_hbs(country, category, level, custom_hbs)) {
     merge_spain_epf_level3_index_and_hbs(index_weights, hbs, specific_hbs_year)
@@ -325,6 +351,7 @@ calculate_weights <- function(country = NULL, category = NULL, level = 2,
                         category = category,
                         categories = hbs$categories,
                         weighting_method = weighting_method,
+                        exclude_coicop = exclude_coicop,
                         level = level,
                         start_year = min(dt_weighted_consumption$weight_year),
                         end_year = max(dt_weighted_consumption$weight_year)),

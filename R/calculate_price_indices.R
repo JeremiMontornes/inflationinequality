@@ -7,6 +7,7 @@
 #' loaded by [calculate_weights()].
 #'
 #' @inheritParams calculate_inflation
+#' @inheritParams calculate_weights
 #' @param base_year year used to rebase the chained index to 100. If `NULL`,
 #'   the package uses `2025` as the default presentation base.
 #' @param include_total whether to include the official all-items HICP index as
@@ -59,6 +60,8 @@
 #' official HICP item weights through [calculate_weights()]. For each household
 #' category and month, it aggregates unchained HICP item movements with a
 #' Laspeyres formula and then chains the monthly aggregates annually.
+#' With `exclude_coicop`, the `"Total"` category is recalculated on the retained
+#' products and is no longer the all-items index.
 #'
 #' When `country` contains several country codes, or when `country` is a
 #' country-group code such as `"EA20"`, the function first calculates national
@@ -90,7 +93,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
                                     recode_ecoicop2_to_ecoicop1 = TRUE,
                                     aggregate_geo = "EA20",
                                     custom_country_weights = NULL,
-                                    weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
+                                    weighting_method = c("relative_expenditure", "ras", "additive_qp"),
+                                    exclude_coicop = NULL) {
   if (is.null(country) && is.null(custom_cpi)) {
     stop("Either 'country' or 'custom_cpi' must be provided.")
   }
@@ -116,6 +120,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     warning("country = 'EA20' currently supports only level = 2; using level = 2.")
     level <- 2
   }
+
+  exclude_coicop <- normalize_exclude_coicop(exclude_coicop, level)
 
   if (!is.null(country) && length(country) == 1 &&
       grepl("^EA[0-9]+$", country) && is.null(custom_cpi)) {
@@ -147,7 +153,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
       aggregate_geo = aggregate_geo,
       custom_country_weights = custom_country_weights,
-      weighting_method = weighting_method
+      weighting_method = weighting_method,
+      exclude_coicop = exclude_coicop
     ))
   }
 
@@ -177,7 +184,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
       aggregate_geo = aggregate_geo,
       custom_country_weights = custom_country_weights,
-      weighting_method = weighting_method
+      weighting_method = weighting_method,
+      exclude_coicop = exclude_coicop
     ))
   }
 
@@ -235,6 +243,13 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     index_weights_obj <- recode_index_weights_ecoicop2_to_ecoicop1(index_weights_obj, target_level = level)
   }
 
+  if (length(exclude_coicop)) {
+    cpi_obj$dt <- exclude_coicop_rows(cpi_obj$dt, exclude_coicop)
+    index_weights_obj$dt <- exclude_coicop_rows(index_weights_obj$dt, exclude_coicop)
+    if (!nrow(cpi_obj$dt) || !nrow(index_weights_obj$dt)) {
+      stop("'exclude_coicop' removes all HICP products.")
+    }
+  }
   price_dt <- data.table::copy(cpi_obj$dt)
   price_dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
   data.table::setorder(price_dt, coicop, date)
@@ -268,7 +283,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
         end_year = max(index_dt$year),
         end_month = max(index_dt[year == max(year), month]),
         base_year = base_year,
-        formula = formula
+        formula = formula,
+        exclude_coicop = exclude_coicop
       ),
       class = "price_indices"
     ))
@@ -290,7 +306,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
     interpolated_hbs = interpolated_hbs,
     specific_hbs_year = specific_hbs_year,
     france_insee_income_groups = france_insee_income_groups,
-    weighting_method = weighting_method
+    weighting_method = weighting_method,
+    exclude_coicop = exclude_coicop
   )
 
   weights_dt <- data.table::copy(weights$dt)
@@ -435,7 +452,8 @@ calculate_price_indices <- function(country = NULL, category = NULL, level = 2,
       end_month = max(index_dt[year == max(year), month]),
         base_year = base_year,
         formula = formula,
-        weighting_method = weighting_method
+        weighting_method = weighting_method,
+        exclude_coicop = exclude_coicop
       ),
     class = "price_indices"
   )
@@ -456,7 +474,8 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
                                                       recode_ecoicop2_to_ecoicop1 = TRUE,
                                                       aggregate_geo = "EA20",
                                                       custom_country_weights = NULL,
-                                                      weighting_method = c("relative_expenditure", "ras", "additive_qp")) {
+                                                      weighting_method = c("relative_expenditure", "ras", "additive_qp"),
+                                                      exclude_coicop = NULL) {
   countries <- toupper(countries)
   formula <- match.arg(formula)
   weighting_method <- match.arg(weighting_method)
@@ -496,7 +515,8 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
       formula = formula,
       recode_ecoicop2_to_ecoicop1 = recode_ecoicop2_to_ecoicop1,
       aggregate_geo = aggregate_geo,
-      weighting_method = weighting_method
+      weighting_method = weighting_method,
+      exclude_coicop = exclude_coicop
     )
   })
   names(national_indices) <- countries
@@ -524,6 +544,7 @@ calculate_price_indices_country_aggregate <- function(countries, category, level
     formula = formula
   )
 
+  aggregate_indices$exclude_coicop <- exclude_coicop
   trim_price_indices(
     aggregate_indices,
     start_year = output_start_year,

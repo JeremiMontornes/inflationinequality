@@ -3,7 +3,7 @@
 #' @description
 #' `plot_household_inflation_distribution()` plots the cross-household
 #' distribution of annual mean inflation rates returned by
-#' [calculate_household_inflation()] or by a pre-aggregated household-year table.
+#' [calculate_spain_household_inflation()] or by a pre-aggregated household-year table.
 #'
 #' @param x A `"household_inflation"` object, or a data frame/data.table with
 #'   columns `household_id`, `year`, `mean_inflation`, and optionally `weight`.
@@ -22,7 +22,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' hh <- calculate_household_inflation(years = 2020, start_year = 2021)
+#' hh <- calculate_spain_household_inflation(years = 2020, start_year = 2021)
 #' plot_household_inflation_distribution(hh, years = 2021:2024)
 #' }
 #'

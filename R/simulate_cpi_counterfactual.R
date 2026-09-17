@@ -460,6 +460,7 @@ parse_counterfactual_date_column <- function(x) {
 
 simulate_cpi_counterfactual_item_indices <- function(price_dt, policy) {
   price_dt <- data.table::copy(price_dt)
+  price_dt[, observed_value := value]
   price_dt[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
   data.table::setorder(price_dt, coicop, date)
   price_dt[, dec_ratio := hicp::unchain(x = value, t = date), by = coicop]
@@ -526,11 +527,25 @@ simulate_cpi_counterfactual_basket <- function(cpi,
   } else {
     cpi$level
   }
+  # Load one complete calendar year on either side of the policy window.
+  # Without a pre-policy year, a policy starting in January is treated as the
+  # scaling anchor and its level jump disappears from the recomposed basket.
+  # Without a post-policy year, the inverse jump at expiry is lost for the same
+  # reason.  Bound the requested years to the observed component-price sample.
+  observed_years <- as.integer(simulated_price_dt$year)
+  weight_start_year <- max(
+    min(observed_years, na.rm = TRUE),
+    as.integer(format(min(policy$date), "%Y")) - 1L
+  )
+  weight_end_year <- min(
+    max(observed_years, na.rm = TRUE),
+    as.integer(format(max(policy$date), "%Y")) + 1L
+  )
   weights <- load_index_weights(
     cpi$country,
     hicp_level,
-    start_year = as.integer(format(min(policy$date), "%Y")),
-    end_year = as.integer(format(max(policy$date), "%Y"))
+    start_year = weight_start_year,
+    end_year = weight_end_year
   )
   if (isTRUE(recode_ecoicop2_to_ecoicop1)) {
     weights <- recode_index_weights_ecoicop2_to_ecoicop1(weights, target_level = cpi$level)
@@ -540,6 +555,11 @@ simulate_cpi_counterfactual_basket <- function(cpi,
   if ("weight_year" %in% names(total_weights)) {
     data.table::setnames(total_weights, "weight_year", "year")
   }
+  # `load_index_weights()` retains the COICOP hierarchy up to the requested
+  # level.  The item CPI used below is defined at the terminal level, so mixing
+  # parent and child weights would count the same consumption several times and
+  # dilute every policy wedge.  Aggregate the basket from terminal items only.
+  total_weights <- total_weights[nchar(coicop) == cpi$level + 1L]
   coicops <- simulated_price_dt[, unique(coicop)]
   total_weights <- total_weights[coicop %in% coicops]
   total_weights[, weight := weight * 100 / sum(weight), by = year]
@@ -553,26 +573,30 @@ simulate_cpi_counterfactual_basket <- function(cpi,
     stop("No common COICOP-year observations between simulated CPI data and index weights.")
   }
 
+  # Recompose the total from item-level counterfactual/observed level ratios.
+  # Re-chaining item December ratios would normalize away a policy that starts
+  # in January and would generally fail to reverse it exactly at expiry.
+  # Multiplying the official total index by the official-weighted level wedge
+  # preserves both discontinuities while retaining the observed basket path.
   basket_dt <- total_data[
-    !is.na(simulated_dec_ratio) & !is.na(weight),
-    .(laspeyres = hicp::laspeyres(x = simulated_dec_ratio, w0 = weight)),
+    is.finite(value) & value > 0 & is.finite(observed_value) &
+      observed_value > 0 & is.finite(weight),
+    .(basket_level_ratio = stats::weighted.mean(
+      value / observed_value,
+      w = weight
+    )),
     by = .(year, month, date)
   ]
-  data.table::setorder(basket_dt, date)
-  basket_dt[, simulated_chain_index := hicp::chain(x = laspeyres, t = date, by = 12)]
 
   original_basket <- data.table::copy(cpi$dt_basket)
   original_basket[, date := as.Date(sprintf("%04d-%02d-01", year, month))]
   basket_dt <- merge(
     original_basket,
-    basket_dt[, .(year, month, simulated_chain_index)],
+    basket_dt[, .(year, month, basket_level_ratio)],
     by = c("year", "month"),
     all.x = TRUE
   )
   data.table::setorder(basket_dt, date)
-  basket_dt[, value := scale_chained_index_to_original(
-    chain_index = simulated_chain_index,
-    original_value = value
-  )]
+  basket_dt[is.finite(basket_level_ratio), value := value * basket_level_ratio]
   basket_dt[, .(series_name, value, year, month)]
 }

@@ -1,7 +1,7 @@
 #' Calculate household-level inflation from Spanish EPF microdata
 #'
 #' @description
-#' `calculate_household_inflation()` builds household-specific HICP Laspeyres
+#' `calculate_spain_household_inflation()` builds household-specific HICP Laspeyres
 #' indices by combining INE EPF household expenditure microdata with Eurostat
 #' HICP item indices and official HICP item weights.
 #'
@@ -44,7 +44,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' es_hh <- calculate_household_inflation(
+#' es_hh <- calculate_spain_household_inflation(
 #'   years = 2020:2024,
 #'   start_year = 2021,
 #'   end_year = 2024,
@@ -55,7 +55,7 @@
 #'
 #' @seealso [calculate_price_indices()], [calculate_weights()]
 #' @export
-calculate_household_inflation <- function(country = "ES",
+calculate_spain_household_inflation <- function(country = "ES",
                                           years = 2020:2024,
                                           level = 3,
                                           start_year = NULL,

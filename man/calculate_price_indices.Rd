@@ -25,7 +25,8 @@ calculate_price_indices(
   recode_ecoicop2_to_ecoicop1 = TRUE,
   aggregate_geo = "EA20",
   custom_country_weights = NULL,
-  weighting_method = c("relative_expenditure", "ras", "additive_qp")
+  weighting_method = c("relative_expenditure", "ras", "additive_qp"),
+  exclude_coicop = NULL
 )
 }
 \arguments{
@@ -105,6 +106,12 @@ weighting methods combine HBS actual rents (\code{04.1}) and imputed rents of
 owner-occupiers (\code{04.2}) to distribute the HICP actual-rents weight
 (\code{04.1}). This housing bridge is applied for every country when both HBS
 components are available; HICP weights remain unchanged.}
+
+\item{exclude_coicop}{character vector of COICOP prefixes to exclude, e.g.
+\code{c("041", "042")} for actual and imputed rents. \code{NULL} excludes nothing.
+Codes use the target HBS nomenclature and include all descendants. They
+must not be finer than \code{level}. Exclusions apply before the housing bridge
+and weight normalization. Remaining category weights sum to 100.}
 }
 \value{
 An object of class \code{"price_indices"} containing:
@@ -136,6 +143,8 @@ are obtained by combining public semi-aggregated HBS expenditure shares with
 official HICP item weights through \code{\link[=calculate_weights]{calculate_weights()}}. For each household
 category and month, it aggregates unchained HICP item movements with a
 Laspeyres formula and then chains the monthly aggregates annually.
+With \code{exclude_coicop}, the \code{"Total"} category is recalculated on the retained
+products and is no longer the all-items index.
 
 When \code{country} contains several country codes, or when \code{country} is a
 country-group code such as \code{"EA20"}, the function first calculates national

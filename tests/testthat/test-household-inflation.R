@@ -54,12 +54,12 @@ test_that("Spain EPF household parser builds a household HBS object", {
   expect_equal(epf$households[household_id == "ES_2020_1", age_ref], "From 30 to 44 years")
 })
 
-test_that("calculate_household_inflation validates missing EPF zips", {
+test_that("calculate_spain_household_inflation validates missing EPF zips", {
   zip_dir <- file.path(tempdir(), "missing_epf_zips")
   unlink(zip_dir, recursive = TRUE, force = TRUE)
 
   expect_error(
-    calculate_household_inflation(years = 2020, zip_dir = zip_dir, download = FALSE),
+    calculate_spain_household_inflation(years = 2020, zip_dir = zip_dir, download = FALSE),
     "Missing INE EPF ZIP"
   )
 })
